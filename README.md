@@ -1,2 +1,6 @@
 # WebServ
-Pra testar, utilize em outro terminal : '~$ telnet localhost 8080'
+
+Rode `~$ telnet localhost 8080` ou no browser http://localhost:8080
+
+
+
