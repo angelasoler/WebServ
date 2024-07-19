@@ -1,8 +1,17 @@
 
 #include "server.hpp"
+#include <csignal>
+
+Server server(PORT);
+
+void    killing(int sig)
+{
+	(void)sig;
+	exit(5);
+}
 
 int main() {
-    Server server(PORT);
-    server.run();
-    return 0;
+	signal(SIGINT, killing);
+	server.run();
+	return 0;
 }

@@ -1,15 +1,16 @@
 NAME = webServer
-FLAGS = -Wall -Wextra -Werror -std=c++98
-SRC_FILES = $(wildcard ./sources/*.cpp ./*.cpp)
+FLAGS = -Wall -Wextra -Werror -std=c++98 -g
+SRC_PATH = source/
+SRC_FILES = $(wildcard $(SRC_PATH)*.cpp, *.cpp)
 OBJ = obj
-OBJ_FILES = $(SRC_FILES:sources/%.cpp=$(OBJ)/%.o)
+OBJ_FILES = $(SRC_FILES:$(SRC_PATH)%.cpp=$(OBJ)/%.o)
 
 all: $(NAME)
 
 $(NAME): $(OBJ_FILES)
-	c++ $(FLAGS) -I./ $(OBJ_FILES) -o $(NAME)
+	c++ $(FLAGS) -I./ $^ -o $(NAME)
 
-${OBJ}/%.o : sources/%.cpp
+${OBJ}/%.o : $(SRC_PATH)%.cpp %.cpp 
 	mkdir -p ${OBJ}
 	c++ $(FLAGS) -c $< -o $@
 
@@ -17,9 +18,12 @@ run: $(NAME)
 	make re
 	clear && ./$(NAME)
 
+v: valgrind
+
 valgrind: $(NAME)
 	make re
-	clear && valgrind ./$(NAME)
+	clear
+	valgrind --show-leak-kinds=all --leak-check=full --track-fds=yes ./$(NAME)
 
 git:
 	make fclean
@@ -35,3 +39,5 @@ fclean: clean
 	@rm -rf $(NAME)
 
 re: fclean all
+
+.PHONY: all clean fclean re run git valgrind v

@@ -1,0 +1,4 @@
+webServer
+*.o
+.vscode/
+obj/
