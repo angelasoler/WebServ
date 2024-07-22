@@ -1,15 +1,14 @@
 NAME = webServer
 FLAGS = -Wall -Wextra -Werror -std=c++98 -g
-# SRC_PATH = source/
-# SRC_FILES = $(wildcard $(SRC_PATH)*.cpp, *.cpp)
-SRC_FILES = main.cpp Server.cpp EventLoop.cpp
+SRC_PATH = source/
+SRC_FILES = $(wildcard $(SRC_PATH)*.cpp, *.cpp)
 OBJ = obj
 OBJ_FILES = $(SRC_FILES:$(SRC_PATH)%.cpp=$(OBJ)/%.o)
 
 all: $(NAME)
 
 $(NAME): $(OBJ_FILES)
-	c++ $(FLAGS) -I./ $^ -o $(NAME)
+	c++ $(FLAGS) -I./includes $^ -o $(NAME)
 
 ${OBJ}/%.o : $(SRC_PATH)%.cpp %.cpp 
 	mkdir -p ${OBJ}

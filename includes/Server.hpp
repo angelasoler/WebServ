@@ -2,10 +2,6 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-# ifndef BUFFER_SIZE
-#  define BUFFER_SIZE 1024
-# endif
-
 # include <iostream>
 # include <cstdio>
 # include <cstdlib>
@@ -18,13 +14,10 @@
 
 # include <algorithm>
 # include <map>
-# include "Connection.hpp"
 
-typedef enum
-{
-	RESPONSE,
-	CLOSE
-}	e_httpMethodActions;
+#define N_SERVERS 1
+
+class Connection;
 
 class Server
 {
@@ -37,12 +30,12 @@ class Server
 
 	public:
 		struct sockaddr_in 			address;
-		std::vector<struct pollfd>	poll_fds;
-		std::map<int, std::string>	request;
+		std::vector<struct pollfd>	poll_fds;//leak
+		std::map<int, std::string>	requestText;
+		Connection					*connection;
 
 		void	connectNewClient(void);
-		int		getRequest(int client_fd, int clientIdx);
-		void	ReponseClient(int client_fd);
+		void	getRequest(int client_fd, int clientIdx);
 		void	treatRequest(int client_fd, int clientIdx);
 		Server(int port);
 		~Server(void);
