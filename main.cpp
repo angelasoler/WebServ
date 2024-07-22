@@ -13,7 +13,7 @@ void	killing(int sig)
 }
 
 int main() {
-	Server	server(PORT);
+	Server		server(PORT);
 	EventLoop	loop(server);
 
 	signal(SIGINT, killing);

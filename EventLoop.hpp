@@ -18,16 +18,14 @@
 typedef enum
 {
 	RESPONSE,
-	REVENT,
 	CLOSE
 }	e_methodActions;
 
 class EventLoop
 {
 	private:
-		std::map<int, std::string>	message;
 		Server						&refServer;
-		char						buffer[BUFFER_SIZE + 1]; //arrancar + 1
+		std::map<int, std::string>	message;
 
 	public:
 		EventLoop(Server &server);
@@ -36,11 +34,11 @@ class EventLoop
 		void	run();
 
 		void	acceptConnection(void);
-		int		handleClient(int client_fd);
+		int		handleClient(int client_fd, int poll_index);
 		int		setNonBlocking(int fd);
 		void	answer_it(int client_fd);
 
-		int		getActionNumber(std::string text);
+		int		treatHTTPMethod(std::string text);
 };
 
 #endif /* EVENTLOOP_HPP */

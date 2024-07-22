@@ -21,11 +21,9 @@ class Server
 		~Server(void);
 		void run(void);
 
-		int							server_fd;
 		struct sockaddr_in 			address;
 		std::vector<struct pollfd>	poll_fds;
 	private:
-
 		void						createSocket(void);
 		void						configureSocket(void);
 		void						bindSocket(void);
