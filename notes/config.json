@@ -1,0 +1,45 @@
+servers:
+{
+    <server_default>: {
+        - port
+        - host
+        - default_error_page: <***.html>
+        - body_size_limit: <number>
+        - name true/flase {
+            name: <name>
+        }
+        - route: {
+            http_methods: GET, POST, DELETE,
+            http_redirection: <redirection default>,
+            root_dir: <path>,
+            directory_listen: on/off,
+            directory_redirection: <path>,
+            cgi_extion: <type>, //ex. py, php, js escolher um
+            upload_file: true/false {
+            upload_path: <path>
+            }
+        }
+    }
+    <server_id>: {
+        - port
+        - host
+        - name true/flase {
+            name: <name>
+        }
+        - default_error_page: <***.html>
+        - body_size_limit: <number>
+        - route: {
+            http_methods: GET, POST, DELETE,
+            http_redirection: <redirection default>,
+            root_dir: <path>,
+            directory_listen: on/off,
+            directory_redirection: <path>,
+            cgi_extion: <type>, //ex. py, php, js escolher um
+            upload_file: true/false {
+                upload_path: <path>
+            }
+        }
+    }
+}
+// PATH_INFO -> definir para executar o cgi, caminho absoluto
+// fazer configurações default para testes
