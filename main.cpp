@@ -1,17 +1,22 @@
 
-#include "server.hpp"
+#include "EventLoop.hpp"
 #include <csignal>
+#define PORT 8080
 
-Server server(PORT);
-
-void    killing(int sig)
+// TO-DO
+// [_] Clean staff
+// [_] Delegate to class SigHandler
+void	killing(int sig)
 {
 	(void)sig;
 	exit(5);
 }
 
 int main() {
+	Server	server(PORT);
+	EventLoop	loop(server);
+
 	signal(SIGINT, killing);
-	server.run();
+	loop.run();
 	return 0;
 }

@@ -23,6 +23,13 @@
 #  define BUFFER_SIZE 1024
 # endif
 
+typedef enum
+{
+	RESPONSE,
+	REVENT,
+	CLOSE
+}	e_methodActions;
+
 class Server
 {
 	public:
@@ -31,11 +38,11 @@ class Server
 		void run(void);
 
 	private:
-		int                         server_fd;
-		struct sockaddr_in          address;
-		int                         addrlen;
-		char                        buffer[BUFFER_SIZE + 1];
-		std::vector<struct pollfd>  poll_fds;
+		int							server_fd;
+		struct sockaddr_in 			address;
+		int							addrlen;
+		char						buffer[BUFFER_SIZE + 1];
+		std::vector<struct pollfd>	poll_fds;
 		std::map<int, std::string>	message;
 
 		void	createSocket(void);
