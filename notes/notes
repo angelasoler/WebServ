@@ -1,10 +1,8 @@
+map<int id_serv, map aninhado>
+map aninhado<string, T>
+map[id]->second[port] 0(1)
+map[id]->second[host]
+map[id]->second[default_error_page]
+map[id]->second[route]
 
 
-
-if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0) {
-                perror("accept");
-                close(server_fd);
-                exit(EXIT_FAILURE);
-            }
-
-            //fechar server_fd todas vez que há uma conexão?

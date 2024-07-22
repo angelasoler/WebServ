@@ -3,11 +3,11 @@ servers:
     <server_default>: {
         - port
         - host
+        - default_error_page: <***.html>
+        - body_size_limit: <number>
         - name true/flase {
             name: <name>
         }
-        - default_error_page: <***.html>
-        - body_size_limit: <number>
         - route: {
             http_methods: GET, POST, DELETE,
             http_redirection: <redirection default>,
@@ -23,10 +23,9 @@ servers:
     <server_id>: {
         - port
         - host
-        - name true/flase
-            {
-                name: <name>
-            }
+        - name true/flase {
+            name: <name>
+        }
         - default_error_page: <***.html>
         - body_size_limit: <number>
         - route: {
