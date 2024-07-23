@@ -37,8 +37,6 @@ class config
 	public:
 		std::vector<ServerConfig> servers;
 
-		void addServer(const ServerConfig& server)
-		{
-			servers.push_back(server);
-		}
+		void	loadConfig(const std::string& configFilePath);
+		void	addServer(const ServerConfig& server);
 };
