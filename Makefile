@@ -8,7 +8,7 @@ OBJ_FILES = $(SRC_FILES:$(SRC_PATH)%.cpp=$(OBJ)/%.o)
 all: $(NAME)
 
 $(NAME): $(OBJ_FILES)
-	c++ $(FLAGS) -I./ $^ -o $(NAME)
+	c++ $(FLAGS) -I./includes $^ -o $(NAME)
 
 ${OBJ}/%.o : $(SRC_PATH)%.cpp %.cpp 
 	mkdir -p ${OBJ}
