@@ -32,11 +32,20 @@ struct ServerConfig
 	std::map<std::string, RouteConfig>	routes;
 };
 
-class config
+class Config
 {
+	private:
+		ServerConfig	currentServer;
+		RouteConfig		currentRoute;
+		CGIConfig		currentCGI;
 	public:
 		std::vector<ServerConfig> servers;
 
+		void	processServerConfig(const std::string& key, const std::string& value);
+		void	processRouteConfig(const std::string& key, const std::string& value, std::istringstream &iss);
+		void	processCGIConfig(const std::string& key, const std::string& value);
 		void	loadConfig(const std::string& configFilePath);
 		void	addServer(const ServerConfig& server);
 };
+
+void printConfig(Config& config);

@@ -1,0 +1,46 @@
+make re
+make[1]: Entering directory '/home/gsmereka/projects/webserv'
+c++ -Wall -Wextra -Werror -std=c++98 -g -I./includes Config.cpp Connection.cpp EventLoop.cpp Request.cpp Response.cpp Server.cpp SignalHandler.cpp main.cpp printConfig.cpp -o webServer
+make[1]: Leaving directory '/home/gsmereka/projects/webserv'
+clear && ./webServer
+[H[2J[3JPronto para conectar com clientes
+Utilize: '~$ 	telnet localhost 8080' em outro terminal para testar!
+Servers: 
+Host: localhost
+Port: 8080
+Server Names: example_x.com 
+Default Error Page: /errors/404.html
+Client Body Limit: 1048576
+Path Info: /cgi/script
+Script Path: /cgi/script.cgi
+
+Routes: 
+Route Key: /route_x
+Path: /route_x
+Accepted Methods: GET POST DELETE 
+Redirection: /route_x_redirection
+Root Directory: /var/www/route_x
+Directory Listing: Yes
+Default File: index.html
+CGI Extension: .php
+Upload Directory: /var/www/uploads
+
+Host: 192.168.1.1
+Port: 9090
+Server Names: example_y.com 
+Default Error Page: /errors/500.html
+Client Body Limit: 2097152
+Path Info: /cgi-bin/route_y
+Script Path: /usr/lib/cgi-bin/route_y.cgi
+
+Routes: 
+Route Key: /route_y
+Path: /route_y
+Accepted Methods: GET 
+Redirection: 
+Root Directory: /var/www/route_y
+Directory Listing: No
+Default File: index.html
+CGI Extension: .php
+Upload Directory: /var/www/route_y_uploads
+
