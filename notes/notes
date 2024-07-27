@@ -1,8 +1,0 @@
-map<int id_serv, map aninhado>
-map aninhado<string, T>
-map[id]->second[port] O(1)
-map[id]->second[host]
-map[id]->second[default_error_page]
-map[id]->second[route]
-
-

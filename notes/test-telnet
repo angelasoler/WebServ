@@ -1,1 +1,0 @@
-timeout 1s bash -c 'telnet localhost 8080'
