@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/webserv.dir/src/Connection.cpp.o CMakeFiles/webserv.dir/src/EventLoop.cpp.o CMakeFiles/webserv.dir/src/Request.cpp.o CMakeFiles/webserv.dir/src/Response.cpp.o CMakeFiles/webserv.dir/src/Server.cpp.o CMakeFiles/webserv.dir/src/SignalHandler.cpp.o CMakeFiles/webserv.dir/src/main.cpp.o -o webserv 

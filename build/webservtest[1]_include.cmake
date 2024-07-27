@@ -1,5 +1,0 @@
-if(EXISTS "/home/angela/42/WebServ/build/webservtest[1]_tests.cmake")
-  include("/home/angela/42/WebServ/build/webservtest[1]_tests.cmake")
-else()
-  add_test(webservtest_NOT_BUILT webservtest_NOT_BUILT)
-endif()
