@@ -5,26 +5,26 @@
 #include <iostream>
 # include "Request.hpp"
 # include "Response.hpp"
-
-class	Server;
-
+# include "Server.hpp"
 class Connection
 {
 	private:
-		Request		request;
-		Response	response;
-		Server		&refServer;
+		Request						request;
+		Response					response;
+		std::map<int, std::string>	requestsText;
 
-		int		setNonBlocking(int client_fd);
+		int			setNonBlocking(int client_fd);
 	public:
-		Connection(Server &server);
+		std::vector<struct pollfd>	poll_fds;//leak
+
+		Connection();
 		Connection(const Connection &cpy);
 		~Connection(void);
 
 		void	responseToClient(int client_fd);
-		void	newClient();
+		void	connectNewClient(Server &refServer);
 		void	readClientRequest(int client_fd, int clientIdx);
-		void	breakRequest(int client_fd, int clientIdx);
+		void	treatRequest(int client_fd, int clientIdx);
 };
 
 

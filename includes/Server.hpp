@@ -15,30 +15,25 @@
 # include <algorithm>
 # include <map>
 
-#define N_SERVERS 1
-
-class Connection;
+#include "Config.hpp"
 
 class Server
 {
 	private:
-		void	createSocket(void);
+		int		createSocket(void);
 		void	configureSocket(void);
 		void	bindSocket(void);
 		void	listenSocket(void);
 		int		setNonBlocking(int client_fd);
 
 	public:
+		int							fd;
 		struct sockaddr_in 			address;
-		std::vector<struct pollfd>	poll_fds;//leak
-		std::map<int, std::string>	requestText;
-		Connection					*connection;
 
-		void	connectNewClient(void);
-		void	getRequest(int client_fd, int clientIdx);
-		void	treatRequest(int client_fd, int clientIdx);
-		Server(int port);
+		Server(const Server &cpy);
+		Server(ServerConfig &server);
 		~Server(void);
+		Server &operator=(const Server &cpy);
 };
 
 void	handleError(const std::string& msg);

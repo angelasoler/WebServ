@@ -60,9 +60,14 @@ void printServerConfig(ServerConfig& serverConfig)
 void printConfig(Config& config)
 {
 	std::cout << "Servers: " << std::endl;
+	int i = 0;
 	for (std::vector<ServerConfig>::iterator it = config.servers.begin();
 		 it != config.servers.end(); ++it)
 	{
+		std::cout << "\t==== Server "
+				<< ++i
+				<< "====="
+				<< std::endl;
 		printServerConfig(*it);
 	}
 }

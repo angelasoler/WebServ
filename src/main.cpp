@@ -1,22 +1,30 @@
 
 #include "EventLoop.hpp"
+#include "Config.hpp"
 #include <csignal>
 #define PORT 8080
 
-// TO-DO
-// [_] Clean staff
-// [_] Delegate to class SigHandler
-void	killing(int sig)
-{
-	(void)sig;
-	exit(5);
-}
-
 int main() {
-	Server		server(PORT);
-	EventLoop	loop(server);
+	Config				config;
 
-	signal(SIGINT, killing);
-	loop.run();
+	config.loadConfig("config.conf");
+	N_SERVERS = config.servers.size();
+
+	std::vector<Server>	servers;
+	EventLoop			loop;
+
+	for (uint i = 0; i < N_SERVERS; i++)
+	{
+		struct pollfd	server_poll_fd;
+		Server			tmp(config.servers[i]);
+
+		servers.push_back(tmp);
+		server_poll_fd.fd = servers[i].fd;
+		server_poll_fd.events = POLLIN | POLLOUT;
+		loop.connection->poll_fds.push_back(server_poll_fd);
+	}
+
+	// printConfig(config);
+	loop.run(servers);
 	return 0;
 }
