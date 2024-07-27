@@ -31,13 +31,18 @@ std::string exec(std::string command) {
 	return result;
 }
 
-TEST(HttpTest, GetRequest) {
+TEST(HttpTest, FirefoxGetRequest) {
 	start_server();
 	int result = std::system("test/test-firefox");
-	std::string response = exec("test/test-telnet");
 
 	EXPECT_EQ(result, 0);
-	std::cout << response << std::endl;
+	stop_server();
+}
+
+TEST(HttpTest, TelnetGetRequest) {
+	start_server();
+	std::string response = exec("test/test-telnet");
+
 	EXPECT_NE(response.find("Hello"), std::string::npos);
 	stop_server();
 }
