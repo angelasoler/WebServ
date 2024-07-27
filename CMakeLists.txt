@@ -22,9 +22,7 @@ add_executable(webserv ${SOURCES})
 
 list(REMOVE_ITEM SOURCES "${CMAKE_SOURCE_DIR}/src/main.cpp")
 add_executable(webservtest test/webservtest.cpp ${SOURCES})
-# target_link_libraries(webservtest gtest_main)
-find_package(CURL REQUIRED)
-target_link_libraries(webservtest PRIVATE gtest_main CURL::libcurl)
+target_link_libraries(webservtest gtest_main)
 
 include(GoogleTest)
 gtest_discover_tests(webservtest)
