@@ -27,14 +27,14 @@ std::string exec(std::string command) {
 			result += buffer;
 	}
 
-   pclose(pipe);
-   return result;
+	pclose(pipe);
+	return result;
 }
 
 TEST(HttpTest, GetRequest) {
 	start_server();
-	int result = std::system("../test/test-firefox");
-	std::string response = exec("../test/test-telnet");
+	int result = std::system("test/test-firefox");
+	std::string response = exec("test/test-telnet");
 
 	EXPECT_EQ(result, 0);
 	std::cout << response << std::endl;

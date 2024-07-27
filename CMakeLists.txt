@@ -4,8 +4,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 add_compile_options(-Wall -Wextra -Werror)
 
 project(WebServ)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "../")
 
-# Adicione as linhas para incluir e linkar o Google Test
 include(FetchContent)
 FetchContent_Declare(
   googletest
@@ -26,3 +26,8 @@ target_link_libraries(webservtest gtest_main)
 
 include(GoogleTest)
 gtest_discover_tests(webservtest)
+
+add_custom_target(
+    COMMAND ${CMAKE_MAKE_PROGRAM} clean
+    COMMAND ${CMAKE_COMMAND} -E rm -rf ../webserv ../webservtest
+)
