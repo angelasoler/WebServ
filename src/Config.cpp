@@ -84,6 +84,8 @@ void Config::loadConfig(const std::string& configFilePath)
 	}
 	if (inServer)
 		finishServer();
+	if (servers.empty())
+		finishServer();
 }
 
 void Config::processServerConfig(const std::string& key, const std::string& value)
