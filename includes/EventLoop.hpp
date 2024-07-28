@@ -8,18 +8,19 @@
 # include <map>
 # include <algorithm>
 # include <cstring>
-#include "Server.hpp"
+#include "Connection.hpp"
+
+extern uint N_SERVERS;
 
 class EventLoop
 {
-	private:
-		Server	&refServer;
-
 	public:
-		EventLoop(Server &server);
+		Connection			*connection;
+
+		EventLoop();
 		~EventLoop(void);
 
-		void	run();
+		void	run(std::vector<Server> &servers);
 };
 
 #endif /* EVENTLOOP_HPP */

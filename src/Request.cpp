@@ -41,12 +41,12 @@ e_httpMethodActions	Request::parseRequest(std::string text)
 		|| !std::strncmp(text.c_str(), "POST", 4)
 		|| !std::strncmp(text.c_str(), "DELETE", 6))
 	{
-		std::cout << "RESPONSE\n" << std::endl;
+		std::cout << "\tRESPONSE\n" << std::endl;
 		return(RESPONSE);
 	}
 	else
 	{
-		std::cout << "CLOSE\n" << std::endl;
+		std::cout << "\tCLOSE\n" << std::endl;
 		return(CLOSE);
 	}
 }

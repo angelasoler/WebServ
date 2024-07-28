@@ -1,3 +1,6 @@
+#ifndef CONFIG_HPP
+#define CONFIG_HPP
+
 #include <string>
 #include <vector>
 #include <map>
@@ -39,7 +42,7 @@ class Config
 		RouteConfig		currentRoute;
 		CGIConfig		currentCGI;
 	public:
-		std::vector<ServerConfig> servers;
+		std::vector<ServerConfig>	servers;
 
 		void	processServerConfig(const std::string& key, const std::string& value);
 		void	processRouteConfig(const std::string& key, const std::string& value, std::istringstream &iss);
@@ -49,3 +52,5 @@ class Config
 };
 
 void printConfig(Config& config);
+
+#endif //CONFIG_HPP
