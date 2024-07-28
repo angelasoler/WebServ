@@ -4,7 +4,6 @@
 #include <string>
 #include <vector>
 #include <map>
-
 struct RouteConfig
 {
 	std::string					path;
@@ -15,12 +14,16 @@ struct RouteConfig
 	std::string 				default_file;
 	std::string 				cgi_extension;
 	std::string					upload_directory;
+
+	RouteConfig();
 };
 
 struct CGIConfig
 {
 	std::string path_info;
 	std::string script_path;
+
+	CGIConfig();
 };
 
 struct ServerConfig
@@ -31,8 +34,9 @@ struct ServerConfig
 	std::string					default_error_page;
 	size_t						client_body_limit;
 	CGIConfig					cgi;
-
 	std::map<std::string, RouteConfig>	routes;
+
+	ServerConfig();
 };
 
 class Config
@@ -40,10 +44,12 @@ class Config
 	private:
 		ServerConfig	currentServer;
 		RouteConfig		currentRoute;
-		CGIConfig		currentCGI;
+		bool			inServer;
+		bool			inRoute;
 	public:
 		std::vector<ServerConfig>	servers;
-
+		void	finish_server(void);
+		void	finish_route(void);
 		void	processServerConfig(const std::string& key, const std::string& value);
 		void	processRouteConfig(const std::string& key, const std::string& value, std::istringstream &iss);
 		void	processCGIConfig(const std::string& key, const std::string& value);

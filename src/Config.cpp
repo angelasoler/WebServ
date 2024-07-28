@@ -4,6 +4,30 @@
 #include <sstream>
 #include <cstdlib>
 
+RouteConfig::RouteConfig()
+    : path("/"),
+      redirection(""),
+      root_directory("/var/www/html"),
+      directory_listing(false),
+      default_file("index.html"),
+      cgi_extension(".cgi"),
+      upload_directory("/var/www/uploads")
+{}
+
+
+CGIConfig::CGIConfig()
+    : path_info("/cgi-bin"),
+      script_path("/usr/lib/cgi-bin")
+{}
+
+ServerConfig::ServerConfig()
+    : host("127.0.0.1"),
+      port(8080),
+      default_error_page("/error.html"),
+      client_body_limit(1048576),
+      cgi()
+{}
+
 void Config::addServer(const ServerConfig& server)
 {
 	servers.push_back(server);
@@ -12,24 +36,7 @@ void Config::addServer(const ServerConfig& server)
 void Config::processServerConfig(const std::string& key, const std::string& value)
 {
 	if (key == "server")
-	{
-		if (!currentServer.host.empty()) // caso já o campo 'host' nao esteja vazio, as variaveis CurrentServer, CurrentRoute e CurrentCGI sao armazenadas e em seguida resetadas.
-		{
-			if (!currentRoute.path.empty())
-			{
-				currentServer.routes[currentRoute.path] = currentRoute;
-				currentRoute = RouteConfig();
-			}
-			if (!currentCGI.path_info.empty())
-			{
-				currentServer.cgi = currentCGI;
-				currentCGI = CGIConfig();
-			}
-			this->addServer(currentServer);
-			currentServer = ServerConfig();
-		}
 		currentServer.host = value;
-	}
 	else if (key == "port")
 		currentServer.port = std::atoi(value.c_str());
 	else if (key == "server_name")
@@ -43,14 +50,7 @@ void Config::processServerConfig(const std::string& key, const std::string& valu
 void Config::processRouteConfig(const std::string& key, const std::string& value, std::istringstream &iss)
 {
 	if (key == "route_path")
-	{
-		if (!currentRoute.path.empty())
-		{
-			currentServer.routes[currentRoute.path] = currentRoute;
-			currentRoute = RouteConfig();
-		}
 		currentRoute.path = value;
-	}
 	else if (key == "accepted_methods")
 	{
 		std::string method;
@@ -65,9 +65,7 @@ void Config::processRouteConfig(const std::string& key, const std::string& value
 	else if (key == "root_directory")
 		currentRoute.root_directory = value;
 	else if (key == "directory_listing")
-	{
 		currentRoute.directory_listing = (value == "on");
-	}
 	else if (key == "default_file")
 		currentRoute.default_file = value;
 	else if (key == "cgi_extension")
@@ -79,25 +77,37 @@ void Config::processRouteConfig(const std::string& key, const std::string& value
 void Config::processCGIConfig(const std::string& key, const std::string& value)
 {
 	if (key == "cgi_path_info")
-	{
-		if (!currentCGI.path_info.empty())
-		{
-			currentServer.cgi = currentCGI;
-			currentCGI = CGIConfig();
-		}
-		currentCGI.path_info = value;
-	}
+		currentServer.cgi.path_info = value;
 	else if (key == "cgi_script_path")
+		currentServer.cgi.script_path = value;
+}
+
+void Config::finish_route(void)
+{
+	if (currentRoute.accepted_methods.empty())
 	{
-		currentCGI.script_path = value;
+		currentRoute.accepted_methods.push_back("GET");
+		currentRoute.accepted_methods.push_back("DELETE");
 	}
+	currentServer.routes[currentRoute.path] = currentRoute;
+	currentRoute = RouteConfig();
+}
+
+void Config::finish_server(void)
+{
+	finish_route();
+	if (currentServer.server_names.empty())
+		currentServer.server_names.push_back("localhost");
+	this->addServer(currentServer);
+	currentServer = ServerConfig();
 }
 
 void Config::loadConfig(const std::string& configFilePath)
 {
 	std::ifstream configFile(configFilePath.c_str());
 	std::string line;
-
+	inRoute = false;
+	inServer = false;
 	while (std::getline(configFile, line))
 	{
 		std::istringstream iss(line);
@@ -106,27 +116,44 @@ void Config::loadConfig(const std::string& configFilePath)
 
 		if (line.empty() || line[0] == '#') // skip empty lines and comments
 			continue;
-
-		if (iss >> key >> value)
+		if (!(iss >> key))
+			continue;
+		if (!inServer)
 		{
+			if (key == "START_SERVER")
+				inServer = 1;
+			continue;
+		}
+		if (key == "END_SERVER")
+		{
+			inServer = false;
+			inRoute = false;
+			finish_server();
+			continue ;
+		}
+		if (!inRoute)
+		{
+			if (key == "START_ROUTE")
+			{
+				inRoute = true;
+				continue ;
+			}
+		}
+		if (key == "END_ROUTE")
+		{
+			// finish_route();
+			inRoute = false;
+			continue ;
+		}
+		
+		if (iss >> value)
+		{
+			
 			processServerConfig(key, value);
 			processRouteConfig(key, value, iss);
 			processCGIConfig(key, value);
 		}
 	}
-
-	if (!currentRoute.path.empty())
-	{
-		currentServer.routes[currentRoute.path] = currentRoute;
-	}
-
-	if (!currentCGI.path_info.empty())
-	{
-		currentServer.cgi = currentCGI;
-	}
-
-	if (!currentServer.host.empty())
-	{
-		this->addServer(currentServer);
-	}
+	if (inServer)
+		finish_server();
 }
