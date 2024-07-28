@@ -5,7 +5,7 @@
 #define PORT 8080
 
 int main() {
-	Config				config;
+	Config	config;
 
 	config.loadConfig("config.conf");
 	N_SERVERS = config.servers.size();
@@ -15,12 +15,12 @@ int main() {
 
 	for (uint i = 0; i < N_SERVERS; i++)
 	{
-		struct pollfd	server_poll_fd;
+		struct epoll_event	server_poll_fd;
 		Server			tmp(config.servers[i]);
 
 		servers.push_back(tmp);
-		server_poll_fd.fd = servers[i].fd;
-		server_poll_fd.events = POLLIN | POLLOUT;
+		server_poll_fd.data.fd = servers[i].fd;
+		server_poll_fd.events = POLLIN;
 		loop.connection->poll_fds.push_back(server_poll_fd);
 	}
 

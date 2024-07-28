@@ -3,7 +3,9 @@
 #include "Server.hpp"
 
 
-Connection::Connection(void) {}
+Connection::Connection(void) {
+	poll_fds.resize(16);
+}
 
 Connection::~Connection(void) {}
 
@@ -11,7 +13,7 @@ void	Connection::connectNewClient(Server &refServer)
 {
 	int	new_socket;
 	int	addrlen = sizeof(refServer.address);
-	struct pollfd client_poll_fd;
+	struct epoll_event client_poll_fd;
 
 	if ((new_socket = accept(refServer.fd, (struct sockaddr*)&refServer.address, (socklen_t*)&addrlen)) < 0)
 	{
@@ -27,9 +29,8 @@ void	Connection::connectNewClient(Server &refServer)
 	{
 		handleError("Set non-blocking failed");
 	}
-	client_poll_fd.fd = new_socket;
+	client_poll_fd.data.fd = new_socket;
 	client_poll_fd.events = POLLIN | POLLOUT;
-	client_poll_fd.revents = 0;
 	poll_fds.push_back(client_poll_fd);
 }
 
@@ -57,7 +58,7 @@ void	Connection::treatRequest(int client_fd, int clientIdx) {
 		poll_fds.erase(poll_fds.begin() + clientIdx);
 		// std::vector<struct pollfd>().swap(poll_fds);
 		close(client_fd);
-		requestsText[client_fd].erase(client_fd);
+		requestsText.erase(client_fd);
 		// std::map<int, std::string>().swap(requestsText);
 	}
 

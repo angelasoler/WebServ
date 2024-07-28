@@ -2,7 +2,8 @@
 #ifndef CONNECTION_HPP
 #define CONNECTION_HPP
 
-#include <iostream>
+# include <iostream>
+# include <sys/epoll.h>
 # include "Request.hpp"
 # include "Response.hpp"
 # include "Server.hpp"
@@ -15,7 +16,7 @@ class Connection
 
 		int			setNonBlocking(int client_fd);
 	public:
-		std::vector<struct pollfd>	poll_fds;//leak
+		std::vector<struct epoll_event>	poll_fds;//leak
 
 		Connection();
 		Connection(const Connection &cpy);

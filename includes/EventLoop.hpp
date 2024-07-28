@@ -8,7 +8,9 @@
 # include <map>
 # include <algorithm>
 # include <cstring>
-#include "Connection.hpp"
+# include <csignal>
+# include <vector>
+# include "Connection.hpp"
 
 extern uint N_SERVERS;
 
