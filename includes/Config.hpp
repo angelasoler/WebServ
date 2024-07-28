@@ -5,6 +5,7 @@
 #include <vector>
 #include <map>
 #include <algorithm>
+#define DEFAULT_PORT 8080
 
 struct RouteConfig
 {
@@ -50,18 +51,18 @@ class Config
 		bool				inRoute;
 		std::vector<int>	usedPorts;
 		bool 				isInPorts(int port);
-	public:
-		std::vector<ServerConfig>	servers;
 		void	finishServer(void);
 		void	finishRoute(void);
 		void	processServerConfig(const std::string& key, const std::string& value);
 		void	processRouteConfig(const std::string& key, const std::string& value, std::istringstream &iss);
 		void	processCGIConfig(const std::string& key, const std::string& value);
-		void	loadConfig(const std::string& configFilePath);
 		void	addServer(const ServerConfig& server);
+	public:
+		std::vector<ServerConfig>	servers;
+
+		void	loadConfig(const std::string& configFilePath);
 };
 
 void	printConfig(Config& config);
-void	handleConfigError(const std::string& msg);
 
 #endif //CONFIG_HPP

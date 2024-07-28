@@ -155,13 +155,20 @@ bool Config::isInPorts(int port)
 void Config::finishServer(void)
 {
 	finishRoute();
+	if (servers.empty())
+	{
+		if (currentServer.port < 0)
+			currentServer.port = DEFAULT_PORT;
+	}
 	if (currentServer.port < 0)
 	{
-		handleConfigError("Your server need define a PORT");
+		currentServer = ServerConfig();
+		return ;
 	}
 	if (isInPorts(currentServer.port))
 	{
-		handleConfigError("Your are using repeted PORT");
+		currentServer = ServerConfig();
+		return ;
 	}
 	usedPorts.push_back(currentServer.port);
 	if (currentServer.server_names.empty())
@@ -170,9 +177,4 @@ void Config::finishServer(void)
 	currentServer = ServerConfig();
 }
 
-void	handleConfigError(const std::string& msg)
-{
-	std::cerr << msg << std::endl;
-	exit(1);
-}
 
