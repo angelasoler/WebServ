@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <algorithm>
+#define DEFAULT_PORT 8080
 
 struct RouteConfig
 {
@@ -15,12 +17,16 @@ struct RouteConfig
 	std::string 				default_file;
 	std::string 				cgi_extension;
 	std::string					upload_directory;
+
+	RouteConfig();
 };
 
 struct CGIConfig
 {
 	std::string path_info;
 	std::string script_path;
+
+	CGIConfig();
 };
 
 struct ServerConfig
@@ -31,26 +37,32 @@ struct ServerConfig
 	std::string					default_error_page;
 	size_t						client_body_limit;
 	CGIConfig					cgi;
-
 	std::map<std::string, RouteConfig>	routes;
+
+	ServerConfig();
 };
 
 class Config
 {
 	private:
-		ServerConfig	currentServer;
-		RouteConfig		currentRoute;
-		CGIConfig		currentCGI;
-	public:
-		std::vector<ServerConfig>	servers;
-
+		ServerConfig		currentServer;
+		RouteConfig			currentRoute;
+		bool				inServer;
+		bool				inRoute;
+		std::vector<int>	usedPorts;
+		bool 				isInPorts(int port);
+		void	finishServer(void);
+		void	finishRoute(void);
 		void	processServerConfig(const std::string& key, const std::string& value);
 		void	processRouteConfig(const std::string& key, const std::string& value, std::istringstream &iss);
 		void	processCGIConfig(const std::string& key, const std::string& value);
-		void	loadConfig(const std::string& configFilePath);
 		void	addServer(const ServerConfig& server);
+	public:
+		std::vector<ServerConfig>	servers;
+
+		void	loadConfig(const std::string& configFilePath);
 };
 
-void printConfig(Config& config);
+void	printConfig(Config& config);
 
 #endif //CONFIG_HPP
