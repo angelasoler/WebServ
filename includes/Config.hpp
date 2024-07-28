@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <algorithm>
+
 struct RouteConfig
 {
 	std::string					path;
@@ -42,14 +44,16 @@ struct ServerConfig
 class Config
 {
 	private:
-		ServerConfig	currentServer;
-		RouteConfig		currentRoute;
-		bool			inServer;
-		bool			inRoute;
+		ServerConfig		currentServer;
+		RouteConfig			currentRoute;
+		bool				inServer;
+		bool				inRoute;
+		std::vector<int>	usedPorts;
+		bool 				isInPorts(int port);
 	public:
 		std::vector<ServerConfig>	servers;
-		void	finish_server(void);
-		void	finish_route(void);
+		void	finishServer(void);
+		void	finishRoute(void);
 		void	processServerConfig(const std::string& key, const std::string& value);
 		void	processRouteConfig(const std::string& key, const std::string& value, std::istringstream &iss);
 		void	processCGIConfig(const std::string& key, const std::string& value);
@@ -57,6 +61,7 @@ class Config
 		void	addServer(const ServerConfig& server);
 };
 
-void printConfig(Config& config);
+void	printConfig(Config& config);
+void	handleConfigError(const std::string& msg);
 
 #endif //CONFIG_HPP

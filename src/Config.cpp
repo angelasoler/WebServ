@@ -22,7 +22,7 @@ CGIConfig::CGIConfig()
 
 ServerConfig::ServerConfig()
     : host("127.0.0.1"),
-      port(8080),
+      port(-1),
       default_error_page("/error.html"),
       client_body_limit(1048576),
       cgi()
@@ -31,6 +31,59 @@ ServerConfig::ServerConfig()
 void Config::addServer(const ServerConfig& server)
 {
 	servers.push_back(server);
+}
+
+void Config::loadConfig(const std::string& configFilePath)
+{
+	std::ifstream configFile(configFilePath.c_str());
+	std::string line;
+	inRoute = false;
+	inServer = false;
+	while (std::getline(configFile, line))
+	{
+		std::istringstream iss(line);
+		std::string key;
+		std::string value;
+
+		if (line.empty() || line[0] == '#') // skip empty lines and comments
+			continue;
+		if (!(iss >> key))
+			continue;
+		if (!inServer)
+		{
+			if (key == "START_SERVER")
+				inServer = 1;
+			continue;
+		}
+		if (key == "END_SERVER")
+		{
+			inServer = false;
+			inRoute = false;
+			finishServer();
+			continue ;
+		}
+		if (!inRoute)
+		{
+			if (key == "START_ROUTE")
+			{
+				inRoute = true;
+				continue ;
+			}
+		}
+		if (key == "END_ROUTE")
+		{
+			inRoute = false;
+			continue ;
+		}
+		if (iss >> value)
+		{
+			processServerConfig(key, value);
+			processRouteConfig(key, value, iss);
+			processCGIConfig(key, value);
+		}
+	}
+	if (inServer)
+		finishServer();
 }
 
 void Config::processServerConfig(const std::string& key, const std::string& value)
@@ -82,7 +135,7 @@ void Config::processCGIConfig(const std::string& key, const std::string& value)
 		currentServer.cgi.script_path = value;
 }
 
-void Config::finish_route(void)
+void Config::finishRoute(void)
 {
 	if (currentRoute.accepted_methods.empty())
 	{
@@ -93,67 +146,33 @@ void Config::finish_route(void)
 	currentRoute = RouteConfig();
 }
 
-void Config::finish_server(void)
+bool Config::isInPorts(int port)
 {
-	finish_route();
+    std::vector<int>::const_iterator it = std::find(usedPorts.begin(), usedPorts.end(), port);
+    return it != usedPorts.end();
+}
+
+void Config::finishServer(void)
+{
+	finishRoute();
+	if (currentServer.port < 0)
+	{
+		handleConfigError("Your server need define a PORT");
+	}
+	if (isInPorts(currentServer.port))
+	{
+		handleConfigError("Your are using repeted PORT");
+	}
+	usedPorts.push_back(currentServer.port);
 	if (currentServer.server_names.empty())
 		currentServer.server_names.push_back("localhost");
 	this->addServer(currentServer);
 	currentServer = ServerConfig();
 }
 
-void Config::loadConfig(const std::string& configFilePath)
+void	handleConfigError(const std::string& msg)
 {
-	std::ifstream configFile(configFilePath.c_str());
-	std::string line;
-	inRoute = false;
-	inServer = false;
-	while (std::getline(configFile, line))
-	{
-		std::istringstream iss(line);
-		std::string key;
-		std::string value;
-
-		if (line.empty() || line[0] == '#') // skip empty lines and comments
-			continue;
-		if (!(iss >> key))
-			continue;
-		if (!inServer)
-		{
-			if (key == "START_SERVER")
-				inServer = 1;
-			continue;
-		}
-		if (key == "END_SERVER")
-		{
-			inServer = false;
-			inRoute = false;
-			finish_server();
-			continue ;
-		}
-		if (!inRoute)
-		{
-			if (key == "START_ROUTE")
-			{
-				inRoute = true;
-				continue ;
-			}
-		}
-		if (key == "END_ROUTE")
-		{
-			// finish_route();
-			inRoute = false;
-			continue ;
-		}
-		
-		if (iss >> value)
-		{
-			
-			processServerConfig(key, value);
-			processRouteConfig(key, value, iss);
-			processCGIConfig(key, value);
-		}
-	}
-	if (inServer)
-		finish_server();
+	std::cerr << msg << std::endl;
+	exit(1);
 }
+
