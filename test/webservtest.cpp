@@ -311,10 +311,10 @@ TEST(ConfigTest, NoHostOnDefaultServer) {
     EXPECT_EQ(server2.cgi.script_path, "/usr/lib/cgi-bin/route_y.cgi");
 }
 
-TEST(ConfigTest, NoHostOnDefaultServerAndSecondServerRepeatedHost) {
+TEST(ConfigTest, InvalidServerId1) {
     Config config;
 
-	config.loadConfig("./test/conf_test_files/NoHostOnDefaultServerAndSecondServerRepeatedHost.conf");
+	config.loadConfig("./test/conf_test_files/InvalidServerId1.conf");
     ASSERT_EQ(config.servers.size(), 1);
 
     // Verificação do primeiro servidor
@@ -345,10 +345,10 @@ TEST(ConfigTest, NoHostOnDefaultServerAndSecondServerRepeatedHost) {
     EXPECT_EQ(server1.cgi.script_path, "/cgi/script.cgi");
 }
 
-TEST(ConfigTest, NoHostOnDefaultServerAndSecondServerRepeatedHostAndNormalThirdServer) {
+TEST(ConfigTest, InvalidServerId1ValidServerId2) {
     Config config;
 
-	config.loadConfig("./test/conf_test_files/NoHostOnDefaultServerAndSecondServerRepeatedHostAndNormalThirdServer.conf");
+	config.loadConfig("./test/conf_test_files/InvalidServerId1ValidServerId2.conf");
     ASSERT_EQ(config.servers.size(), 2);
 
     // Verificação do primeiro servidor
