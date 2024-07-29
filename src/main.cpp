@@ -5,10 +5,10 @@
 #define PORT 8080
 
 int main() {
-	Config				config;
+	Config* config = Config::getInstance();
 
-	config.loadConfig("config.conf");
-	N_SERVERS = config.servers.size();
+	config->loadConfig("config.conf");
+	N_SERVERS = config->servers.size();
 
 	std::vector<Server>	servers;
 	EventLoop			loop;
@@ -16,7 +16,7 @@ int main() {
 	for (uint i = 0; i < N_SERVERS; i++)
 	{
 		struct pollfd	server_poll_fd;
-		Server			tmp(config.servers[i]);
+		Server			tmp(config->servers[i]);
 
 		servers.push_back(tmp);
 		server_poll_fd.fd = servers[i].fd;
