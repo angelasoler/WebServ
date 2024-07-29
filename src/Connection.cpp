@@ -21,7 +21,8 @@ void	Connection::connectNewClient(Server &refServer)
 	std::cout << " ***** New client *****\n\t    fd: "
 			<< new_socket
 			<< "\nEphemeral Port: "
-			<< ntohs(refServer.address.sin_port);
+			<< ntohs(refServer.address.sin_port)
+			<< std::endl;
 
 	if (setNonBlocking(new_socket) < 0)
 	{
@@ -37,7 +38,6 @@ void	Connection::readClientRequest(int client_fd, int clientIdx)
 {
 	if (request.readRequest(client_fd, requestsText)) {
 		poll_fds.erase(poll_fds.begin() + clientIdx);
-		// std::vector<struct pollfd>().swap(poll_fds);
 	}
 }
 
@@ -55,10 +55,8 @@ void	Connection::treatRequest(int client_fd, int clientIdx) {
 	if (response.treatActionAndResponse(requestsText, client_fd, action))
 	{
 		poll_fds.erase(poll_fds.begin() + clientIdx);
-		// std::vector<struct pollfd>().swap(poll_fds);
 		close(client_fd);
-		requestsText[client_fd].erase(client_fd);
-		// std::map<int, std::string>().swap(requestsText);
+		requestsText.erase(client_fd);
 	}
 
 }
@@ -69,4 +67,45 @@ int	Connection::setNonBlocking(int fd)
 	if (flags == -1)
 		return -1;
 	return fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+}
+
+bool	Connection::eventIO()
+{
+	nPolls = poll_fds.size();
+	if (poll(poll_fds.begin().base(), poll_fds.size(), -1) < 0) {
+		if (errno == EINTR)
+			return (false);
+		handleError("Poll failed");
+	}
+	return (true);
+}
+
+void	Connection::verifyServerPollin(std::vector<Server> &servers)
+{
+	for (uint i = 0; i < servers.size(); i++) {
+		if (poll_fds[i].revents & POLLIN) {
+			std::cout << "verifyServerPollin: "
+				<< servers.size()
+				<< std::endl;
+			connectNewClient(servers[i]);
+		}
+	}
+}
+
+void	Connection::requestResponse(int nServers)
+{
+	for (size_t clientIdx = nServers; clientIdx < nPolls; clientIdx++)
+	{
+		if (poll_fds[clientIdx].revents & POLLIN) {
+			readClientRequest(poll_fds[clientIdx].fd, clientIdx);
+		}
+		if (poll_fds[clientIdx].revents & POLLOUT) {
+			treatRequest(poll_fds[clientIdx].fd, clientIdx);
+		}
+	}
+}
+
+void	Connection::cleanPollFds(void) {
+	for (std::vector<struct pollfd>::iterator it = poll_fds.begin(); it == poll_fds.end(); it++)
+		close(it->fd);
 }

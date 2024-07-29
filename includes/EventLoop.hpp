@@ -8,14 +8,19 @@
 # include <map>
 # include <algorithm>
 # include <cstring>
-#include "Connection.hpp"
+# include <csignal>
+# include "Connection.hpp"
 
 extern uint N_SERVERS;
 
 class EventLoop
 {
+	private:
+		bool	verifyEvents(void);
+		void	acceptConnection(std::vector<Server> &servers);
+		void	manageClientIO(void);
 	public:
-		Connection			*connection;
+		Connection	*connection;
 
 		EventLoop();
 		~EventLoop(void);

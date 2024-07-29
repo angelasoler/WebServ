@@ -23,7 +23,6 @@ int	Response::treatActionAndResponse(std::map<int, std::string> request, int cli
 				break;
 			case CLOSE:
 				request.erase(request.find(client_fd));
-				std::map<int, std::string>().swap(request);
 				break;
 		}
 		return (1);
