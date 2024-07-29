@@ -28,7 +28,7 @@ int	Request::readRequest(int client_fd, std::map<int, std::string> &request)
 	{
 		request[client_fd] += buffer;
 		std::cout
-		// << "Request: "
+		// << "Request: " TO-DO: adicionar diretiva DEBUG
 		// << buffer
 		<< std::endl;
 	}

@@ -20,7 +20,7 @@ int main() {
 
 		servers.push_back(tmp);
 		server_poll_fd.fd = servers[i].fd;
-		server_poll_fd.events = POLLIN | POLLOUT;
+		server_poll_fd.events = POLLIN;
 		loop.connection->poll_fds.push_back(server_poll_fd);
 	}
 
