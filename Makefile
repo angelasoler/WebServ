@@ -21,9 +21,8 @@ run: $(NAME)
 v: valgrind
 
 valgrind: $(NAME)
-	make re
 	clear
-	valgrind --show-leak-kinds=all --leak-check=full --track-fds=yes ./$(NAME)
+	valgrind --show-leak-kinds=all --leak-check=full --track-fds=yes ./$(NAME) config.conf
 
 git:
 	make fclean
