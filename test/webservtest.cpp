@@ -49,12 +49,43 @@ TEST(HttpTest, TelnetGetRequest) {
 
 #include "Config.hpp"
 
+TEST(ConfigTest, NoServersFile) {
+    Config  *config = Config::getInstance();
+
+	config->loadDefaultConfig();
+    ASSERT_EQ(config->servers.size(), 1);
+    
+    // Verificação do primeiro servidor
+    const ServerConfig& server1 = config->servers[0];
+    EXPECT_EQ(server1.host, "127.0.0.1");
+    EXPECT_EQ(server1.port, 8080);
+    EXPECT_EQ(server1.server_names[0], "localhost");
+    EXPECT_EQ(server1.default_error_page, "/error.html");
+    EXPECT_EQ(server1.client_body_limit, 1048576);
+
+    // Verificação da rota do primeiro servidor
+    ASSERT_EQ(server1.routes.size(), 1);
+    const RouteConfig& route1 = server1.routes.at("/");
+    EXPECT_EQ(route1.path, "/");
+    EXPECT_EQ(route1.redirection, "");
+    EXPECT_EQ(route1.root_directory, "/var/www/html");
+    EXPECT_EQ(route1.accepted_methods.size(), 2);
+    EXPECT_EQ(route1.accepted_methods[0], "GET");
+    EXPECT_EQ(route1.accepted_methods[1], "DELETE");
+    EXPECT_EQ(route1.directory_listing, false);
+    EXPECT_EQ(route1.default_file, "index.html");
+    EXPECT_EQ(route1.cgi_extension, ".cgi");
+    EXPECT_EQ(route1.upload_directory, "/var/www/uploads");
+
+    // Verificação do CGI do primeiro servidor
+    EXPECT_EQ(server1.cgi.path_info, "/cgi-bin");
+    EXPECT_EQ(server1.cgi.script_path, "/usr/lib/cgi-bin");
+}
+
 TEST(ConfigTest, NoServers) {
     Config  *config = Config::getInstance();
 
 	config->loadConfig("./test/conf_test_files/NoServers.conf");
-    // printConfig(*config);
-    // return ;
     ASSERT_EQ(config->servers.size(), 1);
     
     // Verificação do primeiro servidor

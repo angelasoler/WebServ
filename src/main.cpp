@@ -4,12 +4,17 @@
 #include <csignal>
 #define PORT 8080
 
-int main() {
-	Config* config = Config::getInstance();
+int main(int argc, char* argv[])
+{
+    Config* config = Config::getInstance();
 
-	config->loadConfig("config.conf");
+	if (argc < 2) {
+        config->loadDefaultConfig();
+    }
+	else
+		config->loadConfig(argv[1]);
+
 	N_SERVERS = config->servers.size();
-
 	std::vector<Server>	servers;
 	EventLoop			loop;
 
