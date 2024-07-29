@@ -50,13 +50,15 @@ TEST(HttpTest, TelnetGetRequest) {
 #include "Config.hpp"
 
 TEST(ConfigTest, NoServers) {
-    Config config;
+    Config  *config = Config::getInstance();
 
-	config.loadConfig("./test/conf_test_files/NoServers.conf");
-    ASSERT_EQ(config.servers.size(), 1);
-
+	config->loadConfig("./test/conf_test_files/NoServers.conf");
+    // printConfig(*config);
+    // return ;
+    ASSERT_EQ(config->servers.size(), 1);
+    
     // Verificação do primeiro servidor
-    const ServerConfig& server1 = config.servers[0];
+    const ServerConfig& server1 = config->servers[0];
     EXPECT_EQ(server1.host, "127.0.0.1");
     EXPECT_EQ(server1.port, 8080);
     EXPECT_EQ(server1.server_names[0], "localhost");
@@ -83,13 +85,16 @@ TEST(ConfigTest, NoServers) {
 }
 
 TEST(ConfigTest, OneServer) {
-    Config config;
+    Config  *config = Config::getInstance();
 
-	config.loadConfig("./test/conf_test_files/OneServer.conf");
-    ASSERT_EQ(config.servers.size(), 1);
+	config->loadConfig("./test/conf_test_files/OneServer.conf");
+
+    // printConfig(*config);
+    // return ;
+    ASSERT_EQ(config->servers.size(), 1);
 
     // Verificação do primeiro servidor
-    const ServerConfig& server1 = config.servers[0];
+    const ServerConfig& server1 = config->servers[0];
     EXPECT_EQ(server1.host, "localhost");
     EXPECT_EQ(server1.port, 8080);
     EXPECT_EQ(server1.server_names[0], "example_x.com");
@@ -117,13 +122,13 @@ TEST(ConfigTest, OneServer) {
 }
 
 TEST(ConfigTest, TwoServers) {
-    Config config;
+    Config  *config = Config::getInstance();
 
-	config.loadConfig("./test/conf_test_files/TwoServers.conf");
-    ASSERT_EQ(config.servers.size(), 2);
+	config->loadConfig("./test/conf_test_files/TwoServers.conf");
+    ASSERT_EQ(config->servers.size(), 2);
 
     // Verificação do primeiro servidor
-    const ServerConfig& server1 = config.servers[0];
+    const ServerConfig& server1 = config->servers[0];
     EXPECT_EQ(server1.host, "localhost");
     EXPECT_EQ(server1.port, 8080);
     EXPECT_EQ(server1.server_names[0], "example_x.com");
@@ -150,7 +155,7 @@ TEST(ConfigTest, TwoServers) {
     EXPECT_EQ(server1.cgi.script_path, "/cgi/script.cgi");
 
     // Verificação do segundo servidor
-    const ServerConfig& server2 = config.servers[1];
+    const ServerConfig& server2 = config->servers[1];
     EXPECT_EQ(server2.host, "192.168.1.1");
     EXPECT_EQ(server2.port, 9090);
     EXPECT_EQ(server2.server_names[0], "example_y.com");
@@ -175,13 +180,13 @@ TEST(ConfigTest, TwoServers) {
 }
 
 TEST(ConfigTest, ThreeServers) {
-    Config config;
+    Config  *config = Config::getInstance();
 
-	config.loadConfig("./test/conf_test_files/ThreeServers.conf");
-    ASSERT_EQ(config.servers.size(), 3);
+	config->loadConfig("./test/conf_test_files/ThreeServers.conf");
+    ASSERT_EQ(config->servers.size(), 3);
 
     // Verificação do primeiro servidor
-    const ServerConfig& server1 = config.servers[0];
+    const ServerConfig& server1 = config->servers[0];
     EXPECT_EQ(server1.host, "localhost");
     EXPECT_EQ(server1.port, 8080);
     EXPECT_EQ(server1.server_names[0], "example_x.com");
@@ -205,7 +210,7 @@ TEST(ConfigTest, ThreeServers) {
     EXPECT_EQ(server1.cgi.path_info, "/cgi/script");
     EXPECT_EQ(server1.cgi.script_path, "/cgi/script.cgi");
 
-    const ServerConfig& server2 = config.servers[1];
+    const ServerConfig& server2 = config->servers[1];
     EXPECT_EQ(server2.host, "192.168.1.1");
     EXPECT_EQ(server2.port, 9999);
     EXPECT_EQ(server2.server_names[0], "example_y.com");
@@ -231,7 +236,7 @@ TEST(ConfigTest, ThreeServers) {
     EXPECT_EQ(server1.cgi.script_path, "/cgi/script.cgi");
 
     // Verificação do terceiro servidor
-    const ServerConfig& server3 = config.servers[2];
+    const ServerConfig& server3 = config->servers[2];
     EXPECT_EQ(server3.host, "192.168.1.1");
     EXPECT_EQ(server3.port, 9090);
     EXPECT_EQ(server3.server_names[0], "example_z.com");
@@ -254,13 +259,13 @@ TEST(ConfigTest, ThreeServers) {
 }
 
 TEST(ConfigTest, NoHostOnDefaultServer) {
-    Config config;
+    Config  *config = Config::getInstance();
 
-	config.loadConfig("./test/conf_test_files/NoHostOnDefaultServer.conf");
-    ASSERT_EQ(config.servers.size(), 2);
+	config->loadConfig("./test/conf_test_files/NoHostOnDefaultServer.conf");
+    ASSERT_EQ(config->servers.size(), 2);
 
     // Verificação do primeiro servidor
-    const ServerConfig& server1 = config.servers[0];
+    const ServerConfig& server1 = config->servers[0];
     EXPECT_EQ(server1.host, "localhost");
     EXPECT_EQ(server1.port, 8080);
     EXPECT_EQ(server1.server_names[0], "example_x.com");
@@ -287,7 +292,7 @@ TEST(ConfigTest, NoHostOnDefaultServer) {
     EXPECT_EQ(server1.cgi.script_path, "/cgi/script.cgi");
 
     // Verificação do segundo servidor
-    const ServerConfig& server2 = config.servers[1];
+    const ServerConfig& server2 = config->servers[1];
     EXPECT_EQ(server2.host, "192.168.1.1");
     EXPECT_EQ(server2.port, 9090);
     EXPECT_EQ(server2.server_names[0], "example_y.com");
@@ -312,13 +317,13 @@ TEST(ConfigTest, NoHostOnDefaultServer) {
 }
 
 TEST(ConfigTest, InvalidServerId1) {
-    Config config;
+    Config  *config = Config::getInstance();
 
-	config.loadConfig("./test/conf_test_files/InvalidServerId1.conf");
-    ASSERT_EQ(config.servers.size(), 1);
+	config->loadConfig("./test/conf_test_files/InvalidServerId1.conf");
+    ASSERT_EQ(config->servers.size(), 1);
 
     // Verificação do primeiro servidor
-    const ServerConfig& server1 = config.servers[0];
+    const ServerConfig& server1 = config->servers[0];
     EXPECT_EQ(server1.host, "localhost");
     EXPECT_EQ(server1.port, 8080);
     EXPECT_EQ(server1.server_names[0], "example_x.com");
@@ -346,13 +351,13 @@ TEST(ConfigTest, InvalidServerId1) {
 }
 
 TEST(ConfigTest, InvalidServerId1ValidServerId2) {
-    Config config;
+    Config  *config = Config::getInstance();
 
-	config.loadConfig("./test/conf_test_files/InvalidServerId1ValidServerId2.conf");
-    ASSERT_EQ(config.servers.size(), 2);
+	config->loadConfig("./test/conf_test_files/InvalidServerId1ValidServerId2.conf");
+    ASSERT_EQ(config->servers.size(), 2);
 
     // Verificação do primeiro servidor
-    const ServerConfig& server1 = config.servers[0];
+    const ServerConfig& server1 = config->servers[0];
     EXPECT_EQ(server1.host, "localhost");
     EXPECT_EQ(server1.port, 8080);
     EXPECT_EQ(server1.server_names[0], "example_x.com");
@@ -377,7 +382,7 @@ TEST(ConfigTest, InvalidServerId1ValidServerId2) {
     EXPECT_EQ(server1.cgi.script_path, "/cgi/script.cgi");
 
     // Verificação do terceiro servidor
-    const ServerConfig& server3 = config.servers[1];
+    const ServerConfig& server3 = config->servers[1];
     EXPECT_EQ(server3.host, "192.168.1.1");
     EXPECT_EQ(server3.port, 9090);
     EXPECT_EQ(server3.server_names[0], "example_z.com");

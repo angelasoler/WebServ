@@ -4,41 +4,64 @@
 #include <sstream>
 #include <cstdlib>
 
+// Definição e inicialização do ponteiro estático
+Config* Config::instance = NULL;
+
+Config* Config::getInstance()
+{
+    if (instance == NULL) {
+        instance = new Config();
+    }
+    return instance;
+}
+
+// Construtores das Structs
 RouteConfig::RouteConfig()
-    : path("/"),
-      redirection(""),
-      root_directory("/var/www/html"),
-      directory_listing(false),
-      default_file("index.html"),
-      cgi_extension(".cgi"),
-      upload_directory("/var/www/uploads")
+    : path(DEFAULT_ROUTE_PATH),
+      redirection(DEFAULT_REDIRECTION),
+      root_directory(DEFAULT_ROOT_DIRECTORY),
+      directory_listing(DEFAULT_DIRECTORY_LISTING),
+      default_file(DEFAULT_FILE),
+      cgi_extension(DEFAULT_CGI_EXTENSION),
+      upload_directory(DEFAULT_UPLOAD_DIRECTORY)
 {}
 
-
 CGIConfig::CGIConfig()
-    : path_info("/cgi-bin"),
-      script_path("/usr/lib/cgi-bin")
+    : path_info(DEFAULT_PATH_INFO),
+      script_path(DEFAULT_SCRIPT_PATH)
 {}
 
 ServerConfig::ServerConfig()
-    : host("127.0.0.1"),
-      port(-1),
-      default_error_page("/error.html"),
-      client_body_limit(1048576),
+    : host(DEFAULT_HOST),
+      port(DEFAULT_SERVER_PORT),
+      default_error_page(DEFAULT_ERROR_PAGE),
+      client_body_limit(DEFAULT_CLIENT_BODY_LIMIT),
       cgi()
 {}
 
+// Methods
 void Config::addServer(const ServerConfig& server)
 {
 	servers.push_back(server);
+}
+
+
+void Config::configReset()
+{
+    currentServer = ServerConfig();
+    currentRoute = RouteConfig();
+    inServer = false;
+    inRoute = false;
+    usedPorts.clear();
+    servers.clear();
 }
 
 void Config::loadConfig(const std::string& configFilePath)
 {
 	std::ifstream configFile(configFilePath.c_str());
 	std::string line;
-	inRoute = false;
-	inServer = false;
+
+	configReset();
 	while (std::getline(configFile, line))
 	{
 		std::istringstream iss(line);
@@ -86,6 +109,7 @@ void Config::loadConfig(const std::string& configFilePath)
 		finishServer();
 	if (servers.empty())
 		finishServer();
+	configFile.close();
 }
 
 void Config::processServerConfig(const std::string& key, const std::string& value)
@@ -141,8 +165,12 @@ void Config::finishRoute(void)
 {
 	if (currentRoute.accepted_methods.empty())
 	{
-		currentRoute.accepted_methods.push_back("GET");
-		currentRoute.accepted_methods.push_back("DELETE");
+		const char* defaultMethods[] = {DEFAULT_ACCEPTED_METHODS};
+		int num_methods = sizeof(defaultMethods) / sizeof(defaultMethods[0]);
+
+		for (int i = 0; i < num_methods; ++i) {
+			currentRoute.accepted_methods.push_back(defaultMethods[i]);
+		}
 	}
 	currentServer.routes[currentRoute.path] = currentRoute;
 	currentRoute = RouteConfig();
@@ -174,7 +202,7 @@ void Config::finishServer(void)
 	}
 	usedPorts.push_back(currentServer.port);
 	if (currentServer.server_names.empty())
-		currentServer.server_names.push_back("localhost");
+		currentServer.server_names.push_back(DEFAULT_SERVER_NAME);
 	this->addServer(currentServer);
 	currentServer = ServerConfig();
 }
