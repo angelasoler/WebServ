@@ -18,7 +18,13 @@ void Response::setHeader(const std::string& key, const std::string& value) {
 }
 
 void Response::setBody(const std::string& bodyFile) {
-	body = bodyFile;
+    std::ifstream file(bodyFile.c_str());
+    if (!file) {
+        throw std::runtime_error("Could not open file: " + bodyFile);
+    }
+    std::ostringstream oss;
+    oss << file.rdbuf();
+    body = oss.str();
 }
 
 std::string Response::buildResponse() {
