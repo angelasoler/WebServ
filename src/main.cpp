@@ -1,8 +1,6 @@
 
 #include "EventLoop.hpp"
 #include "Config.hpp"
-#include <csignal>
-// #define PORT 8080 // ainda precisa disto ?
 
 
 int initializeConfig(Config	&config, int argc, char* argv[]) {
