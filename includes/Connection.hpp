@@ -14,6 +14,7 @@ class Connection
 		Response					response;
 		std::map<int, std::string>	requestsText;
 		size_t						nPolls;
+		std::vector<Server>			servers;
 
 		int		setNonBlocking(int client_fd);
 		void	responseToClient(int client_fd);
@@ -21,14 +22,15 @@ class Connection
 		void	readClientRequest(int client_fd, int clientIdx);
 		void	treatRequest(int client_fd, int clientIdx);
 	public:
-		std::vector<struct pollfd>	poll_fds;//leak
+		size_t						nServers;
+		std::vector<struct pollfd>	poll_fds;
 
-		Connection();
+		Connection(void);
 		Connection(const Connection &cpy);
 		~Connection(void);
 		bool	eventIO(void);
-		void	verifyServerPollin(std::vector<Server> &servers);
-		void	requestResponse(int nServers);
+		void	verifyServerPollin(void);
+		void	requestResponse(void);
 		void	cleanPollFds(void);
 };
 
