@@ -1,18 +1,19 @@
-NAME = webServer
-FLAGS = -Wall -Wextra -Werror -std=c++98 -g
-SRC_PATH = source/
-SRC_FILES = $(wildcard $(SRC_PATH)*.cpp, *.cpp)
-OBJ = obj
-OBJ_FILES = $(SRC_FILES:$(SRC_PATH)%.cpp=$(OBJ)/%.o)
+NAME			= webServer
+FLAGS			= -Wall -Wextra -Werror -std=c++98 -g
+SRC_PATH		= src/
+SRC_FILES		= $(wildcard $(SRC_PATH)*.cpp)
+OBJ_PATH		= obj/
+OBJ_FILES		= $(SRC_FILES:%.cpp=$(OBJ_PATH)%.o)
+HEADER_FILES	= $(wildcard includes/*.hpp)
 
 all: $(NAME)
 
 $(NAME): $(OBJ_FILES)
-	c++ $(FLAGS) -I./ $^ -o $(NAME)
+	c++ $(FLAGS) -I./includes $^ -o $(NAME)
 
-${OBJ}/%.o : $(SRC_PATH)%.cpp %.cpp 
-	mkdir -p ${OBJ}
-	c++ $(FLAGS) -c $< -o $@
+$(OBJ_PATH)%.o : %.cpp $(HEADER_FILES)
+	mkdir -p $(dir $@)
+	c++ $(FLAGS) -c $< -o $@ -I includes
 
 run: $(NAME)
 	make re
@@ -21,9 +22,8 @@ run: $(NAME)
 v: valgrind
 
 valgrind: $(NAME)
-	make re
 	clear
-	valgrind --show-leak-kinds=all --leak-check=full --track-fds=yes ./$(NAME)
+	valgrind --show-leak-kinds=all --leak-check=full --track-fds=yes ./$(NAME) config.conf
 
 git:
 	make fclean
@@ -33,7 +33,7 @@ git:
 	git commit -m "$$MESSAGE"
 
 clean:
-	@rm -rf $(OBJ)
+	@rm -rf $(OBJ_PATH)
 
 fclean: clean
 	@rm -rf $(NAME)

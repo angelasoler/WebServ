@@ -1,4 +1,11 @@
+.gitignore
 webServer
 *.o
 .vscode/
 obj/
+build/
+webservtest
+txt
+webserv
+txt2
+notes/
