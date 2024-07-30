@@ -56,6 +56,12 @@ void Config::configReset()
     servers.clear();
 }
 
+void Config::loadDefaultConfig(void)
+{
+	configReset();
+	finishServer();
+}
+
 void Config::loadConfig(const std::string& configFilePath)
 {
 	std::ifstream configFile(configFilePath.c_str());

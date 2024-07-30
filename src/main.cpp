@@ -1,15 +1,29 @@
 
 #include "EventLoop.hpp"
 #include "Config.hpp"
-#include <csignal>
-#define PORT 8080
 
-int main() {
-	Config* config = Config::getInstance();
 
-	config->loadConfig("config.conf");
+int initializeConfig(Config	&config, int argc, char* argv[]) {
+	if (argc == 1) {
+		config.loadDefaultConfig();
+	} else if (argc == 2) {
+		config.loadConfig(argv[1]);
+	} else {
+		std::cerr << "Usage: ./webserv [config_file.conf]" << std::endl;
+		return (0);
+	}
+	return (1);
+}
+
+int main(int argc, char* argv[])
+{
+	Config *config = Config::getInstance();
+
+	if (!initializeConfig(*config, argc, argv) != 0) {
+		return (1);
+	}
+
 	N_SERVERS = config->servers.size();
-
 	std::vector<Server>	servers;
 	EventLoop			loop;
 

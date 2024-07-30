@@ -94,7 +94,7 @@ class Config
 
         // Método estático para acessar a única instância
         static Config* getInstance();
-
+		void	loadDefaultConfig(void);
         void    loadConfig(const std::string& configFilePath);
 };
 
