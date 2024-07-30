@@ -2,6 +2,7 @@
 #include "Connection.hpp"
 #include "Server.hpp"
 
+Connection::Connection(size_t nServers) : nServers(nServers) {}
 
 Connection::Connection(void) {}
 
@@ -92,7 +93,7 @@ void	Connection::verifyServerPollin(std::vector<Server> &servers)
 	}
 }
 
-void	Connection::requestResponse(int nServers)
+void	Connection::requestResponse(void)
 {
 	for (size_t clientIdx = nServers; clientIdx < nPolls; clientIdx++)
 	{

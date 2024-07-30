@@ -1,4 +1,3 @@
-
 #include "EventLoop.hpp"
 #include "Config.hpp"
 
@@ -19,15 +18,13 @@ int main(int argc, char* argv[])
 {
 	Config *config = Config::getInstance();
 
-	if (!initializeConfig(*config, argc, argv) != 0) {
+	if (!initializeConfig(*config, argc, argv)) {
 		return (1);
 	}
-
-	N_SERVERS = config->servers.size();
 	std::vector<Server>	servers;
-	EventLoop			loop;
+	EventLoop			loop(config->servers.size());
 
-	for (uint i = 0; i < N_SERVERS; i++)
+	for (uint i = 0; i < config->servers.size(); i++)
 	{
 		struct pollfd	server_poll_fd;
 		Server			tmp(config->servers[i]);

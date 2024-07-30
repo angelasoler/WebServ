@@ -1,9 +1,10 @@
 #include "EventLoop.hpp"
 
 volatile sig_atomic_t	running = true;
-uint					N_SERVERS;
 
-EventLoop::EventLoop() : connection(new Connection()) {}
+EventLoop::EventLoop() {}
+
+EventLoop::EventLoop(const size_t nServers) : connection(new Connection(nServers)) {}
 
 EventLoop::~EventLoop(void) {
 	delete connection;
@@ -17,12 +18,12 @@ void stopLoop(int signal) {
 }
 
 void setup_signal_handlers() {
-    struct sigaction sa;
-    sa.sa_handler = stopLoop;
-    sa.sa_flags = 0;
-    sigemptyset(&sa.sa_mask);
-    sigaction(SIGINT, &sa, NULL);
-    sigaction(SIGTERM, &sa, NULL);
+	struct sigaction sa;
+	sa.sa_handler = stopLoop;
+	sa.sa_flags = 0;
+	sigemptyset(&sa.sa_mask);
+	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGTERM, &sa, NULL);
 }
 
 bool	EventLoop::verifyEvents(void)
@@ -37,12 +38,11 @@ void	EventLoop::acceptConnection(std::vector<Server> &servers)
 
 void	EventLoop::manageClientIO(void)
 {
-	connection->requestResponse(N_SERVERS);
+	connection->requestResponse();
 }
 
 void	EventLoop::run(std::vector<Server> &servers)
 {
-	N_SERVERS = servers.size();
 	setup_signal_handlers();
 	while (running)
 	{

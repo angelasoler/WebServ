@@ -11,8 +11,6 @@
 # include <csignal>
 # include "Connection.hpp"
 
-extern uint N_SERVERS;
-
 class EventLoop
 {
 	private:
@@ -23,6 +21,7 @@ class EventLoop
 		Connection	*connection;
 
 		EventLoop();
+		EventLoop(const size_t nServers);
 		~EventLoop(void);
 
 		void	run(std::vector<Server> &servers);
