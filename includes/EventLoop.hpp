@@ -15,16 +15,15 @@ class EventLoop
 {
 	private:
 		bool	verifyEvents(void);
-		void	acceptConnection(std::vector<Server> &servers);
+		void	acceptConnection(void);
 		void	manageClientIO(void);
 	public:
 		Connection	*connection;
 
 		EventLoop();
-		EventLoop(const size_t nServers);
 		~EventLoop(void);
 
-		void	run(std::vector<Server> &servers);
+		void	run(void);
 };
 
 #endif /* EVENTLOOP_HPP */

@@ -2,9 +2,7 @@
 
 volatile sig_atomic_t	running = true;
 
-EventLoop::EventLoop() {}
-
-EventLoop::EventLoop(const size_t nServers) : connection(new Connection(nServers)) {}
+EventLoop::EventLoop() : connection(new Connection()) {}
 
 EventLoop::~EventLoop(void) {
 	delete connection;
@@ -31,9 +29,9 @@ bool	EventLoop::verifyEvents(void)
 	return (connection->eventIO());
 }
 
-void	EventLoop::acceptConnection(std::vector<Server> &servers)
+void	EventLoop::acceptConnection(void)
 {
-	connection->verifyServerPollin(servers);
+	connection->verifyServerPollin();
 }
 
 void	EventLoop::manageClientIO(void)
@@ -41,14 +39,14 @@ void	EventLoop::manageClientIO(void)
 	connection->requestResponse();
 }
 
-void	EventLoop::run(std::vector<Server> &servers)
+void	EventLoop::run(void)
 {
 	setup_signal_handlers();
 	while (running)
 	{
 		if (!verifyEvents())
 			continue ;
-		acceptConnection(servers);
+		acceptConnection();
 		manageClientIO();
 	}
 	connection->cleanPollFds();

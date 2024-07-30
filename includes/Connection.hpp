@@ -14,6 +14,7 @@ class Connection
 		Response					response;
 		std::map<int, std::string>	requestsText;
 		size_t						nPolls;
+		std::vector<Server>			servers;
 
 		int		setNonBlocking(int client_fd);
 		void	responseToClient(int client_fd);
@@ -24,12 +25,11 @@ class Connection
 		size_t						nServers;
 		std::vector<struct pollfd>	poll_fds;
 
-		Connection();
-		Connection(size_t nServers);
+		Connection(void);
 		Connection(const Connection &cpy);
 		~Connection(void);
 		bool	eventIO(void);
-		void	verifyServerPollin(std::vector<Server> &servers);
+		void	verifyServerPollin(void);
 		void	requestResponse(void);
 		void	cleanPollFds(void);
 };

@@ -2,9 +2,21 @@
 #include "Connection.hpp"
 #include "Server.hpp"
 
-Connection::Connection(size_t nServers) : nServers(nServers) {}
+Connection::Connection(void) {
+	Config	*config = Config::getInstance();
 
-Connection::Connection(void) {}
+	nServers = config->servers.size();
+	for (uint i = 0; i < nServers; i++)
+	{
+		struct pollfd	server_poll_fd;
+		Server			tmp(config->servers[i]);
+
+		servers.push_back(tmp);
+		server_poll_fd.fd = servers[i].fd;
+		server_poll_fd.events = POLLIN;
+		poll_fds.push_back(server_poll_fd);
+	}
+}
 
 Connection::~Connection(void) {}
 
@@ -70,7 +82,7 @@ int	Connection::setNonBlocking(int fd)
 	return fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 }
 
-bool	Connection::eventIO()
+bool	Connection::eventIO(void)
 {
 	nPolls = poll_fds.size();
 	if (poll(poll_fds.begin().base(), poll_fds.size(), -1) < 0) {
@@ -81,13 +93,10 @@ bool	Connection::eventIO()
 	return (true);
 }
 
-void	Connection::verifyServerPollin(std::vector<Server> &servers)
+void	Connection::verifyServerPollin(void)
 {
-	for (uint i = 0; i < servers.size(); i++) {
+	for (uint i = 0; i < nServers; i++) {
 		if (poll_fds[i].revents & POLLIN) {
-			std::cout << "verifyServerPollin: "
-				<< servers.size()
-				<< std::endl;
 			connectNewClient(servers[i]);
 		}
 	}
