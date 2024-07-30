@@ -1,21 +1,31 @@
-
 #ifndef RESPONSE_HPP
 #define RESPONSE_HPP
 
 #include <iostream>
-# include <algorithm>
-# include <map>
+#include "Request.hpp"
+#include <map>
+#include <string>
+#include <sstream>
+#define DEFAULT_BODY "<html><head><title>Teste de Pagina</title></head><body><h1>Bom Dia!</h1></body></html>"
 
 class Response
 {
 	private:
+		std::string statusLine;
+		std::map<std::string, std::string> headers;
+		std::string body;
+
 	public:
 		Response(void);
 		~Response(void);
 
-		void	sendResponse(int client_fd);
-		int		treatActionAndResponse(std::map<int, std::string> request, int client_fd, e_httpMethodActions action);
-		
+		void setStatusLine(const std::string& version, int statusCode, const std::string& reasonPhrase);
+		void setHeader(const std::string& key, const std::string& value);
+		void setBody(const std::string& bodyFile);
+		std::string buildResponse();
+
+		void sendResponse(int client_fd);
+		int treatActionAndResponse(std::map<int, std::string> request, int client_fd, e_httpMethodActions action);
 };
 
 #endif /* RESPONSE_HPP */
