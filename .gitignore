@@ -9,3 +9,10 @@ txt
 webserv
 txt2
 notes/
+venv/*
+!venv/bin
+venv/bin/*
+!venv/bin/geckodriver
+!venv/requirements
+geckodriver.log
+

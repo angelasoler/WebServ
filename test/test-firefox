@@ -6,14 +6,17 @@ from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.common.exceptions import WebDriverException, NoSuchElementException
 from selenium.webdriver.common.by import By
 import signal
+import os
+
+os.environ["PATH"] = os.path.join(os.getcwd(), "venv/bin") + ":" + os.environ["PATH"]
 
 options = FirefoxOptions()
 options.add_argument("--headless")
 
-profile_path = "/home/angela/.mozilla/firefox/u84ow2ps.default"
+profile_path = "/home/angela/.mozilla/firefox/u84ow2ps.default" #converter isso em var de .env ou env var
 options.profile = profile_path
 
-service = Service("../venv/bin/geckodriver")
+service = Service(os.path.join(os.getcwd(), "venv/bin/geckodriver"))
 
 try:
 	print("webdrive.firefox")
