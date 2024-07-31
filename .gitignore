@@ -13,3 +13,8 @@ notes/
 logs/*
 test/venv/*
 !test/venv/requirements.txt
+!test/venv/bin/
+test/venv/bin/*
+!test/venv/bin/geckodriver
+geckodriver.log
+
