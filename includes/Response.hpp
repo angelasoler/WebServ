@@ -9,7 +9,8 @@
 #include <sstream>
 # include "Server.hpp"
 # include "Config.hpp"
-#define DEFAULT_BODY "<html><head><title>Teste de Pagina</title></head><body><h1>Bom Dia!</h1></body></html>"
+# define DEFAULT_BODY "<html><head><title>Teste de Pagina</title></head><body><h1>Bom Dia!</h1></body></html>"
+# define NOT_FOUND_PAGE_ERROR "<html><head><title>ERROR</title></head><body><h1>Page not found!</h1></body></html>"
 
 class Response
 {
@@ -29,6 +30,8 @@ class Response
 
 		void sendResponse(int client_fd);
 		int treatActionAndResponse(std::map<int, std::string> request, int client_fd, e_httpMethodActions action);
+
+		void	responseGET(ServerConfig &server, int client_fd);
 };
 
 #endif /* RESPONSE_HPP */

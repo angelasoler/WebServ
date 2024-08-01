@@ -20,7 +20,8 @@ void Response::setHeader(const std::string& key, const std::string& value) {
 void Response::setBody(const std::string& bodyFile) {
     std::ifstream file(bodyFile.c_str());
     if (!file) {
-        throw std::runtime_error("Could not open file: " + bodyFile);
+        body = NOT_FOUND_PAGE_ERROR;
+		return ;
     }
     std::ostringstream oss;
     oss << file.rdbuf();
@@ -49,11 +50,7 @@ int Response::treatActionAndResponse(std::map<int, std::string> request, int cli
 	if (!request.empty() && !request[client_fd].empty()) {
 		switch (action) {
 			case RESPONSE:
-				setStatusLine("HTTP/1.1", 200, "OK");
-				setHeader("Content-Type", "text/html");
-				setHeader("Content-Length", "1024"); // ataulizar tamanho da mensagem
-				setBody(server.routes.begin()->second.default_file);
-				sendResponse(client_fd);
+				responseGET(server, client_fd);
 				break;
 			case CLOSE:
 				request.erase(request.find(client_fd));
@@ -63,4 +60,24 @@ int Response::treatActionAndResponse(std::map<int, std::string> request, int cli
 		return 1;
 	}
 	return 0;
+}
+
+void	Response::responseGET(ServerConfig &server, int client_fd)
+{
+	std::map<std::string, RouteConfig>::iterator routeIt = server.routes.find("/"); // ROTA PLACEHOLDER
+	if (routeIt != server.routes.end()) {
+		RouteConfig &route = routeIt->second;
+		setStatusLine("HTTP/1.1", 200, "OK");
+		setHeader("Content-Type", "text/html");
+		setBody(route.default_file);
+	} else {
+		setStatusLine("HTTP/1.1", 404, "OK");
+		setHeader("Content-Type", "text/html");
+		setBody(server.default_error_page);
+	}
+
+	std::ostringstream sizeStream;
+	sizeStream << body.size();
+	setHeader("Content-Length", sizeStream.str());
+	sendResponse(client_fd);
 }
