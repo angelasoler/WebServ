@@ -88,6 +88,7 @@ class Config
 
     public:
         std::vector<ServerConfig> servers;
+		std::map<int, ServerConfig> ClientServerMap;
 
         // Ponteiro estático para a instância
         static Config* instance;

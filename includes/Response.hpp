@@ -7,6 +7,8 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+# include "Server.hpp"
+# include "Config.hpp"
 #define DEFAULT_BODY "<html><head><title>Teste de Pagina</title></head><body><h1>Bom Dia!</h1></body></html>"
 
 class Response

@@ -43,13 +43,16 @@ void Response::sendResponse(int client_fd) {
 }
 
 int Response::treatActionAndResponse(std::map<int, std::string> request, int client_fd, e_httpMethodActions action) {
+	Config	*config = Config::getInstance();
+
+	ServerConfig	server = config->ClientServerMap[client_fd];
 	if (!request.empty() && !request[client_fd].empty()) {
 		switch (action) {
 			case RESPONSE:
 				setStatusLine("HTTP/1.1", 200, "OK");
 				setHeader("Content-Type", "text/html");
-				setHeader("Content-Length", "1024");
-				setBody("helloworld.html");
+				setHeader("Content-Length", "1024"); // ataulizar tamanho da mensagem
+				setBody(server.routes.begin()->second.default_file);
 				sendResponse(client_fd);
 				break;
 			case CLOSE:
