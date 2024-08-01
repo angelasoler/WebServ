@@ -11,13 +11,11 @@
 # include <csignal>
 # include "Connection.hpp"
 
-extern uint N_SERVERS;
-
 class EventLoop
 {
 	private:
 		bool	verifyEvents(void);
-		void	acceptConnection(std::vector<Server> &servers);
+		void	acceptConnection(void);
 		void	manageClientIO(void);
 	public:
 		Connection	*connection;
@@ -25,7 +23,7 @@ class EventLoop
 		EventLoop();
 		~EventLoop(void);
 
-		void	run(std::vector<Server> &servers);
+		void	run(void);
 };
 
 #endif /* EVENTLOOP_HPP */
