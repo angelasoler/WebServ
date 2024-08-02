@@ -17,6 +17,8 @@
 class Response
 {
 	private:
+		std::string		routeRequested;
+
 		std::string statusLine;
 		std::map<std::string, std::string> headers;
 		std::string body;
@@ -25,9 +27,10 @@ class Response
 		Response(void);
 		~Response(void);
 		
-		void setStatusLine(const std::string& version, int statusCode, const std::string& reasonPhrase);
-		void setHeader(const std::string& key, const std::string& value);
-		void setBody(const std::string& bodyFile);
+		void	setClientRequest(std::map< std::string, std::vector<std::string> >	&request);
+		void	setStatusLine(const std::string& version, int statusCode, const std::string& reasonPhrase);
+		void	setHeader(const std::string& key, const std::string& value);
+		void	setBody(const std::string& bodyFile);
 		std::string buildResponse();
 
 		void sendResponse(int client_fd);

@@ -64,7 +64,7 @@ int Response::treatActionAndResponse(std::map<int, std::string> request, int cli
 
 void	Response::responseGET(ServerConfig &server, int client_fd)
 {
-	std::map<std::string, RouteConfig>::iterator routeIt = server.routes.find("/"); // ROTA PLACEHOLDER
+	std::map<std::string, RouteConfig>::iterator routeIt = server.routes.find(routeRequested);
 	RouteConfig &route = routeIt->second;
 	if (routeIt != server.routes.end()) {
 		
@@ -72,7 +72,6 @@ void	Response::responseGET(ServerConfig &server, int client_fd)
 		setHeader("Content-Type", "text/html");
 		(void)route;
 		setBody(route.default_file);
-		// setBody("helloworld.html");
 	} else {
 		setStatusLine("HTTP/1.1", 404, "OK");
 		setHeader("Content-Type", "text/html");
@@ -83,4 +82,10 @@ void	Response::responseGET(ServerConfig &server, int client_fd)
 	sizeStream << body.size();
 	setHeader("Content-Length", sizeStream.str());
 	sendResponse(client_fd);
+}
+
+
+void    Response::setClientRequest(std::map< std::string, std::vector<std::string> >      &request)
+{
+	routeRequested = request["request"][ROUTE];
 }

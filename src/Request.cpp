@@ -112,7 +112,7 @@ e_httpMethodActions	Request::parseRequest(std::string text)
 	dataStrcuture(text); //leak
 	// printHeaderDataStructure();
 	cleanHeader();
-	if (header["request"][METHOD] == "GET"
+ 	if (header["request"][METHOD] == "GET"
 		|| header["request"][METHOD] == "POST"
 		|| header["request"][METHOD] == "DELETE")
 	{
