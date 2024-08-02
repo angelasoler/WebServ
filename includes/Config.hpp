@@ -12,7 +12,7 @@
 #define DEFAULT_REDIRECTION ""
 #define DEFAULT_ROOT_DIRECTORY "/var/www/html"
 #define DEFAULT_DIRECTORY_LISTING false
-#define DEFAULT_FILE "index.html"
+#define DEFAULT_FILE "helloworld.html"
 #define DEFAULT_CGI_EXTENSION ".cgi"
 #define DEFAULT_UPLOAD_DIRECTORY "/var/www/uploads"
 #define DEFAULT_ACCEPTED_METHODS "GET", "DELETE"
@@ -88,15 +88,14 @@ class Config
 
     public:
         std::vector<ServerConfig> servers;
-		std::map<int, ServerConfig> ClientServerMap;
 
         // Ponteiro estático para a instância
         static Config* instance;
 
         // Método estático para acessar a única instância
-        static Config* getInstance();
-		void	loadDefaultConfig(void);
-        void    loadConfig(const std::string& configFilePath);
+        static Config*	getInstance();
+		void			loadDefaultConfig(void);
+		void			loadConfig(const std::string& configFilePath);
 };
 
 void	printConfig(Config& config);

@@ -7,6 +7,13 @@ Response::Response(void) {}
 
 Response::~Response(void) {}
 
+Response	&Response::operator=(const Response &cpy) {
+	if (this != &cpy) {
+		config = cpy.config;
+	}
+	return (*this);
+}
+
 void Response::setStatusLine(const std::string& version, int statusCode, const std::string& reasonPhrase) {
 	std::ostringstream statusStream;
 	statusStream << version << " " << statusCode << " " << reasonPhrase;
@@ -18,9 +25,9 @@ void Response::setHeader(const std::string& key, const std::string& value) {
 }
 
 void Response::setBody(const std::string& bodyFile) {
-    std::ifstream file(bodyFile.c_str());
-    if (!file) {
-        body = NOT_FOUND_PAGE_ERROR;
+	std::ifstream file(bodyFile.c_str());
+	if (!file) {
+		body = NOT_FOUND_PAGE_ERROR;
 		return ;
     }
     std::ostringstream oss;
@@ -44,14 +51,17 @@ void Response::sendResponse(int client_fd) {
 	send(client_fd, response.c_str(), response.size(), 0);
 }
 
-int Response::treatActionAndResponse(std::map<int, std::string> request, int client_fd, e_httpMethodActions action) {
-	Config	*config = Config::getInstance();
-
-	ServerConfig	server = config->ClientServerMap[client_fd];
+int Response::treatActionAndResponse(std::map<int, std::string> request, \
+									int client_fd, e_httpMethodActions action)
+{
 	if (!request.empty() && !request[client_fd].empty()) {
 		switch (action) {
 			case RESPONSE:
-				responseGET(server, client_fd);
+				response(client_fd);
+				break;
+			case UPLOAD:
+				break;
+			case DELETE:
 				break;
 			case UPLOAD:
 				break;
@@ -67,11 +77,11 @@ int Response::treatActionAndResponse(std::map<int, std::string> request, int cli
 	return 0;
 }
 
-void	Response::responseGET(ServerConfig &server, int client_fd)
+void	Response::response(int client_fd)
 {
-	std::map<std::string, RouteConfig>::iterator routeIt = server.routes.find(routeRequested);
+	std::map<std::string, RouteConfig>::iterator routeIt = config[client_fd].routes.find(routeRequested);
 	RouteConfig &route = routeIt->second;
-	if (routeIt != server.routes.end()) {
+	if (routeIt != config[client_fd].routes.end()) {
 		
 		setStatusLine("HTTP/1.1", 200, "OK");
 		setHeader("Content-Type", "text/html");
@@ -80,7 +90,7 @@ void	Response::responseGET(ServerConfig &server, int client_fd)
 	} else {
 		setStatusLine("HTTP/1.1", 404, "OK");
 		setHeader("Content-Type", "text/html");
-		setBody(server.default_error_page);
+		setBody(config[client_fd].default_error_page);
 	}
 
 	std::ostringstream sizeStream;
@@ -90,7 +100,12 @@ void	Response::responseGET(ServerConfig &server, int client_fd)
 }
 
 
-void    Response::setClientRequest(std::map< std::string, std::vector<std::string> >      &request)
+void	Response::setClientRequest(std::map< std::string, std::vector<std::string> > &request)
 {
 	routeRequested = request["request"][ROUTE];
+}
+
+void	Response::setConfigRef(std::map<int, ServerConfig> &config)
+{
+	this->config = config;
 }
