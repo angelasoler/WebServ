@@ -26,6 +26,7 @@ void Response::setBody(const std::string& bodyFile) {
     std::ostringstream oss;
     oss << file.rdbuf();
     body = oss.str();
+	file.close();
 }
 
 std::string Response::buildResponse() {
