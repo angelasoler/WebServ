@@ -28,8 +28,8 @@ int	Request::readRequest(int client_fd, std::map<int, std::string> &request)
 	{
 		request[client_fd] += buffer;
 		std::cout
-		// << "Request: " TO-DO: adicionar diretiva DEBUG
-		// << buffer
+		<< "Request: " // TO-DO: adicionar diretiva DEBUG
+		<< buffer
 		<< std::endl;
 	}
 	return (0);
@@ -125,6 +125,7 @@ e_httpMethodActions	Request::parseRequest(std::string text)
 	}
 	else if (header["request"][METHOD] == "DELETE")
 	{
+		std::cout << header["request"][ROUTE] << "   AAAAAAAAAAAAAAAAAAAA\n";
 		std::cout << "\tDELETE\n" << std::endl;
 		return(DELETE);
 	}
