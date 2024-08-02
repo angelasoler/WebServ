@@ -33,6 +33,7 @@ void Response::setBody(const std::string& bodyFile) {
 	std::ostringstream oss;
 	oss << file.rdbuf();
 	body = oss.str();
+	file.close();
 }
 
 std::string Response::buildResponse() {
@@ -58,6 +59,10 @@ int Response::treatActionAndResponse(std::map<int, std::string> request, \
 			case RESPONSE:
 				response(client_fd);
 				break;
+			case UPLOAD:
+				break;
+			case DELETE:
+				break;
 			case CLOSE:
 				request.erase(request.find(client_fd));
 				close(client_fd);
@@ -76,7 +81,6 @@ void	Response::response(int client_fd)
 		
 		setStatusLine("HTTP/1.1", 200, "OK");
 		setHeader("Content-Type", "text/html");
-		(void)route;
 		setBody(route.default_file);
 	} else {
 		setStatusLine("HTTP/1.1", 404, "OK");

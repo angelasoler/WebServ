@@ -9,8 +9,8 @@
 typedef enum
 {
 	RESPONSE,
-	// UPLOAD,
-	// DELETE,
+	UPLOAD,
+	DELETE,
 	CLOSE
 }	e_httpMethodActions;
 
