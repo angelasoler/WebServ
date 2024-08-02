@@ -73,7 +73,7 @@ TEST(ConfigTest, NoServersFile) {
     EXPECT_EQ(route1.accepted_methods[0], "GET");
     EXPECT_EQ(route1.accepted_methods[1], "DELETE");
     EXPECT_EQ(route1.directory_listing, false);
-    EXPECT_EQ(route1.default_file, "index.html");
+    EXPECT_EQ(route1.default_file, DEFAULT_FILE);
     EXPECT_EQ(route1.cgi_extension, ".cgi");
     EXPECT_EQ(route1.upload_directory, "/var/www/uploads");
 
@@ -106,7 +106,7 @@ TEST(ConfigTest, NoServers) {
     EXPECT_EQ(route1.accepted_methods[0], "GET");
     EXPECT_EQ(route1.accepted_methods[1], "DELETE");
     EXPECT_EQ(route1.directory_listing, false);
-    EXPECT_EQ(route1.default_file, "index.html");
+    EXPECT_EQ(route1.default_file, DEFAULT_FILE);
     EXPECT_EQ(route1.cgi_extension, ".cgi");
     EXPECT_EQ(route1.upload_directory, "/var/www/uploads");
 
