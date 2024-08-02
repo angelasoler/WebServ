@@ -73,6 +73,7 @@ void	Connection::treatRequest(int client_fd, int clientIdx) {
 	action = request.parseRequest(text);
 	
 	response.setClientRequest(request.getHeader());
+	request.cleanHeader();
 	if (response.treatActionAndResponse(requestsText, client_fd, action))
 	{
 		poll_fds.erase(poll_fds.begin() + clientIdx);

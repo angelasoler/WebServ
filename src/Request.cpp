@@ -27,9 +27,8 @@ int	Request::readRequest(int client_fd, std::map<int, std::string> &request)
 	else
 	{
 		request[client_fd] += buffer;
-		std::cout
-		<< "Request: " // TO-DO: adicionar diretiva DEBUG
-		<< buffer
+		std::cout // TO-DO: adicionar diretiva DEBUG
+		// << buffer
 		<< std::endl;
 	}
 	return (0);
@@ -112,7 +111,6 @@ e_httpMethodActions	Request::parseRequest(std::string text)
 {
 	dataStrcuture(text); //leak
 	// printHeaderDataStructure();
-	cleanHeader();
  	if (header["request"][METHOD] == "GET")
 	{
 		std::cout << "\tRESPONSE\n" << std::endl;
@@ -125,7 +123,6 @@ e_httpMethodActions	Request::parseRequest(std::string text)
 	}
 	else if (header["request"][METHOD] == "DELETE")
 	{
-		std::cout << header["request"][ROUTE] << "   AAAAAAAAAAAAAAAAAAAA\n";
 		std::cout << "\tDELETE\n" << std::endl;
 		return(DELETE);
 	}

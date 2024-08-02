@@ -29,10 +29,10 @@ void Response::setBody(const std::string& bodyFile) {
 	if (!file) {
 		body = NOT_FOUND_PAGE_ERROR;
 		return ;
-    }
-    std::ostringstream oss;
-    oss << file.rdbuf();
-    body = oss.str();
+	}
+	std::ostringstream oss;
+	oss << file.rdbuf();
+	body = oss.str();
 	file.close();
 }
 
@@ -81,7 +81,6 @@ void	Response::response(int client_fd)
 		
 		setStatusLine("HTTP/1.1", 200, "OK");
 		setHeader("Content-Type", "text/html");
-		(void)route;
 		setBody(route.default_file);
 	} else {
 		setStatusLine("HTTP/1.1", 404, "OK");
