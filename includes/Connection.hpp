@@ -19,16 +19,19 @@ class Connection
 
 		int		setNonBlocking(int client_fd);
 		void	responseToClient(int client_fd);
-		void	connectNewClient(Server &refServer, int index);
+		void	connectNewClient(Server &refServer);
 		void	readClientRequest(int client_fd, int clientIdx);
 		void	treatRequest(int client_fd, int clientIdx);
+		void	initSockets(void);
 	public:
 		size_t						nServers;
 		std::vector<struct pollfd>	poll_fds;
+		std::map<int, ServerConfig>	clientServerConfig;
 
-		Connection(void);
+		Connection();
 		Connection(const Connection &cpy);
 		~Connection(void);
+
 		bool	eventIO(void);
 		void	verifyServerPollin(void);
 		void	requestResponse(void);

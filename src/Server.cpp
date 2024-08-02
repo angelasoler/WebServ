@@ -4,9 +4,9 @@
 
 Server::~Server(void) {}
 
-Server::Server(ServerConfig &server) {
+Server::Server(ServerConfig &config) : config(config) {
 	address.sin_addr.s_addr = INADDR_ANY;
-	address.sin_port = htons(server.port);
+	address.sin_port = htons(config.port);
 	address.sin_family = AF_INET;
 	fd = createSocket();
 	configureSocket();
@@ -14,7 +14,7 @@ Server::Server(ServerConfig &server) {
 	listenSocket();
 }
 
-Server::Server(const Server &cpy)
+Server::Server(const Server &cpy)  : config(cpy.config)
 {
 	*this = cpy;
 }
@@ -22,6 +22,7 @@ Server::Server(const Server &cpy)
 Server &Server::operator=(const Server &cpy)
 {
 	if (this != &cpy) {
+		config = cpy.config;
 		address = cpy.address;
 		fd = cpy.fd;
 	}

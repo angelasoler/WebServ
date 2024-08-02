@@ -9,10 +9,10 @@ Config* Config::instance = NULL;
 
 Config* Config::getInstance()
 {
-    if (instance == NULL) {
-        instance = new Config();
-    }
-    return instance;
+	if (instance == NULL) {
+		instance = new Config();
+	}
+	return instance;
 }
 
 // Construtores das Structs
