@@ -53,6 +53,10 @@ int Response::treatActionAndResponse(std::map<int, std::string> request, int cli
 			case RESPONSE:
 				responseGET(server, client_fd);
 				break;
+			case UPLOAD:
+				break;
+			case DELETE:
+				break;
 			case CLOSE:
 				request.erase(request.find(client_fd));
 				close(client_fd);

@@ -107,17 +107,26 @@ void	Request::printHeaderDataStructure(void)
 	std::cout << "\t\t === \t\t ==="  << std::endl;
 }
 
+
 e_httpMethodActions	Request::parseRequest(std::string text)
 {
 	dataStrcuture(text); //leak
 	// printHeaderDataStructure();
 	cleanHeader();
- 	if (header["request"][METHOD] == "GET"
-		|| header["request"][METHOD] == "POST"
-		|| header["request"][METHOD] == "DELETE")
+ 	if (header["request"][METHOD] == "GET")
 	{
 		std::cout << "\tRESPONSE\n" << std::endl;
 		return(RESPONSE);
+	}
+	else if (header["request"][METHOD] == "POST")
+	{
+		std::cout << "\tPOST\n" << std::endl;
+		return(UPLOAD);
+	}
+	else if (header["request"][METHOD] == "DELETE")
+	{
+		std::cout << "\tDELETE\n" << std::endl;
+		return(DELETE);
 	}
 	else
 	{
