@@ -35,11 +35,86 @@ int	Request::readRequest(int client_fd, std::map<int, std::string> &request)
 	return (0);
 }
 
+void	breakIntoLines(std::vector<std::string> &lines, std::string text) {
+	char	*tokenLine;
+
+	tokenLine = std::strtok((char *)text.c_str(), "\n");
+	do {
+		std::string	tmp(tokenLine);
+		lines.push_back(tmp);
+		tokenLine = std::strtok(NULL, "\n");
+	} while (tokenLine);
+}
+
+std::map< std::string, std::vector<std::string> > &Request::getHeader(void)
+{
+	return (header);
+}
+
+void	Request::cleanHeader(void)
+{
+	std::map< std::string, std::vector<std::string> >::iterator	headerIt;
+
+	for (headerIt = header.begin(); headerIt != header.end(); headerIt++)
+		headerIt->second.clear();
+}
+
+void	Request::breakResquesLine(std::string &line) {
+	std::istringstream ss(line);
+
+	while (ss) {
+		std::string token;
+		ss >> token;
+		header["request"].push_back(token);
+	}
+}
+
+void	Request::parseTheOthers(std::vector<std::string> &lines)
+{
+	std::vector<std::string>::iterator	it1;
+
+	for (it1 = (lines.begin() + 1); it1 != lines.end(); it1++) {
+		std::string str = *it1;
+		size_t pos = str.find(":");
+		if (pos == std::string::npos)
+			break ;
+		std::string tokenKey = str.substr(0, pos);
+		std::string tokenValue = str.substr((pos + 1), str.size());
+		header[tokenKey].push_back(tokenValue); 
+	}
+}
+
+void	Request::dataStrcuture(std::string text)
+{
+	std::vector<std::string>	lines;
+
+	breakIntoLines(lines, text);
+	breakResquesLine(lines[0]);
+	parseTheOthers(lines);
+}
+
+void	Request::printHeaderDataStructure(void)
+{
+	std::map< std::string, std::vector<std::string> >::iterator	headerIt;
+
+	std::cout << "\t\t === parse header ==="  << std::endl;
+	for (headerIt = header.begin(); headerIt != header.end(); headerIt++) {
+		std::cout << headerIt->first << std::endl;
+		std::vector<std::string>::iterator it;
+		for (it = headerIt->second.begin(); it != headerIt->second.end(); it++)
+			std::cout << "\t" << *it << std::endl;
+	}
+	std::cout << "\t\t === \t\t ==="  << std::endl;
+}
+
 e_httpMethodActions	Request::parseRequest(std::string text)
 {
-	if (!std::strncmp(text.c_str(), "GET", 3)
-		|| !std::strncmp(text.c_str(), "POST", 4)
-		|| !std::strncmp(text.c_str(), "DELETE", 6))
+	dataStrcuture(text); //leak
+	// printHeaderDataStructure();
+	cleanHeader();
+ 	if (header["request"][METHOD] == "GET"
+		|| header["request"][METHOD] == "POST"
+		|| header["request"][METHOD] == "DELETE")
 	{
 		std::cout << "\tRESPONSE\n" << std::endl;
 		return(RESPONSE);
