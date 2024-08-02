@@ -7,6 +7,7 @@
 # include "Request.hpp"
 # include "Response.hpp"
 # include "Server.hpp"
+# include "Config.hpp"
 class Connection
 {
 	private:
@@ -18,7 +19,7 @@ class Connection
 
 		int		setNonBlocking(int client_fd);
 		void	responseToClient(int client_fd);
-		void	connectNewClient(Server &refServer);
+		void	connectNewClient(Server &refServer, int index);
 		void	readClientRequest(int client_fd, int clientIdx);
 		void	treatRequest(int client_fd, int clientIdx);
 	public:
