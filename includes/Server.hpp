@@ -20,18 +20,19 @@
 class Server
 {
 	private:
+
 		int		createSocket(void);
 		void	configureSocket(void);
 		void	bindSocket(void);
 		void	listenSocket(void);
 		int		setNonBlocking(int client_fd);
-
 	public:
+		ServerConfig				&config;
 		int							fd;
 		struct sockaddr_in 			address;
 
 		Server(const Server &cpy);
-		Server(ServerConfig &server);
+		Server(ServerConfig &config);
 		~Server(void);
 		Server &operator=(const Server &cpy);
 };
