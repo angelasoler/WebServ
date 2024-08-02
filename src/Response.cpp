@@ -65,11 +65,14 @@ int Response::treatActionAndResponse(std::map<int, std::string> request, int cli
 void	Response::responseGET(ServerConfig &server, int client_fd)
 {
 	std::map<std::string, RouteConfig>::iterator routeIt = server.routes.find("/"); // ROTA PLACEHOLDER
+	RouteConfig &route = routeIt->second;
 	if (routeIt != server.routes.end()) {
-		RouteConfig &route = routeIt->second;
+		
 		setStatusLine("HTTP/1.1", 200, "OK");
 		setHeader("Content-Type", "text/html");
+		(void)route;
 		setBody(route.default_file);
+		// setBody("helloworld.html");
 	} else {
 		setStatusLine("HTTP/1.1", 404, "OK");
 		setHeader("Content-Type", "text/html");

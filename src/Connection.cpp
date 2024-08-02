@@ -67,7 +67,7 @@ void	Connection::treatRequest(int client_fd, int clientIdx) {
 	text = requestsText[client_fd];
 
 	action = request.parseRequest(text);
-
+	
 	if (response.treatActionAndResponse(requestsText, client_fd, action))
 	{
 		poll_fds.erase(poll_fds.begin() + clientIdx);

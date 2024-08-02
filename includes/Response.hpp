@@ -3,7 +3,6 @@
 
 #include <iostream>
 #include "Request.hpp"
-#include <map>
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -11,6 +10,9 @@
 # include "Config.hpp"
 # define DEFAULT_BODY "<html><head><title>Teste de Pagina</title></head><body><h1>Bom Dia!</h1></body></html>"
 # define NOT_FOUND_PAGE_ERROR "<html><head><title>ERROR</title></head><body><h1>Page not found!</h1></body></html>"
+# include <iostream>
+# include <algorithm>
+# include <map>
 
 class Response
 {
@@ -22,7 +24,7 @@ class Response
 	public:
 		Response(void);
 		~Response(void);
-
+		
 		void setStatusLine(const std::string& version, int statusCode, const std::string& reasonPhrase);
 		void setHeader(const std::string& key, const std::string& value);
 		void setBody(const std::string& bodyFile);
