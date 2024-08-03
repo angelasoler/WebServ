@@ -6,29 +6,22 @@
 # include <string>
 # include <iostream>
 # include "Config.hpp"
+# include "Request.hpp"
 
 class PathChecker
 {
 	public:
-		enum PathType {
-			File,
-			Directory,
-			URL,
-			Missing,
-			CGI
-		};
 
 		// método estático para verificar o tipo de rota
-		static PathType checkPathType(const std::string& path, ServerConfig &serverConfig);
+		static RequestInfo checkPathInfo(const std::string& path, ServerConfig &serverConfig);
 
 	private:
 		// construtor privado para impedir instânciação
 		PathChecker();
-
-		static bool isFile(const std::string& path);
-		static bool isDirectory(const std::string& path);
-		static bool isUrlRouteinRouteConfig(const std::string& path, ServerConfig &serverConfig);
-		static bool isCGI(const std::string& path);
+		static bool isFile(const std::string& path, ServerConfig &serverConfig, RequestInfo &info);
+		static bool isDirectory(const std::string& path, ServerConfig &serverConfig, RequestInfo &info);
+		static bool isUrlRouteinRouteConfig(const std::string& path, ServerConfig &serverConfig, RequestInfo &info);
+		static bool isCGI(const std::string& path, RequestInfo &info);
 };
 
 // AUX function;

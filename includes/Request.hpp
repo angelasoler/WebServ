@@ -6,6 +6,19 @@
 #  define BUFFER_SIZE 1024
 # endif
 
+# include <iostream>
+# include <unistd.h>
+# include <vector>
+# include <arpa/inet.h>
+# include <poll.h>
+# include <fcntl.h>
+# include <cstring>
+# include <algorithm>
+# include <map>
+# include <sstream>
+# include <string.h>
+# include <string>
+
 typedef enum
 {
 	RESPONSE,
@@ -21,17 +34,30 @@ typedef enum
 	HTTP_VERSION
 }	e_requestLinePart;
 
+typedef enum
+{
+	File,
+	Directory,
+	URL,
+	Missing,
+	CGI
+}	e_pathType;
 
-# include <iostream>
-# include <unistd.h>
-# include <vector>
-# include <arpa/inet.h>
-# include <poll.h>
-# include <fcntl.h>
-# include <cstring>
-# include <algorithm>
-# include <map>
-# include <sstream>
+typedef enum
+{
+	Read,
+	Write,
+	Execute
+}	e_permission;
+
+struct RequestInfo
+{
+	std::string					path;
+	std::string					pathComplete;
+	e_pathType					type;
+	e_httpMethodActions			action;
+	e_permission				permission;
+};
 
 class Request
 {

@@ -2,32 +2,44 @@
 #include <sys/stat.h>
 #include <string.h>
 
-PathChecker::PathType PathChecker::checkPathType(const std::string& path, ServerConfig &serverConfig) {
-	if (isUrlRouteinRouteConfig(path, serverConfig))
-		return URL;
-	else if (isCGI(path))
-		return CGI;
-	else if (isFile(path))
-		return File;
-	else if (isDirectory(path))
-		return Directory;
-	return URL;
+RequestInfo PathChecker::checkPathInfo(const std::string& path, ServerConfig &serverConfig) {
+	RequestInfo info;
+	if (isUrlRouteinRouteConfig(path, serverConfig, info))
+		info.type = URL;
+	else if (isCGI(path, info))
+		info.type = CGI;
+	else if (isFile(path, serverConfig, info))
+		info.type = File;
+	else if (isDirectory(path, serverConfig, info))
+		info.type = Directory;
+	info.type = URL;
+	return (info);
 }
 
-bool PathChecker::isFile(const std::string& path)
+bool PathChecker::isFile(const std::string& path, ServerConfig &serverConfig, RequestInfo &info)
 {
+	(void)serverConfig;
+	(void)info;
 	struct stat buffer;
 	return (stat(path.c_str(), &buffer) == 0 && S_ISREG(buffer.st_mode));
 }
 
-bool PathChecker::isDirectory(const std::string& path)
+bool PathChecker::isDirectory(const std::string& path, ServerConfig &serverConfig, RequestInfo &info)
 {
-	struct stat buffer;
-	return (stat(path.c_str(), &buffer) == 0 && S_ISDIR(buffer.st_mode));
+	(void)info;
+	for (std::map<std::string, RouteConfig>::const_iterator it = serverConfig.routes.begin(); it != serverConfig.routes.end(); ++it)
+	{
+		std::string final_path = std::string(it->second.root_directory) + std::string(path);
+		struct stat buffer;
+		if (stat(final_path.c_str(), &buffer) == 0 && S_ISDIR(buffer.st_mode))
+			return true;
+	}
+	return false;
 }
 
-bool PathChecker::isUrlRouteinRouteConfig(const std::string& path, ServerConfig &serverConfig)
+bool PathChecker::isUrlRouteinRouteConfig(const std::string& path, ServerConfig &serverConfig, RequestInfo &info)
 {
+	(void)info;
 	for (std::map<std::string, RouteConfig>::const_iterator it = serverConfig.routes.begin(); it != serverConfig.routes.end(); ++it)
 	{
 		if (it->second.path == path)
@@ -36,8 +48,9 @@ bool PathChecker::isUrlRouteinRouteConfig(const std::string& path, ServerConfig 
 	return false;
 }
 
-bool PathChecker::isCGI(const std::string& path)
+bool PathChecker::isCGI(const std::string& path, RequestInfo &info)
 {
+	(void)info;
 	if (endsWith(path, DEFAULT_CGI_EXTENSION))
 		return true;
 	return false;
