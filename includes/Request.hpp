@@ -18,6 +18,7 @@
 # include <sstream>
 # include <string.h>
 # include <string>
+# include "Config.hpp"
 
 typedef enum
 {
@@ -57,6 +58,7 @@ struct RequestInfo
 	e_pathType					type;
 	e_httpMethodActions			action;
 	e_permission				permission;
+	ServerConfig				serverConfig;
 };
 
 class Request
@@ -65,14 +67,17 @@ class Request
 		std::map< std::string, std::vector<std::string> >	header;
 
 		void	parseTheOthers(std::vector<std::string> &lines);
-		void	dataStrcuture(std::string text);
 		void	printHeaderDataStructure(void);
 		void	breakResquesLine(std::string &line);
+		e_httpMethodActions	getMethodAction(void);
+		RequestInfo			findServerConfig(int client_fd);
 	public:
 		Request(void);
 		~Request(void);
 
-		e_httpMethodActions									parseRequest(std::string text);
+		RequestInfo 										parseRequest(std::string text, ServerConfig &serverConfig);
+		void												parseRequestInfo(ServerConfig &serverConfig, RequestInfo &info);
+		void												parseRequestHeader(std::string text);
 		int													readRequest(int client_fd, \
 																		std::map<int, std::string> &request);
 		std::map< std::string, std::vector<std::string> >	&getHeader(void);

@@ -70,8 +70,8 @@ void	Connection::treatRequest(int client_fd, int clientIdx) {
 		return ;
 	text = requestsText[client_fd];
 
-	action = request.parseRequest(text);
-	
+	RequestInfo info = request.parseRequest(text, clientServerConfig[client_fd]);
+	action = info.action;
 	response.setClientRequest(request.getHeader());
 	request.cleanHeader();
 	if (response.treatActionAndResponse(requestsText, client_fd, action))

@@ -1,5 +1,6 @@
 
 #include "Request.hpp"
+#include "ParsePathInfo.hpp"
 
 Request::Request(void) {}
 
@@ -83,7 +84,7 @@ void	Request::parseTheOthers(std::vector<std::string> &lines)
 	}
 }
 
-void	Request::dataStrcuture(std::string text)
+void	Request::parseRequestHeader(std::string text)
 {
 	std::vector<std::string>	lines;
 
@@ -106,10 +107,27 @@ void	Request::printHeaderDataStructure(void)
 	std::cout << "\t\t === \t\t ==="  << std::endl;
 }
 
-
-e_httpMethodActions	Request::parseRequest(std::string text)
+void	Request::parseRequestInfo(ServerConfig &serverConfig, RequestInfo &info)
 {
-	dataStrcuture(text); //leak
+	info.action = getMethodAction();
+	// if (info.action == e_httpMethodActions::CLOSE)
+	// 	return info;
+	info.path = header["request"][ROUTE];
+	info.serverConfig = serverConfig;
+}
+
+RequestInfo Request::parseRequest(std::string text, ServerConfig &serverConfig)
+{
+	RequestInfo info;
+
+	parseRequestHeader(text);
+	parseRequestInfo(serverConfig, info);
+	ParsePathInfo::parsePathInfo(info);
+	return info;
+}
+
+e_httpMethodActions	Request::getMethodAction(void)
+{
 	// printHeaderDataStructure();
  	if (header["request"][METHOD] == "GET")
 	{
