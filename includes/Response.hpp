@@ -23,9 +23,16 @@ class Response
 		std::string							body;
 		std::map<int, ServerConfig>			config;
 
+		// PÁRSING
 		void		setBody(const std::string& bodyFile);
 		std::string	buildResponse(void);
 		void		setStatusLine(const std::string& version, int statusCode, const std::string& reasonPhrase);
+		void		setHeader(const std::string& key, const std::string& value);
+	
+		// ACTIONS
+		void		response(int client_fd, RequestInfo &requestInfo);
+
+		// SEND RESPONSE
 		void		sendResponse(int client_fd);
 	public:
 		Response();
@@ -33,12 +40,7 @@ class Response
 		Response	&operator=(const Response &cpy);
 
 		void		setConfigRef(std::map<int, ServerConfig> &config);
-		void		setClientRequest(std::map< std::string, std::vector<std::string> >	&request);
-		void		setHeader(const std::string& key, const std::string& value);
-
-		int			treatActionAndResponse(std::map<int, std::string> request, int client_fd, e_httpMethodActions action);
-
-		void		response(int client_fd);
+		int			treatActionAndResponse(std::map<int, std::string> request, int client_fd, RequestInfo &requestInfo);
 };
 
 #endif /* RESPONSE_HPP */

@@ -62,7 +62,6 @@ void	Connection::readClientRequest(int client_fd, int clientIdx)
 }
 
 void	Connection::treatRequest(int client_fd, int clientIdx) {
-	e_httpMethodActions	action;
 	std::string			text;
 
 	if (!(!requestsText.empty() && \
@@ -70,11 +69,9 @@ void	Connection::treatRequest(int client_fd, int clientIdx) {
 		return ;
 	text = requestsText[client_fd];
 
-	RequestInfo info = request.parseRequest(text, clientServerConfig[client_fd]);
-	action = info.action;
-	response.setClientRequest(request.getHeader());
+	RequestInfo requestInfo = request.parseRequest(text, clientServerConfig[client_fd]);
 	request.cleanHeader();
-	if (response.treatActionAndResponse(requestsText, client_fd, action))
+	if (response.treatActionAndResponse(requestsText, client_fd, requestInfo))
 	{
 		poll_fds.erase(poll_fds.begin() + clientIdx);
 		close(client_fd);

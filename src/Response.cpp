@@ -52,12 +52,12 @@ void Response::sendResponse(int client_fd) {
 }
 
 int Response::treatActionAndResponse(std::map<int, std::string> request, \
-									int client_fd, e_httpMethodActions action)
+									int client_fd, RequestInfo &requestInfo)
 {
 	if (!request.empty() && !request[client_fd].empty()) {
-		switch (action) {
+		switch (requestInfo.action) {
 			case RESPONSE:
-				response(client_fd);
+				response(client_fd, requestInfo);
 				break;
 			case UPLOAD:
 				break;
@@ -73,9 +73,9 @@ int Response::treatActionAndResponse(std::map<int, std::string> request, \
 	return 0;
 }
 
-void	Response::response(int client_fd)
+void	Response::response(int client_fd, RequestInfo &requestInfo)
 {
-	std::map<std::string, RouteConfig>::iterator routeIt = config[client_fd].routes.find(routeRequested);
+	std::map<std::string, RouteConfig>::iterator routeIt = config[client_fd].routes.find(requestInfo.path);
 	RouteConfig &route = routeIt->second;
 	if (routeIt != config[client_fd].routes.end()) {
 		
@@ -92,12 +92,6 @@ void	Response::response(int client_fd)
 	sizeStream << body.size();
 	setHeader("Content-Length", sizeStream.str());
 	sendResponse(client_fd);
-}
-
-
-void	Response::setClientRequest(std::map< std::string, std::vector<std::string> > &request)
-{
-	routeRequested = request["request"][ROUTE];
 }
 
 void	Response::setConfigRef(std::map<int, ServerConfig> &config)
