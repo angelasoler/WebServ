@@ -68,9 +68,7 @@ void	Connection::treatRequest(int client_fd, int clientIdx) {
 		!requestsText[client_fd].empty()))
 		return ;
 	text = requestsText[client_fd];
-
 	RequestInfo requestInfo = request.parseRequest(text, clientServerConfig[client_fd]);
-	request.cleanHeader();
 	if (response.treatActionAndResponse(requestsText, client_fd, requestInfo))
 	{
 		poll_fds.erase(poll_fds.begin() + clientIdx);

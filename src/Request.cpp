@@ -88,6 +88,7 @@ void	Request::parseRequestHeader(std::string text)
 {
 	std::vector<std::string>	lines;
 
+	cleanHeader();
 	breakIntoLines(lines, text);
 	breakResquesLine(lines[0]);
 	parseTheOthers(lines);
