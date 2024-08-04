@@ -18,10 +18,10 @@ class ParsePathInfo
 	private:
 		// construtor privado para impedir instânciação
 		ParsePathInfo();
-		static bool isFile(RequestInfo &info);
-		static bool isDirectory(RequestInfo &info);
-		static bool isUrlRouteinRouteConfig(RequestInfo &info);
-		static bool isCGI(RequestInfo &info);
+		static bool parseAsFile(RequestInfo &info);
+		static bool parseAsDirectory(RequestInfo &info);
+		static bool parseAsUrl(RequestInfo &info);
+		static bool parseAsCGI(RequestInfo &info);
 };
 
 // AUX function;

@@ -55,9 +55,9 @@ struct RequestInfo
 {
 	std::string					path;
 	std::string					pathComplete;
-	e_pathType					type;
+	e_pathType					pathType;
 	e_httpMethodActions			action;
-	e_permission				permission;
+	e_permission				permissions;
 	ServerConfig				serverConfig;
 };
 

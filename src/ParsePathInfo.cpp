@@ -4,25 +4,25 @@
 
 void	ParsePathInfo::parsePathInfo(RequestInfo &info)
 {
-	if (isUrlRouteinRouteConfig(info))
-		info.type = URL;
-	else if (isCGI(info))
-		info.type = CGI;
-	else if (isFile(info))
-		info.type = File;
-	else if (isDirectory(info))
-		info.type = Directory;
-	info.type = URL;
+	if (parseAsUrl(info))
+		info.pathType = URL;
+	else if (parseAsCGI(info))
+		info.pathType = CGI;
+	else if (parseAsFile(info))
+		info.pathType = File;
+	else if (parseAsDirectory(info))
+		info.pathType = Directory;
+	info.pathType = URL;
 }
 
-bool ParsePathInfo::isFile(RequestInfo &info)
+bool ParsePathInfo::parseAsFile(RequestInfo &info)
 {
 	(void)info;
 	struct stat buffer;
 	return (stat(info.path.c_str(), &buffer) == 0 && S_ISREG(buffer.st_mode));
 }
 
-bool ParsePathInfo::isDirectory(RequestInfo &info)
+bool ParsePathInfo::parseAsDirectory(RequestInfo &info)
 {
 	(void)info;
 	for (std::map<std::string, RouteConfig>::const_iterator it = info.serverConfig.routes.begin(); it != info.serverConfig.routes.end(); ++it)
@@ -35,7 +35,7 @@ bool ParsePathInfo::isDirectory(RequestInfo &info)
 	return false;
 }
 
-bool ParsePathInfo::isUrlRouteinRouteConfig(RequestInfo &info)
+bool ParsePathInfo::parseAsUrl(RequestInfo &info)
 {
 	(void)info;
 	for (std::map<std::string, RouteConfig>::const_iterator it = info.serverConfig.routes.begin(); it != info.serverConfig.routes.end(); ++it)
@@ -46,7 +46,7 @@ bool ParsePathInfo::isUrlRouteinRouteConfig(RequestInfo &info)
 	return false;
 }
 
-bool ParsePathInfo::isCGI(RequestInfo &info)
+bool ParsePathInfo::parseAsCGI(RequestInfo &info)
 {
 	(void)info;
 	if (endsWith(info.path, DEFAULT_CGI_EXTENSION))
