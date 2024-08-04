@@ -17,7 +17,6 @@
 class Response
 {
 	private:
-		std::string							routeRequested;
 		std::string							statusLine;
 		std::map<std::string, std::string>	headers;
 		std::string							body;
