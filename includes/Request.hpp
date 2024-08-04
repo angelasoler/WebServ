@@ -66,21 +66,24 @@ class Request
 	private:
 		std::map< std::string, std::vector<std::string> >	header;
 
-		void	parseTheOthers(std::vector<std::string> &lines);
-		void	printHeaderDataStructure(void);
-		void	breakResquesLine(std::string &line);
-		e_httpMethodActions	getMethodAction(void);
-		RequestInfo			findServerConfig(int client_fd);
+		// debug
+		void				printHeaderDataStructure(void);
+
+		// Parsing
+		void				parseTheOthers(std::vector<std::string> &lines);
+		void				breakResquesLine(std::string &line);
+		void				parseRequestInfo(ServerConfig &serverConfig, RequestInfo &info);
+		void				parseRequestHeader(std::string text);
+
+		// Aux Parsing
+		e_httpMethodActions									getMethodAction(void);
+		std::map< std::string, std::vector<std::string> >	&getHeader(void);
 	public:
 		Request(void);
 		~Request(void);
-
 		RequestInfo 										parseRequest(std::string text, ServerConfig &serverConfig);
-		void												parseRequestInfo(ServerConfig &serverConfig, RequestInfo &info);
-		void												parseRequestHeader(std::string text);
 		int													readRequest(int client_fd, \
 																		std::map<int, std::string> &request);
-		std::map< std::string, std::vector<std::string> >	&getHeader(void);
 		void												cleanHeader(void);
 
 };

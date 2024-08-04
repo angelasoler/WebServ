@@ -111,7 +111,7 @@ void	Request::printHeaderDataStructure(void)
 void	Request::parseRequestInfo(ServerConfig &serverConfig, RequestInfo &info)
 {
 	info.action = getMethodAction();
-	// if (info.action == e_httpMethodActions::CLOSE)
+	// if (info.action == e_httpMethodActions::CLOSE) // se a action for close é bom evitar o resto do parse ?
 	// 	return info;
 	info.requestPath = header["request"][ROUTE];
 	info.serverConfig = serverConfig;
