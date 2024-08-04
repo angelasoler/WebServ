@@ -75,7 +75,7 @@ int Response::treatActionAndResponse(std::map<int, std::string> request, \
 
 void	Response::response(int client_fd, RequestInfo &requestInfo)
 {
-	std::map<std::string, RouteConfig>::iterator routeIt = config[client_fd].routes.find(requestInfo.path);
+	std::map<std::string, RouteConfig>::iterator routeIt = config[client_fd].routes.find(requestInfo.requestPath);
 	RouteConfig &route = routeIt->second;
 	if (routeIt != config[client_fd].routes.end()) {
 		

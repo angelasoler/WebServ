@@ -19,7 +19,7 @@ bool ParsePathInfo::parseAsFile(RequestInfo &info)
 {
 	(void)info;
 	struct stat buffer;
-	return (stat(info.path.c_str(), &buffer) == 0 && S_ISREG(buffer.st_mode));
+	return (stat(info.requestPath.c_str(), &buffer) == 0 && S_ISREG(buffer.st_mode));
 }
 
 bool ParsePathInfo::parseAsDirectory(RequestInfo &info)
@@ -27,7 +27,7 @@ bool ParsePathInfo::parseAsDirectory(RequestInfo &info)
 	(void)info;
 	for (std::map<std::string, RouteConfig>::const_iterator it = info.serverConfig.routes.begin(); it != info.serverConfig.routes.end(); ++it)
 	{
-		std::string final_path = std::string(it->second.root_directory) + std::string(info.path);
+		std::string final_path = std::string(it->second.root_directory) + std::string(info.requestPath);
 		struct stat buffer;
 		if (stat(final_path.c_str(), &buffer) == 0 && S_ISDIR(buffer.st_mode))
 			return true;
@@ -40,7 +40,7 @@ bool ParsePathInfo::parseAsUrl(RequestInfo &info)
 	(void)info;
 	for (std::map<std::string, RouteConfig>::const_iterator it = info.serverConfig.routes.begin(); it != info.serverConfig.routes.end(); ++it)
 	{
-		if (it->second.path == info.path)
+		if (it->second.path == info.requestPath)
 			return true;
 	}
 	return false;
@@ -49,7 +49,7 @@ bool ParsePathInfo::parseAsUrl(RequestInfo &info)
 bool ParsePathInfo::parseAsCGI(RequestInfo &info)
 {
 	(void)info;
-	if (endsWith(info.path, DEFAULT_CGI_EXTENSION))
+	if (endsWith(info.requestPath, DEFAULT_CGI_EXTENSION))
 		return true;
 	return false;
 }

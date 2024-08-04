@@ -53,8 +53,8 @@ typedef enum
 
 struct RequestInfo
 {
-	std::string					path;
-	std::string					pathComplete;
+	std::string					requestPath;
+	std::string					ruquestCompletePath;
 	e_pathType					pathType;
 	e_httpMethodActions			action;
 	e_permission				permissions;

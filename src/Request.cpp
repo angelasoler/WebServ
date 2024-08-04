@@ -113,7 +113,7 @@ void	Request::parseRequestInfo(ServerConfig &serverConfig, RequestInfo &info)
 	info.action = getMethodAction();
 	// if (info.action == e_httpMethodActions::CLOSE)
 	// 	return info;
-	info.path = header["request"][ROUTE];
+	info.requestPath = header["request"][ROUTE];
 	info.serverConfig = serverConfig;
 }
 
