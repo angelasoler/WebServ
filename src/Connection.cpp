@@ -47,7 +47,6 @@ void	Connection::connectNewClient(Server &refServer)
 		handleError("Set non-blocking failed");
 	}
 	clientServerConfig[new_socket] = refServer.config;
-	response.setConfigRef(clientServerConfig);
 	client_poll_fd.fd = new_socket;
 	client_poll_fd.events = POLLIN | POLLOUT;
 	client_poll_fd.revents = 0;
@@ -67,15 +66,18 @@ void	Connection::treatRequest(int client_fd, int clientIdx) {
 	if (!(!requestsText.empty() && \
 		!requestsText[client_fd].empty()))
 		return ;
+
+	// parse request
 	text = requestsText[client_fd];
 	RequestInfo requestInfo = request.parseRequest(text, clientServerConfig[client_fd]);
-	if (response.treatActionAndResponse(requestsText, client_fd, requestInfo))
-	{
-		poll_fds.erase(poll_fds.begin() + clientIdx);
-		close(client_fd);
-		requestsText.erase(client_fd);
-	}
 
+	// treat response
+	response.treatActionAndResponse(client_fd, requestInfo);
+
+	// close response
+	poll_fds.erase(poll_fds.begin() + clientIdx);
+	close(client_fd);
+	requestsText.erase(client_fd);
 }
 
 int	Connection::setNonBlocking(int fd)

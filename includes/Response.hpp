@@ -8,19 +8,22 @@
 #include <sstream>
 # include "Server.hpp"
 # include "Config.hpp"
-# define DEFAULT_BODY "<html><head><title>Teste de Pagina</title></head><body><h1>Bom Dia!</h1></body></html>"
 # define NOT_FOUND_PAGE_ERROR "<html><head><title>ERROR</title></head><body><h1>Page not found!</h1></body></html>"
 # include <iostream>
 # include <algorithm>
 # include <map>
 
+struct ResponseMsg
+{
+	std::string							statusLine;
+	std::map<std::string, std::string>	headers;
+	std::string							body;
+};
+
 class Response
 {
 	private:
-		std::string							statusLine;
-		std::map<std::string, std::string>	headers;
-		std::string							body;
-		std::map<int, ServerConfig>			config;
+		ResponseMsg	responseMsg;
 
 		// PÁRSING
 		void		setBody(const std::string& bodyFile);
@@ -33,13 +36,13 @@ class Response
 
 		// SEND RESPONSE
 		void		sendResponse(int client_fd);
+
+		// COPY ASSINGMENT
+		Response	&operator=(const Response &cpy);
 	public:
 		Response();
 		~Response(void);
-		Response	&operator=(const Response &cpy);
-
-		void		setConfigRef(std::map<int, ServerConfig> &config);
-		int			treatActionAndResponse(std::map<int, std::string> request, int client_fd, RequestInfo &requestInfo);
+		int			treatActionAndResponse(int client_fd, RequestInfo &requestInfo);
 };
 
 #endif /* RESPONSE_HPP */
