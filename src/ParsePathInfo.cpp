@@ -2,79 +2,61 @@
 #include <sys/stat.h>
 #include <string.h>
 
-e_pathType	ParsePathInfo::getPathType(RequestInfo &info)
-{
-	if (parseAsCGI(info))
-		return CGI;
 
+
+bool isFile(const std::string& path) {
 	struct stat buffer;
-	for (std::map<std::string, RouteConfig>::const_iterator it = info.serverConfig.routes.begin(); it != info.serverConfig.routes.end(); ++it)
-	{
-		if (it->second.path == info.requestPath)
-			return URL;
+	return (stat(path.c_str(), &buffer) == 0 && S_ISREG(buffer.st_mode));
+}
 
-		info.requestCompletePath = std::string(it->second.root_directory) + std::string(info.requestPath);
+bool isDirectory(const std::string& path) {
+	struct stat buffer;
+	return (stat(path.c_str(), &buffer) == 0 && S_ISDIR(buffer.st_mode));
+}
 
-		if (stat(info.requestCompletePath.c_str(), &buffer) == 0 && S_ISREG(buffer.st_mode))
-			return File;
-		if (stat(info.requestCompletePath.c_str(), &buffer) == 0 && S_ISDIR(buffer.st_mode))
-			return Directory;
+e_pathType identifyPathType(std::string& path, ServerConfig& serverConfig, RequestInfo &info)
+{
+	if (serverConfig.cgi.path_info == path || serverConfig.cgi.script_path == path) {
+		return CGI;
 	}
+
+	// iterar pelas rotas configuradas
+	std::map<std::string, RouteConfig>::const_iterator it;
+	for (it = serverConfig.routes.begin(); it != serverConfig.routes.end(); ++it)
+	{
+		const RouteConfig& route = it->second;
+
+		// Se o caminho corresponde à rota configurada
+		if (path == route.path || path.find(route.path) == 0)
+		{
+
+			// Define o caminho completo pro caso de ser um diretoio ou arquivo
+			info.fullPath = std::string(route.root_directory) + std::string(path);
+
+			// Verificar se é um diretório
+			if (isDirectory(info.fullPath))
+				return Directory;
+
+			// Verificar se é um arquivo
+			else if (isFile(info.fullPath))
+				return File;
+
+			// Verificar se há uma redireção configurada
+			else if (!route.redirection.empty())
+				return Redirection;
+
+			// Verificar se o caminho está associado a um CGI
+			else if (endsWith(info.fullPath, DEFAULT_CGI_EXTENSION))
+				return CGI;
+		}
+	}
+	// Se não encontrar nenhuma correspondência específica, tratar como uma URL padrão
 	return URL;
 }
 
 void	ParsePathInfo::parsePathInfo(RequestInfo &info)
 {
-	if (parseAsUrl(info))
-		info.pathType = URL;
-	else if (parseAsCGI(info))
-		info.pathType = CGI;
-	else if (parseAsFile(info))
-		info.pathType = File;
-	else if (parseAsDirectory(info))
-		info.pathType = Directory;
-	info.pathType = URL;
-}
-
-bool ParsePathInfo::parseAsFile(RequestInfo &info)
-{
-	for (std::map<std::string, RouteConfig>::const_iterator it = info.serverConfig.routes.begin(); it != info.serverConfig.routes.end(); ++it)
-	{
-		std::string final_path = std::string(it->second.root_directory) + std::string(info.requestPath);
-		struct stat buffer;
-		if (stat(info.requestPath.c_str(), &buffer) == 0 && S_ISREG(buffer.st_mode))
-			return true;
-	}
-	return (false);
-}
-
-bool ParsePathInfo::parseAsDirectory(RequestInfo &info)
-{
-	for (std::map<std::string, RouteConfig>::const_iterator it = info.serverConfig.routes.begin(); it != info.serverConfig.routes.end(); ++it)
-	{
-		std::string final_path = std::string(it->second.root_directory) + std::string(info.requestPath);
-		struct stat buffer;
-		if (stat(final_path.c_str(), &buffer) == 0 && S_ISDIR(buffer.st_mode))
-			return true;
-	}
-	return false;
-}
-
-bool ParsePathInfo::parseAsUrl(RequestInfo &info)
-{
-	for (std::map<std::string, RouteConfig>::const_iterator it = info.serverConfig.routes.begin(); it != info.serverConfig.routes.end(); ++it)
-	{
-		if (it->second.path == info.requestPath)
-			return true;
-	}
-	return false;
-}
-
-bool ParsePathInfo::parseAsCGI(RequestInfo &info)
-{
-	if (endsWith(info.requestPath, DEFAULT_CGI_EXTENSION))
-		return true;
-	return false;
+	identifyPathType(info.path, info.serverRef, info);
 }
 
 bool endsWith(const std::string& str, const std::string& suffix) {

@@ -48,7 +48,7 @@ int Response::treatActionAndResponse(int client_fd, RequestInfo &requestInfo)
 {
 	switch (requestInfo.action) {
 		case RESPONSE:
-			response(client_fd, requestInfo);
+			response(client_fd, requestInfo.serverRef, requestInfo);
 			break;
 		case UPLOAD:
 			break;
@@ -60,11 +60,11 @@ int Response::treatActionAndResponse(int client_fd, RequestInfo &requestInfo)
 	return 1;
 }
 
-void	Response::response(int client_fd, RequestInfo &requestInfo)
+void	Response::response(int client_fd, ServerConfig &serverConfig, RequestInfo &requestInfo)
 {
-	std::map<std::string, RouteConfig>::iterator routeIt = requestInfo.serverConfig.routes.find(requestInfo.requestPath);
+	std::map<std::string, RouteConfig>::iterator routeIt = serverConfig.routes.find(requestInfo.path);
 	RouteConfig &route = routeIt->second;
-	if (routeIt != requestInfo.serverConfig.routes.end()) {
+	if (routeIt != serverConfig.routes.end()) {
 		
 		setStatusLine("HTTP/1.1", 200, "OK");
 		setHeader("Content-Type", "text/html");
@@ -72,7 +72,7 @@ void	Response::response(int client_fd, RequestInfo &requestInfo)
 	} else {
 		setStatusLine("HTTP/1.1", 404, "OK");
 		setHeader("Content-Type", "text/html");
-		setBody(requestInfo.serverConfig.default_error_page);
+		setBody(serverConfig.default_error_page);
 	}
 
 	std::ostringstream sizeStream;

@@ -18,15 +18,12 @@ class ParsePathInfo
 	private:
 		// construtor privado para impedir instânciação
 		ParsePathInfo();
-		static bool parseAsFile(RequestInfo &info);
-		static bool parseAsDirectory(RequestInfo &info);
-		static bool parseAsUrl(RequestInfo &info);
-		static bool parseAsCGI(RequestInfo &info);
-
-		static e_pathType	getPathType(RequestInfo &info);
 };
 
 // AUX function;
-bool endsWith(const std::string& strconst, const std::string &suffix);
+bool		endsWith(const std::string& strconst, const std::string &suffix);
+bool		isFile(const std::string& path);
+bool 		isDirectory(const std::string& path);
+e_pathType	identifyPathType(std::string& path, ServerConfig& serverConfig, RequestInfo &info);
 
 #endif // PATHCHECKER_HPP

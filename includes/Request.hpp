@@ -40,7 +40,7 @@ typedef enum
 	File,
 	Directory,
 	URL,
-	Missing,
+	Redirection,
 	CGI
 }	e_pathType;
 
@@ -53,13 +53,14 @@ typedef enum
 
 struct RequestInfo
 {
-	std::string					requestPath;
-	std::string					requestCompletePath;
+	std::string					path;
+	std::string					fullPath;
 	e_pathType					pathType;
 	e_httpMethodActions			action;
 	e_permission				permissions;
-	RouteConfig					routeConfig;
-	ServerConfig				serverConfig;
+
+	// Reference
+	ServerConfig				serverRef;
 };
 
 class Request
