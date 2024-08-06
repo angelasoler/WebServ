@@ -3,15 +3,11 @@
 #include <string.h>
 
 
-
-bool isFile(const std::string& path) {
-	struct stat buffer;
-	return (stat(path.c_str(), &buffer) == 0 && S_ISREG(buffer.st_mode));
-}
-
-bool isDirectory(const std::string& path) {
-	struct stat buffer;
-	return (stat(path.c_str(), &buffer) == 0 && S_ISDIR(buffer.st_mode));
+void	ParsePathInfo::parsePathInfo(RequestInfo &info)
+{
+	info.pathType = identifyPathType(info.path, info.serverRef, info);
+	if (info.pathType == Redirection || info.pathType == File || info.pathType == CGI || info.pathType == Directory)
+		info.permissions = getPermissions(info.fullPath);
 }
 
 e_pathType identifyPathType(std::string& path, ServerConfig& serverConfig, RequestInfo &info)
@@ -54,9 +50,14 @@ e_pathType identifyPathType(std::string& path, ServerConfig& serverConfig, Reque
 	return URL;
 }
 
-void	ParsePathInfo::parsePathInfo(RequestInfo &info)
-{
-	identifyPathType(info.path, info.serverRef, info);
+bool isFile(const std::string& path) {
+	struct stat buffer;
+	return (stat(path.c_str(), &buffer) == 0 && S_ISREG(buffer.st_mode));
+}
+
+bool isDirectory(const std::string& path) {
+	struct stat buffer;
+	return (stat(path.c_str(), &buffer) == 0 && S_ISDIR(buffer.st_mode));
 }
 
 bool endsWith(const std::string& str, const std::string& suffix) {
@@ -64,4 +65,14 @@ bool endsWith(const std::string& str, const std::string& suffix) {
 		return false;
 	}
 	return std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
+}
+
+Permission getPermissions(std::string path)
+{
+	Permission permissions;
+
+	permissions.read = access(path.c_str(), R_OK);
+	permissions.write = access(path.c_str(), W_OK);
+	permissions.execute = access(path.c_str(), X_OK);
+	return permissions;
 }

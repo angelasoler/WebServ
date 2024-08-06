@@ -44,12 +44,12 @@ typedef enum
 	CGI
 }	e_pathType;
 
-typedef enum
+struct Permission
 {
-	Read,
-	Write,
-	Execute
-}	e_permission;
+	bool	read;
+	bool	write;
+	bool	execute;
+};
 
 struct RequestInfo
 {
@@ -57,7 +57,7 @@ struct RequestInfo
 	std::string					fullPath;
 	e_pathType					pathType;
 	e_httpMethodActions			action;
-	e_permission				permissions;
+	Permission					permissions;
 
 	// Reference
 	ServerConfig				serverRef;
