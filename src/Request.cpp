@@ -1,5 +1,6 @@
 
 #include "Request.hpp"
+#include "ParsePathInfo.hpp"
 
 Request::Request(void) {}
 
@@ -7,9 +8,9 @@ Request::~Request(void) {}
 
 int	Request::readRequest(int client_fd, std::map<int, std::string> &request)
 {
-	char	buffer[BUFFER_SIZE];
+	char	buffer[BUFFER_SIZE + 1]; // Quando o buffer é muito pequeno, precisa de +1 pra colocar o /0
 
-	memset(buffer, 0, BUFFER_SIZE);
+	memset(buffer, 0, BUFFER_SIZE + 1);
 	ssize_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE, 0);
 	if (bytes_read >= 0)
 		buffer[bytes_read] = '\0';
@@ -83,10 +84,11 @@ void	Request::parseTheOthers(std::vector<std::string> &lines)
 	}
 }
 
-void	Request::dataStrcuture(std::string text)
+void	Request::parseRequestHeader(std::string text)
 {
 	std::vector<std::string>	lines;
 
+	cleanHeader();
 	breakIntoLines(lines, text);
 	breakResquesLine(lines[0]);
 	parseTheOthers(lines);
@@ -106,10 +108,27 @@ void	Request::printHeaderDataStructure(void)
 	std::cout << "\t\t === \t\t ==="  << std::endl;
 }
 
-
-e_httpMethodActions	Request::parseRequest(std::string text)
+void	Request::parseRequestInfo(ServerConfig &serverConfig, RequestInfo &info)
 {
-	dataStrcuture(text); //leak
+	info.action = getMethodAction();
+	// if (info.action == e_httpMethodActions::CLOSE) // se a action for close é bom evitar o resto do parse ?
+	// 	return info;
+	info.path = header["request"][ROUTE];
+	info.serverRef = serverConfig;
+}
+
+RequestInfo Request::parseRequest(std::string text, ServerConfig &serverConfig)
+{
+	RequestInfo info;
+
+	parseRequestHeader(text);
+	parseRequestInfo(serverConfig, info);
+	ParsePathInfo::parsePathInfo(info);
+	return info;
+}
+
+e_httpMethodActions	Request::getMethodAction(void)
+{
 	// printHeaderDataStructure();
  	if (header["request"][METHOD] == "GET")
 	{

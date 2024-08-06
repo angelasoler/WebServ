@@ -99,5 +99,6 @@ class Config
 };
 
 void	printConfig(Config& config);
+void	printServerConfig(ServerConfig& serverConfig);
 
 #endif //CONFIG_HPP

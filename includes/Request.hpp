@@ -6,6 +6,20 @@
 #  define BUFFER_SIZE 1024
 # endif
 
+# include <iostream>
+# include <unistd.h>
+# include <vector>
+# include <arpa/inet.h>
+# include <poll.h>
+# include <fcntl.h>
+# include <cstring>
+# include <algorithm>
+# include <map>
+# include <sstream>
+# include <string.h>
+# include <string>
+# include "Config.hpp"
+
 typedef enum
 {
 	RESPONSE,
@@ -21,35 +35,58 @@ typedef enum
 	HTTP_VERSION
 }	e_requestLinePart;
 
+typedef enum
+{
+	File,
+	Directory,
+	URL,
+	Redirection,
+	CGI
+}	e_pathType;
 
-# include <iostream>
-# include <unistd.h>
-# include <vector>
-# include <arpa/inet.h>
-# include <poll.h>
-# include <fcntl.h>
-# include <cstring>
-# include <algorithm>
-# include <map>
-# include <sstream>
+struct Permission
+{
+	bool	read;
+	bool	write;
+	bool	execute;
+};
+
+struct RequestInfo
+{
+	std::string					path;
+	std::string					fullPath;
+	e_pathType					pathType;
+	e_httpMethodActions			action;
+	Permission					permissions;
+	std::string					body;
+
+	// Reference
+	ServerConfig				serverRef;
+};
 
 class Request
 {
 	private:
 		std::map< std::string, std::vector<std::string> >	header;
 
-		void	parseTheOthers(std::vector<std::string> &lines);
-		void	dataStrcuture(std::string text);
-		void	printHeaderDataStructure(void);
-		void	breakResquesLine(std::string &line);
+		// debug
+		void				printHeaderDataStructure(void);
+
+		// Parsing
+		void				parseTheOthers(std::vector<std::string> &lines);
+		void				breakResquesLine(std::string &line);
+		void				parseRequestInfo(ServerConfig &serverConfig, RequestInfo &info);
+		void				parseRequestHeader(std::string text);
+
+		// Aux Parsing
+		e_httpMethodActions									getMethodAction(void);
+		std::map< std::string, std::vector<std::string> >	&getHeader(void);
 	public:
 		Request(void);
 		~Request(void);
-
-		e_httpMethodActions									parseRequest(std::string text);
+		RequestInfo 										parseRequest(std::string text, ServerConfig &serverConfig);
 		int													readRequest(int client_fd, \
 																		std::map<int, std::string> &request);
-		std::map< std::string, std::vector<std::string> >	&getHeader(void);
 		void												cleanHeader(void);
 
 };
