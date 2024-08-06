@@ -58,6 +58,7 @@ struct RequestInfo
 	e_pathType					pathType;
 	e_httpMethodActions			action;
 	e_permission				permissions;
+	RouteConfig					routeConfig;
 	ServerConfig				serverConfig;
 };
 

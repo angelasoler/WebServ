@@ -2,6 +2,27 @@
 #include <sys/stat.h>
 #include <string.h>
 
+e_pathType	ParsePathInfo::getPathType(RequestInfo &info)
+{
+	if (parseAsCGI(info))
+		return CGI;
+
+	struct stat buffer;
+	for (std::map<std::string, RouteConfig>::const_iterator it = info.serverConfig.routes.begin(); it != info.serverConfig.routes.end(); ++it)
+	{
+		if (it->second.path == info.requestPath)
+			return URL;
+
+		info.requestCompletePath = std::string(it->second.root_directory) + std::string(info.requestPath);
+
+		if (stat(info.requestCompletePath.c_str(), &buffer) == 0 && S_ISREG(buffer.st_mode))
+			return File;
+		if (stat(info.requestCompletePath.c_str(), &buffer) == 0 && S_ISDIR(buffer.st_mode))
+			return Directory;
+	}
+	return URL;
+}
+
 void	ParsePathInfo::parsePathInfo(RequestInfo &info)
 {
 	if (parseAsUrl(info))
@@ -41,7 +62,6 @@ bool ParsePathInfo::parseAsDirectory(RequestInfo &info)
 
 bool ParsePathInfo::parseAsUrl(RequestInfo &info)
 {
-	(void)info;
 	for (std::map<std::string, RouteConfig>::const_iterator it = info.serverConfig.routes.begin(); it != info.serverConfig.routes.end(); ++it)
 	{
 		if (it->second.path == info.requestPath)

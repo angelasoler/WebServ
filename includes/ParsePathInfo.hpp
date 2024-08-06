@@ -22,6 +22,8 @@ class ParsePathInfo
 		static bool parseAsDirectory(RequestInfo &info);
 		static bool parseAsUrl(RequestInfo &info);
 		static bool parseAsCGI(RequestInfo &info);
+
+		static e_pathType	getPathType(RequestInfo &info);
 };
 
 // AUX function;
