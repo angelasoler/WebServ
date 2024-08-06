@@ -8,9 +8,9 @@ Request::~Request(void) {}
 
 int	Request::readRequest(int client_fd, std::map<int, std::string> &request)
 {
-	char	buffer[BUFFER_SIZE];
+	char	buffer[BUFFER_SIZE + 1]; // Quando o buffer é muito pequeno, precisa de +1 pra colocar o /0
 
-	memset(buffer, 0, BUFFER_SIZE);
+	memset(buffer, 0, BUFFER_SIZE + 1);
 	ssize_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE, 0);
 	if (bytes_read >= 0)
 		buffer[bytes_read] = '\0';

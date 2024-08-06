@@ -58,6 +58,7 @@ struct RequestInfo
 	e_pathType					pathType;
 	e_httpMethodActions			action;
 	Permission					permissions;
+	std::string					body;
 
 	// Reference
 	ServerConfig				serverRef;
