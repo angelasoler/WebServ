@@ -47,7 +47,6 @@ void	Connection::connectNewClient(Server &refServer)
 		handleError("Set non-blocking failed");
 	}
 	clientServerConfig[new_socket] = refServer.config;
-	response.setConfigRef(clientServerConfig);
 	client_poll_fd.fd = new_socket;
 	client_poll_fd.events = POLLIN | POLLOUT;
 	client_poll_fd.revents = 0;
@@ -62,25 +61,23 @@ void	Connection::readClientRequest(int client_fd, int clientIdx)
 }
 
 void	Connection::treatRequest(int client_fd, int clientIdx) {
-	e_httpMethodActions	action;
 	std::string			text;
 
 	if (!(!requestsText.empty() && \
 		!requestsText[client_fd].empty()))
 		return ;
+
+	// parse request
 	text = requestsText[client_fd];
+	RequestInfo requestInfo = request.parseRequest(text, clientServerConfig[client_fd]);
 
-	action = request.parseRequest(text);
-	
-	response.setClientRequest(request.getHeader());
-	request.cleanHeader();
-	if (response.treatActionAndResponse(requestsText, client_fd, action))
-	{
-		poll_fds.erase(poll_fds.begin() + clientIdx);
-		close(client_fd);
-		requestsText.erase(client_fd);
-	}
+	// treat response
+	response.treatActionAndResponse(client_fd, requestInfo);
 
+	// close response
+	poll_fds.erase(poll_fds.begin() + clientIdx);
+	close(client_fd);
+	requestsText.erase(client_fd);
 }
 
 int	Connection::setNonBlocking(int fd)
