@@ -62,6 +62,7 @@ int Response::treatActionAndResponse(int client_fd, RequestInfo &requestInfo)
 
 void	Response::response(int client_fd, ServerConfig &serverConfig, RequestInfo &requestInfo)
 {
+	printServerConfig(serverConfig);
 	std::map<std::string, RouteConfig>::iterator routeIt = serverConfig.routes.find(requestInfo.path);
 	RouteConfig &route = routeIt->second;
 	if (routeIt != serverConfig.routes.end()) {
