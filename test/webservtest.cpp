@@ -438,7 +438,7 @@ TEST(ConfigTest, InvalidServerId1ValidServerId2) {
 #include "Config.hpp"
 #include "ParsePathInfo.hpp"
 #define	SERVER_ROOT_TEST "test/server_root_test"
-#define	SERVER_CONFIG_TEST_PATH "test/server_root_test"
+#define	SERVER_CONFIG_TEST_PATH "test/path_test_files/OneServer.conf"
 
 TEST(PathTest, SimpleRoute) {
 	// Setup ServerConfig
@@ -458,6 +458,26 @@ TEST(PathTest, SimpleRoute) {
 	EXPECT_EQ(info.permissions.read, true);
 	EXPECT_EQ(info.permissions.write, true);
 }
+
+TEST(PathTest, SimpleRouteB) {
+	// Setup ServerConfig
+	Config  *config = Config::getInstance();
+	config->loadConfig("test/path_test_files/OneServerB.conf");
+	ServerConfig serverConfig = config->servers[0];
+
+	// Setup Request Info
+	RequestInfo info;
+	info.path = "/other_directory";
+	info.action = RESPONSE;
+	info.serverRef = serverConfig;
+
+	// Parse Request Info
+	ParsePathInfo::parsePathInfo(info);
+	EXPECT_EQ(info.pathType, Directory);
+	EXPECT_EQ(info.permissions.read, true);
+	EXPECT_EQ(info.permissions.write, true);
+}
+
 
 int main(int argc, char **argv) {
 	::testing::InitGoogleTest(&argc, argv);

@@ -72,7 +72,7 @@ void	Response::response(int client_fd, ServerConfig &serverConfig, RequestInfo &
 		setHeader("Content-Type", "text/html");
 		std::string file = std::string(requestInfo.fullPath) + std::string(route.default_file);
 		setBody(file);
-		// std::cout << "file: " << file << "   \n" ;
+		std::cout << "file: " << file << "   \n" ;
 	} else {
 		setStatusLine("HTTP/1.1", 404, "OK");
 		setHeader("Content-Type", "text/html");
