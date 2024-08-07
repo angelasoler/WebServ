@@ -68,7 +68,7 @@ TEST(ConfigTest, NoServersFile) {
 	const RouteConfig& route1 = server1.routes.at("/");
 	EXPECT_EQ(route1.path, "/");
 	EXPECT_EQ(route1.redirection, "");
-	EXPECT_EQ(route1.root_directory, "/var/www/html");
+	EXPECT_EQ(route1.root_directory, DEFAULT_ROOT_DIRECTORY);
 	EXPECT_EQ(route1.accepted_methods.size(), 2);
 	EXPECT_EQ(route1.accepted_methods[0], "GET");
 	EXPECT_EQ(route1.accepted_methods[1], "DELETE");
@@ -101,7 +101,7 @@ TEST(ConfigTest, NoServers) {
 	const RouteConfig& route1 = server1.routes.at("/");
 	EXPECT_EQ(route1.path, "/");
 	EXPECT_EQ(route1.redirection, "");
-	EXPECT_EQ(route1.root_directory, "/var/www/html");
+	EXPECT_EQ(route1.root_directory, DEFAULT_ROOT_DIRECTORY);
 	EXPECT_EQ(route1.accepted_methods.size(), 2);
 	EXPECT_EQ(route1.accepted_methods[0], "GET");
 	EXPECT_EQ(route1.accepted_methods[1], "DELETE");
@@ -435,44 +435,29 @@ TEST(ConfigTest, InvalidServerId1ValidServerId2) {
 	EXPECT_EQ(server3.cgi.script_path, "/usr/lib/cgi-bin/route_z.cgi");
 }
 
-// #include "Config.hpp"
-// #include "PathChecker.hpp"
-// TEST(PathTest, SimpleRoute) {
-// 	// Setup Test
-// 	Config  *config = Config::getInstance();
-// 	config->loadDefaultConfig();
-// 	std::string path = "/";
-// 	ServerConfig serverConfig = config->servers[0];
+#include "Config.hpp"
+#include "ParsePathInfo.hpp"
+#define	SERVER_ROOT_TEST "test/server_root_test"
+#define	SERVER_CONFIG_TEST_PATH "test/server_root_test"
 
-// 	// Test checkPathType
-// 	PathChecker::PathType type = PathChecker::checkPathType(path, serverConfig);
-// 	EXPECT_EQ(type, PathChecker::URL);
-// }
+TEST(PathTest, SimpleRoute) {
+	// Setup ServerConfig
+	Config  *config = Config::getInstance();
+	config->loadConfig(SERVER_CONFIG_TEST_PATH);
+	ServerConfig serverConfig = config->servers[0];
 
-// TEST(PathTest, SimpleCGI) {
-// 	// Setup Test
-// 	Config  *config = Config::getInstance();
-// 	config->loadDefaultConfig();
-// 	std::string path = std::string("/cgi_path/cgi") + std::string(DEFAULT_CGI_EXTENSION);
-// 	ServerConfig serverConfig = config->servers[0];
+	// Setup Request Info
+	RequestInfo info;
+	info.path = "/";
+	info.action = RESPONSE;
+	info.serverRef = serverConfig;
 
-// 	// Test checkPathType
-// 	PathChecker::PathType type = PathChecker::checkPathType(path, serverConfig);
-// 	EXPECT_EQ(type, PathChecker::CGI);
-// }
-
-
-// TEST(PathTest, SimpleDirectory) {
-// 	// Setup Test
-// 	Config  *config = Config::getInstance();
-// 	config->loadDefaultConfig();
-// 	std::string path = "/src";
-// 	ServerConfig serverConfig = config->servers[0];
-
-// 	// Test checkPathType
-// 	PathChecker::PathType type = PathChecker::checkPathType(path, serverConfig);
-// 	EXPECT_EQ(type, PathChecker::Directory);
-// }
+	// Parse Request Info
+	ParsePathInfo::parsePathInfo(info);
+	EXPECT_EQ(info.pathType, Directory);
+	EXPECT_EQ(info.permissions.read, true);
+	EXPECT_EQ(info.permissions.write, true);
+}
 
 int main(int argc, char **argv) {
 	::testing::InitGoogleTest(&argc, argv);

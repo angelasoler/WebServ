@@ -71,8 +71,8 @@ Permission getPermissions(std::string path)
 {
 	Permission permissions;
 
-	permissions.read = access(path.c_str(), R_OK);
-	permissions.write = access(path.c_str(), W_OK);
-	permissions.execute = access(path.c_str(), X_OK);
+	permissions.read = (access(path.c_str(), R_OK) == 0);
+	permissions.write = (access(path.c_str(), W_OK) == 0);
+	permissions.execute = (access(path.c_str(), X_OK) == 0);
 	return permissions;
 }
