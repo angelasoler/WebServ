@@ -5,7 +5,7 @@
 
 void	ParsePathInfo::parsePathInfo(RequestInfo &info)
 {
-	info.pathType = identifyPathType(info.path, info.serverRef, info);
+	info.pathType = identifyPathType(info.requestedRoute, info.serverRef, info);
 	if (info.pathType == Redirection || info.pathType == File || info.pathType == CGI || info.pathType == Directory)
 		info.permissions = getPermissions(info.fullPath);
 }

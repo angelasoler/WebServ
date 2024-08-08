@@ -53,7 +53,7 @@ struct Permission
 
 struct RequestInfo
 {
-	std::string					path;
+	std::string					requestedRoute;
 	std::string					fullPath;
 	e_pathType					pathType;
 	e_httpMethodActions			action;

@@ -113,7 +113,7 @@ void	Request::parseRequestInfo(ServerConfig &serverConfig, RequestInfo &info)
 	info.action = getMethodAction();
 	// if (info.action == e_httpMethodActions::CLOSE) // se a action for close é bom evitar o resto do parse ?
 	// 	return info;
-	info.path = header["request"][ROUTE];
+	info.requestedRoute = header["request"][ROUTE];
 	info.serverRef = serverConfig;
 }
 
