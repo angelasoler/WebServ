@@ -5,10 +5,10 @@
 
 void	ParsePathInfo::parsePathInfo(RequestInfo &info)
 {
-	std::cout << "requestedRoute: " << info.requestedRoute << "\n";
+	// std::cout << "requestedRoute: " << info.requestedRoute << "\n";
 	info.pathType = identifyFullPathType(info.requestedRoute, info.serverRef, info);
 	info.permissions = getPermissions(info.fullPath);
-	std::cout << "fullpath: " << info.fullPath << "\n";
+	// std::cout << "fullpath: " << info.fullPath << "\n";
 }
 
 e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serverConfig, RequestInfo &info)
@@ -53,7 +53,7 @@ e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serve
 		}
 	}
 	// Se não encontrar nenhuma correspondência específica, tratar como INVALID
-	std::cout << "fullpath: " << info.fullPath << "\n";
+	// std::cout << "fullpath: " << info.fullPath << "\n";
 	info.fullPath.clear();
 	return INVALID;
 }

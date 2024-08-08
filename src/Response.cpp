@@ -75,7 +75,7 @@ void	Response::response(int client_fd, RequestInfo &requestInfo)
 
 void	Response::responseToFile(int client_fd, RequestInfo &requestInfo)
 {
-	std::cout << "fullpath: " << requestInfo.fullPath << "\n";
+	// std::cout << "fullpath: " << requestInfo.fullPath << "\n";
 	if (!requestInfo.fullPath.empty()) {
 		
 		setStatusLine("HTTP/1.1", 200, "OK");
@@ -96,7 +96,8 @@ void	Response::responseToFile(int client_fd, RequestInfo &requestInfo)
 
 void	Response::responseToInvalid(int client_fd, RequestInfo &requestInfo)
 {
-	std::cout << "Bad Request: " << requestInfo.requestedRoute << "\n";
+	(void)requestInfo;
+	// std::cout << "Bad Request: " << requestInfo.requestedRoute << "\n";
 	setStatusLine("HTTP/1.1", 400, "OK");
 	setHeader("Content-Type", "text/html");
 	setBodyError(BAD_REQUEST_ERROR);
