@@ -478,6 +478,25 @@ TEST(PathTest, SimpleRouteB) {
 	EXPECT_EQ(info.permissions.write, true);
 }
 
+TEST(PathTest, SimpleRouteC) {
+	// Setup ServerConfig
+	Config  *config = Config::getInstance();
+	config->loadConfig("test/path_test_files/OneServerC.conf");
+	ServerConfig serverConfig = config->servers[0];
+
+	// Setup Request Info
+	RequestInfo info;
+	info.path = "/test_route";
+	info.action = RESPONSE;
+	info.serverRef = serverConfig;
+
+	// Parse Request Info
+	ParsePathInfo::parsePathInfo(info);
+	EXPECT_EQ(info.pathType, URL);
+	// EXPECT_EQ(info.permissions.read, true);
+	// EXPECT_EQ(info.permissions.write, true);
+}
+
 
 int main(int argc, char **argv) {
 	::testing::InitGoogleTest(&argc, argv);
