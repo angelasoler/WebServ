@@ -143,7 +143,7 @@ void Config::processRouteConfig(const std::string& key, const std::string& value
 		while (iss >> method)
 		{
 			currentRoute.accepted_methods.push_back(method);
-		}ww
+		}
 	}
 	else if (key == "redirection")
 		currentRoute.redirection = value;
