@@ -76,7 +76,12 @@ void	Response::response(int client_fd, RequestInfo &requestInfo)
 void	Response::responseToFile(int client_fd, RequestInfo &requestInfo)
 {
 	// std::cout << "fullpath: " << requestInfo.fullPath << "\n";
-	if (!requestInfo.fullPath.empty()) {
+	if (!requestInfo.permissions.read) {
+		setStatusLine("HTTP/1.1", 403, "OK");
+		setHeader("Content-Type", "text/html");
+		setBodyError(FORBIDDEN_ERROR);
+	}
+	else if (!requestInfo.fullPath.empty()) {
 		
 		setStatusLine("HTTP/1.1", 200, "OK");
 		setHeader("Content-Type", "text/html");

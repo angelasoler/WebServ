@@ -8,8 +8,9 @@
 #include <sstream>
 # include "Server.hpp"
 # include "Config.hpp"
-# define NOT_FOUND_ERROR "<html><head><title>ERROR 404</title></head><body><h1>Page not found!</h1></body></html>"
-# define BAD_REQUEST_ERROR "<html><head><title>ERROR 400</title></head><body><h1>BAD REQUEST!</h1></body></html>"
+# define NOT_FOUND_ERROR "<html><head><title>ERROR 404</title></head><body><h1>ERROR 404<br>Page not found!</h1></body></html>"
+# define BAD_REQUEST_ERROR "<html><head><title>ERROR 400</title></head><body><h1>ERROR 400<br>BAD REQUEST!</h1></body></html>"
+# define FORBIDDEN_ERROR "<html><head><title>ERROR 403</title></head><body><h1>ERROR 403<br>FORBIDDEN!</h1></body></html>"
 # include <iostream>
 # include <algorithm>
 # include <map>
