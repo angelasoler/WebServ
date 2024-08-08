@@ -23,7 +23,7 @@ e_pathType identifyPathType(std::string& path, ServerConfig& serverConfig, Reque
 		const RouteConfig& route = it->second;
 
 		// Se o caminho corresponde à rota configurada
-		if (path == route.path || path.find(route.path) == 0)
+		if (path == route.route || path.find(route.route) == 0)
 		{
 
 			// Define o caminho completo pro caso de ser um diretoio ou arquivo
