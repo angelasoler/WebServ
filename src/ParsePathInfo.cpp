@@ -11,11 +11,6 @@ void	ParsePathInfo::parsePathInfo(RequestInfo &info)
 
 e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serverConfig, RequestInfo &info)
 {
-	if (serverConfig.cgi.path_info == requestedRoute || serverConfig.cgi.script_path == requestedRoute) {
-		info.fullPath = std::string(requestedRoute);
-		return CGI;
-	}
-
 	// iterar pelas rotas configuradas
 	std::map<std::string, RouteConfig>::const_iterator it;
 	for (it = serverConfig.routes.begin(); it != serverConfig.routes.end(); ++it)
@@ -28,10 +23,10 @@ e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serve
 			info.fullPath = std::string(routeConfig.root_directory) + "/" + std::string(routeConfig.default_file);
 			return File;
 		}
-		else if (requestedRoute.find(routeConfig.route) == 0)
+		if (startsWith(requestedRoute, routeConfig.route))
 		{
-			// Define o caminho completo pro caso de ser um diretoio ou arquivo
-			info.fullPath = std::string(routeConfig.root_directory) + std::string(requestedRoute);
+			std::string requestSuffix = requestedRoute.substr(routeConfig.route.size());
+			info.fullPath = std::string(routeConfig.root_directory) + "/" +std::string(requestSuffix);
 
 			// Verificar se é um diretório
 			if (isDirectory(info.fullPath))
@@ -48,8 +43,12 @@ e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serve
 			// Verificar se o caminho está associado a um CGI
 			else if (endsWith(info.fullPath, DEFAULT_CGI_EXTENSION))
 				return CGI;
+
+			// else if (info.serverRef.cgi.script_path == requestSuffix) // Caso a requestRoute for o script_path, tera default CGI ?
+			// {
+			// 	info.fullPath = std::string(routeConfig.root_directory) + "/" +std::string(requestSuffix);
+			// }
 		}
-		
 	}
 	// Se não encontrar nenhuma correspondência específica, tratar como uma URL padrão
 	return URL;
@@ -71,6 +70,14 @@ bool endsWith(const std::string& str, const std::string& suffix) {
 	}
 	return std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
 }
+
+bool startsWith(const std::string& str, const std::string& prefix) {
+	if (prefix.size() > str.size()) {
+		return false;
+	}
+	return std::equal(prefix.begin(), prefix.end(), str.begin());
+}
+
 
 Permission getPermissions(std::string path)
 {
