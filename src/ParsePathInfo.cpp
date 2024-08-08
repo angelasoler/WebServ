@@ -5,13 +5,11 @@
 
 void	ParsePathInfo::parsePathInfo(RequestInfo &info)
 {
-	info.pathType = identifyPathType(info.requestedRoute, info.serverRef, info);
-
-	if (info.pathType == Redirection || info.pathType == File || info.pathType == CGI || info.pathType == Directory)
-		info.permissions = getPermissions(info.fullPath);
+	info.pathType = identifyFullPathType(info.requestedRoute, info.serverRef, info);
+	info.permissions = getPermissions(info.fullPath);
 }
 
-e_pathType identifyPathType(std::string& requestedRoute, ServerConfig& serverConfig, RequestInfo &info)
+e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serverConfig, RequestInfo &info)
 {
 	if (serverConfig.cgi.path_info == requestedRoute || serverConfig.cgi.script_path == requestedRoute) {
 		info.fullPath = std::string(requestedRoute);
@@ -78,8 +76,8 @@ Permission getPermissions(std::string path)
 {
 	Permission permissions;
 
-	permissions.read = access(path.c_str(), R_OK);
-	permissions.write = access(path.c_str(), W_OK);
-	permissions.execute = access(path.c_str(), X_OK);
+	permissions.read = (access(path.c_str(), R_OK) == 0);
+	permissions.write = (access(path.c_str(), W_OK) == 0);
+	permissions.execute = (access(path.c_str(), X_OK) == 0);
 	return permissions;
 }
