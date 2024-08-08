@@ -41,7 +41,8 @@ typedef enum
 	Directory,
 	URL,
 	Redirection,
-	CGI
+	CGI,
+	INVALID
 }	e_pathType;
 
 struct Permission

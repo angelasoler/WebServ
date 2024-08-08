@@ -5,8 +5,10 @@
 
 void	ParsePathInfo::parsePathInfo(RequestInfo &info)
 {
+	std::cout << "requestedRoute: " << info.requestedRoute << "\n";
 	info.pathType = identifyFullPathType(info.requestedRoute, info.serverRef, info);
 	info.permissions = getPermissions(info.fullPath);
+	std::cout << "fullpath: " << info.fullPath << "\n";
 }
 
 e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serverConfig, RequestInfo &info)
@@ -28,8 +30,12 @@ e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serve
 			std::string requestSuffix = requestedRoute.substr(routeConfig.route.size());
 			info.fullPath = std::string(routeConfig.root_directory) + "/" +std::string(requestSuffix);
 
+			// Verificar se o caminho está associado a um CGI
+			if (endsWith(info.fullPath, DEFAULT_CGI_EXTENSION))
+				return CGI;
+
 			// Verificar se é um diretório
-			if (isDirectory(info.fullPath))
+			else if (isDirectory(info.fullPath))
 				return Directory;
 
 			// Verificar se é um arquivo
@@ -40,18 +46,16 @@ e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serve
 			else if (!routeConfig.redirection.empty())
 				return Redirection;
 
-			// Verificar se o caminho está associado a um CGI
-			else if (endsWith(info.fullPath, DEFAULT_CGI_EXTENSION))
-				return CGI;
-
 			// else if (info.serverRef.cgi.script_path == requestSuffix) // Caso a requestRoute for o script_path, tera default CGI ?
 			// {
 			// 	info.fullPath = std::string(routeConfig.root_directory) + "/" +std::string(requestSuffix);
 			// }
 		}
 	}
-	// Se não encontrar nenhuma correspondência específica, tratar como uma URL padrão
-	return URL;
+	// Se não encontrar nenhuma correspondência específica, tratar como INVALID
+	std::cout << "fullpath: " << info.fullPath << "\n";
+	info.fullPath.clear();
+	return INVALID;
 }
 
 bool isFile(const std::string& path) {
