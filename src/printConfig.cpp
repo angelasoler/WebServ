@@ -6,7 +6,7 @@
 
 void printRouteConfig(RouteConfig& routeConfig)
 {
-	std::cout << "Path: " << routeConfig.path << std::endl;
+	std::cout << "Path: " << routeConfig.route << std::endl;
 
 	std::cout << "Accepted Methods: ";
 	for (std::vector<std::string>::iterator it = routeConfig.accepted_methods.begin();

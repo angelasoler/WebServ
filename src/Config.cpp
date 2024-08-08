@@ -17,7 +17,7 @@ Config* Config::getInstance()
 
 // Construtores das Structs
 RouteConfig::RouteConfig()
-    : path(DEFAULT_ROUTE_PATH),
+    : route(DEFAULT_ROUTE_PATH),
       redirection(DEFAULT_REDIRECTION),
       root_directory(DEFAULT_ROOT_DIRECTORY),
       directory_listing(DEFAULT_DIRECTORY_LISTING),
@@ -135,7 +135,7 @@ void Config::processServerConfig(const std::string& key, const std::string& valu
 void Config::processRouteConfig(const std::string& key, const std::string& value, std::istringstream &iss)
 {
 	if (key == "route_path")
-		currentRoute.path = value;
+		currentRoute.route = value;
 	else if (key == "accepted_methods")
 	{
 		std::string method;
@@ -178,7 +178,7 @@ void Config::finishRoute(void)
 			currentRoute.accepted_methods.push_back(defaultMethods[i]);
 		}
 	}
-	currentServer.routes[currentRoute.path] = currentRoute;
+	currentServer.routes[currentRoute.route] = currentRoute;
 	currentRoute = RouteConfig();
 }
 

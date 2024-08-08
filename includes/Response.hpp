@@ -32,7 +32,7 @@ class Response
 		void		setHeader(const std::string& key, const std::string& value);
 	
 		// ACTIONS
-		void		response(int client_fd, ServerConfig &serverConfig, RequestInfo &requestInfo);
+		void		response(int client_fd, RequestInfo &requestInfo);
 
 		// SEND RESPONSE
 		void		sendResponse(int client_fd);
