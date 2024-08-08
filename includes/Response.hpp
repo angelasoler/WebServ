@@ -26,7 +26,7 @@ class Response
 	private:
 		ResponseMsg	responseMsg;
 
-		// PÁRSING
+		// PARSING
 		void		setBody(const std::string& bodyFile);
 		void		setBodyError(const std::string& bodyError);
 		std::string	buildResponse(void);
