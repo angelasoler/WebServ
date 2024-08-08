@@ -28,7 +28,7 @@ e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serve
 		if (startsWith(requestedRoute, routeConfig.route))
 		{
 			std::string requestSuffix = requestedRoute.substr(routeConfig.route.size());
-			info.fullPath = std::string(routeConfig.root_directory) + "/" +std::string(requestSuffix);
+			info.fullPath = std::string(routeConfig.root_directory) + "/" + std::string(requestSuffix);
 
 			// Verificar se o caminho está associado a um CGI
 			if (endsWith(info.fullPath, DEFAULT_CGI_EXTENSION))
