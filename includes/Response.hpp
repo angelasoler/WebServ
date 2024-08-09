@@ -41,7 +41,7 @@ class Response
 		std::string	buildResponse(void);
 		void		setStatusLine(const std::string& version, int statusCode, const std::string& reasonPhrase);
 		void		setHeader(const std::string& key, const std::string& value);
-		void		setupResponseHTML(int statusCode, std::string htmlFile);
+		void		setResponse(int statusCode, std::string htmlFile);
 	
 		// ACTIONS
 		void		response(int client_fd, RequestInfo &requestInfo);

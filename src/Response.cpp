@@ -45,7 +45,7 @@ std::string Response::buildResponse() {
 	return responseStream.str();
 }
 
-void Response::setupResponseHTML(int statusCode, std::string htmlFile)
+void Response::setResponse(int statusCode, std::string htmlFile)
 {
 	std::string statusMessage;
 	std::string errorBody;
@@ -118,6 +118,11 @@ void Response::setupResponseHTML(int statusCode, std::string htmlFile)
 	} else {
 		setBody(htmlFile);
 	}
+
+	// Get response size;
+	std::ostringstream sizeStream;
+	sizeStream << responseMsg.body.size();
+	setHeader("Content-Length", sizeStream.str());
 }
 
 void Response::sendResponse(int client_fd) {
@@ -155,17 +160,13 @@ void	Response::responseToFile(int client_fd, RequestInfo &requestInfo)
 {
 	// std::cout << "fullpath: " << requestInfo.fullPath << "\n";
 	if (!requestInfo.permissions.read) {
-		setupResponseHTML(403, FORBIDDEN_ERROR);
+		setResponse(403, FORBIDDEN_ERROR);
 	}
 	else if (!requestInfo.fullPath.empty()) {
-		setupResponseHTML(200, requestInfo.fullPath);
+		setResponse(200, requestInfo.fullPath);
 	} else {
-		setupResponseHTML(404, NOT_FOUND_ERROR);
+		setResponse(404, NOT_FOUND_ERROR);
 	}
-
-	std::ostringstream sizeStream;
-	sizeStream << responseMsg.body.size();
-	setHeader("Content-Length", sizeStream.str());
 	sendResponse(client_fd);
 }
 
@@ -204,11 +205,6 @@ void	Response::responseToInvalid(int client_fd, RequestInfo &requestInfo)
 {
 	(void)requestInfo;
 	// std::cout << "Bad Request: " << requestInfo.requestedRoute << "\n";
-	setStatusLine("HTTP/1.1", 400, "OK");
-	setHeader("Content-Type", "text/html");
-	setBodyError(BAD_REQUEST_ERROR);
-	std::ostringstream sizeStream;
-	sizeStream << responseMsg.body.size();
-	setHeader("Content-Length", sizeStream.str());
+	setResponse(400, BAD_REQUEST_ERROR);
 	sendResponse(client_fd);
 }
