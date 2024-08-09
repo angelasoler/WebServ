@@ -85,7 +85,6 @@ void	Response::upload(int client_fd, RequestInfo &requestInfo)
 	(void)requestInfo;
 }
 
-
 // DELETE
 void	Response::deleteAction(int client_fd, RequestInfo &requestInfo)
 {
