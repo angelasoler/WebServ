@@ -172,33 +172,19 @@ void	Response::responseToFile(int client_fd, RequestInfo &requestInfo)
 
 void	Response::responseToDirectory(int client_fd, RequestInfo &requestInfo)
 {
-	(void)client_fd;
-	(void)requestInfo;
 	// // std::cout << "fullpath: " << requestInfo.fullPath << "\n";
-	// if (endsWith(requestInfo.requestedRoute, "/")) {
-
-	// }
-	// if (!requestInfo.permissions.read) {
-	// 	setStatusLine("HTTP/1.1", 403, "OK");
-	// 	setHeader("Content-Type", "text/html");
-	// 	setBodyError(FORBIDDEN_ERROR);
-	// }
-	// else if (!requestInfo.fullPath.empty()) {
-		
-	// 	setStatusLine("HTTP/1.1", 200, "OK");
-	// 	setHeader("Content-Type", "text/html");
-	// 	setBody(requestInfo.fullPath);
-		
-	// } else {
-	// 	setStatusLine("HTTP/1.1", 404, "OK");
-	// 	setHeader("Content-Type", "text/html");
-	// 	setBodyError(NOT_FOUND_ERROR); // sera outro tipo de erro?
-	// }
-
-	// std::ostringstream sizeStream;
-	// sizeStream << responseMsg.body.size();
-	// setHeader("Content-Length", sizeStream.str());
-	// sendResponse(client_fd);
+	if (!endsWith(requestInfo.requestedRoute, "/")) { // ainda nao entendi isso corretamente !
+		setResponse(301, requestInfo.fullPath);
+	}
+	else if (!requestInfo.fullPath.empty()) {
+		setResponse(200, requestInfo.fullPath);
+	}
+	else if (requestInfo.auto_index) {
+		// return auto-index of directiory
+	}
+	else
+		setResponse(403, FORBIDDEN_ERROR);
+	sendResponse(client_fd);
 }
 
 void	Response::responseToInvalid(int client_fd, RequestInfo &requestInfo)

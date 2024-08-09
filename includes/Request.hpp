@@ -60,7 +60,7 @@ struct RequestInfo
 	e_httpMethodActions			action;
 	Permission					permissions;
 	std::string					body;
-
+	bool						auto_index;
 	// Reference
 	ServerConfig				serverRef;
 };

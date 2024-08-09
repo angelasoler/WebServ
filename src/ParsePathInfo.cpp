@@ -37,8 +37,16 @@ e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serve
 			return CGI;
 
 		// Verificar se é um diretório
-		else if (isDirectory(info.fullPath))
+		else if (isDirectory(info.fullPath)) {
+			// Se for um diretório, tentar encontrar o arquivo index dele
+			info.fullPath = composeFullPath(info.fullPath, routeConfig.default_file);
+			if (!isFile(info.fullPath) || routeConfig.default_file.empty())
+				info.fullPath.clear();
+
+			// Recolher auto-index
+			info.auto_index = routeConfig.directory_listing;
 			return Directory;
+		}
 
 		// Verificar se é um arquivo
 		else if (isFile(info.fullPath))
