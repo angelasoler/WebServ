@@ -12,6 +12,7 @@ Response::~Response(void) {}
 // MAIN METHOD
 int Response::treatActionAndResponse(int client_fd, RequestInfo &requestInfo)
 {
+	std::cout << "fullPath:  " << requestInfo.fullPath << "\n";
 	switch (requestInfo.action) {
 		case RESPONSE:
 			response(client_fd, requestInfo);
