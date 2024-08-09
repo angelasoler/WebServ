@@ -8,6 +8,7 @@
 #include <sstream>
 # include "Server.hpp"
 # include "Config.hpp"
+# define NO_CONTENT "<html><head><title>204</title></head><body><h1>204<br>No Content!</h1></body></html>"
 # define BAD_REQUEST_ERROR "<html><head><title>ERROR 400</title></head><body><h1>ERROR 400<br>Bad Request!</h1></body></html>"
 # define FORBIDDEN_ERROR "<html><head><title>ERROR 403</title></head><body><h1>ERROR 403<br>Forbidden!</h1></body></html>"
 # define NOT_FOUND_ERROR "<html><head><title>ERROR 404</title></head><body><h1>ERROR 404<br>Page not found!</h1></body></html>"
@@ -56,6 +57,7 @@ class Response
 		void		upload(int client_fd, RequestInfo &requestInfo);
 		// DELETE
 		void		deleteAction(int client_fd, RequestInfo &requestInfo);
+		bool		deleTeDirectory(RequestInfo &requestInfo);
 
 		// COPY ASSINGMENT
 		Response	&operator=(const Response &cpy);

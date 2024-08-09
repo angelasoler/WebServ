@@ -89,8 +89,30 @@ void	Response::upload(int client_fd, RequestInfo &requestInfo)
 // DELETE
 void	Response::deleteAction(int client_fd, RequestInfo &requestInfo)
 {
-	(void)client_fd;
+	if (requestInfo.pathType == File) {
+		// Delete File Funcion
+		setResponse(204, NO_CONTENT);
+	}
+	else if (!endsWith(requestInfo.requestedRoute, "/")) { // ainda nao entendi isso corretamente !
+		setResponse(409, CONFLICT_ERROR);
+	}
+	else if (!requestInfo.permissions.write) {
+		setResponse(403, FORBIDDEN_ERROR);
+	}
+	else if (deleTeDirectory(requestInfo)) {
+		setResponse(204, NO_CONTENT);
+	}
+	else {
+		setResponse(500, INTERNAL_SERVER_ERROR);
+	}
+	sendResponse(client_fd);
+}
+
+bool	Response::deleTeDirectory(RequestInfo &requestInfo)
+{
 	(void)requestInfo;
+	// Try to delete a Directory
+	return (true);
 }
 
 // PARSE AND SENDING RESPONSE
@@ -146,6 +168,7 @@ void Response::setResponse(int statusCode, std::string htmlFile)
 			break;
 		case 204:
 			statusMessage = "No Content";
+			errorBody = NO_CONTENT;
 			break;
 		case 301:
 			statusMessage = "Moved Permanently";
