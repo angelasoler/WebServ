@@ -35,22 +35,27 @@ class Response
 	private:
 		ResponseMsg	responseMsg;
 
-		// PARSING
+		// PARSING AND SENDING
 		void		setBody(const std::string& bodyFile);
 		void		setBodyError(const std::string& bodyError);
 		std::string	buildResponse(void);
 		void		setStatusLine(const std::string& version, int statusCode, const std::string& reasonPhrase);
 		void		setHeader(const std::string& key, const std::string& value);
 		void		setResponse(int statusCode, std::string htmlFile);
-	
+
+		// SEND RESPONSE
+		void		sendResponse(int client_fd);
+
 		// ACTIONS
+		// RESPONSE
 		void		response(int client_fd, RequestInfo &requestInfo);
 		void		responseToFile(int client_fd, RequestInfo &requestInfo);
 		void		responseToDirectory(int client_fd, RequestInfo &requestInfo);
 		void		responseToInvalid(int client_fd, RequestInfo &requestInfo);
-
-		// SEND RESPONSE
-		void		sendResponse(int client_fd);
+		// UPLOAD
+		void		upload(int client_fd, RequestInfo &requestInfo);
+		// DELETE
+		void		deleteAction(int client_fd, RequestInfo &requestInfo);
 
 		// COPY ASSINGMENT
 		Response	&operator=(const Response &cpy);

@@ -4,9 +4,96 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+// CONSTRUCTOR AND DESTRUCTOR
 Response::Response(void) {}
 
 Response::~Response(void) {}
+
+// MAIN METHOD
+int Response::treatActionAndResponse(int client_fd, RequestInfo &requestInfo)
+{
+	switch (requestInfo.action) {
+		case RESPONSE:
+			response(client_fd, requestInfo);
+			break;
+		case UPLOAD:
+			upload(client_fd, requestInfo);
+			break;
+		case DELETE:
+			break;
+		case CLOSE:
+			break;
+	}
+	return 1;
+}
+
+
+// RESPONSE
+void	Response::response(int client_fd, RequestInfo &requestInfo)
+{
+	if (requestInfo.pathType == File || requestInfo.pathType == URL)
+		responseToFile(client_fd, requestInfo);
+	else if (requestInfo.pathType == Directory)
+		responseToDirectory(client_fd, requestInfo);
+	else
+		responseToInvalid(client_fd, requestInfo);
+}
+
+void	Response::responseToFile(int client_fd, RequestInfo &requestInfo)
+{
+	// std::cout << "fullpath: " << requestInfo.fullPath << "\n";
+	if (!requestInfo.permissions.read) {
+		setResponse(403, FORBIDDEN_ERROR);
+	}
+	else if (!requestInfo.fullPath.empty()) {
+		setResponse(200, requestInfo.fullPath);
+	} else {
+		setResponse(404, NOT_FOUND_ERROR);
+	}
+	sendResponse(client_fd);
+}
+
+void	Response::responseToDirectory(int client_fd, RequestInfo &requestInfo)
+{
+	// // std::cout << "fullpath: " << requestInfo.fullPath << "\n";
+	if (!endsWith(requestInfo.requestedRoute, "/")) { // ainda nao entendi isso corretamente !
+		setResponse(301, requestInfo.fullPath);
+	}
+	else if (!requestInfo.fullPath.empty()) {
+		setResponse(200, requestInfo.fullPath);
+	}
+	else if (requestInfo.auto_index) {
+		// return auto-index of directiory
+	}
+	else
+		setResponse(403, FORBIDDEN_ERROR);
+	sendResponse(client_fd);
+}
+
+void	Response::responseToInvalid(int client_fd, RequestInfo &requestInfo)
+{
+	(void)requestInfo;
+	// std::cout << "Bad Request: " << requestInfo.requestedRoute << "\n";
+	setResponse(400, BAD_REQUEST_ERROR);
+	sendResponse(client_fd);
+}
+
+// UPLOAD | POST
+void	Response::upload(int client_fd, RequestInfo &requestInfo)
+{
+	(void)client_fd;
+	(void)requestInfo;
+}
+
+
+// DELETE
+void	Response::deleteAction(int client_fd, RequestInfo &requestInfo)
+{
+	(void)client_fd;
+	(void)requestInfo;
+}
+
+// PARSE AND SENDING RESPONSE
 
 void Response::setStatusLine(const std::string& version, int statusCode, const std::string& reasonPhrase) {
 	std::ostringstream statusStream;
@@ -128,69 +215,4 @@ void Response::setResponse(int statusCode, std::string htmlFile)
 void Response::sendResponse(int client_fd) {
 	std::string response = buildResponse();
 	send(client_fd, response.c_str(), response.size(), 0);
-}
-
-int Response::treatActionAndResponse(int client_fd, RequestInfo &requestInfo)
-{
-	switch (requestInfo.action) {
-		case RESPONSE:
-			response(client_fd, requestInfo);
-			break;
-		case UPLOAD:
-			break;
-		case DELETE:
-			break;
-		case CLOSE:
-			break;
-	}
-	return 1;
-}
-
-void	Response::response(int client_fd, RequestInfo &requestInfo)
-{
-	if (requestInfo.pathType == File || requestInfo.pathType == URL)
-		responseToFile(client_fd, requestInfo);
-	else if (requestInfo.pathType == Directory)
-		responseToDirectory(client_fd, requestInfo);
-	else
-		responseToInvalid(client_fd, requestInfo);
-}
-
-void	Response::responseToFile(int client_fd, RequestInfo &requestInfo)
-{
-	// std::cout << "fullpath: " << requestInfo.fullPath << "\n";
-	if (!requestInfo.permissions.read) {
-		setResponse(403, FORBIDDEN_ERROR);
-	}
-	else if (!requestInfo.fullPath.empty()) {
-		setResponse(200, requestInfo.fullPath);
-	} else {
-		setResponse(404, NOT_FOUND_ERROR);
-	}
-	sendResponse(client_fd);
-}
-
-void	Response::responseToDirectory(int client_fd, RequestInfo &requestInfo)
-{
-	// // std::cout << "fullpath: " << requestInfo.fullPath << "\n";
-	if (!endsWith(requestInfo.requestedRoute, "/")) { // ainda nao entendi isso corretamente !
-		setResponse(301, requestInfo.fullPath);
-	}
-	else if (!requestInfo.fullPath.empty()) {
-		setResponse(200, requestInfo.fullPath);
-	}
-	else if (requestInfo.auto_index) {
-		// return auto-index of directiory
-	}
-	else
-		setResponse(403, FORBIDDEN_ERROR);
-	sendResponse(client_fd);
-}
-
-void	Response::responseToInvalid(int client_fd, RequestInfo &requestInfo)
-{
-	(void)requestInfo;
-	// std::cout << "Bad Request: " << requestInfo.requestedRoute << "\n";
-	setResponse(400, BAD_REQUEST_ERROR);
-	sendResponse(client_fd);
 }
