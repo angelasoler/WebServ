@@ -20,13 +20,18 @@ void Response::setHeader(const std::string& key, const std::string& value) {
 void Response::setBody(const std::string& bodyFile) {
 	std::ifstream file(bodyFile.c_str());
 	if (!file) {
-		responseMsg.body = NOT_FOUND_PAGE_ERROR;
+		setBodyError(NOT_FOUND_ERROR);
 		return ;
 	}
 	std::ostringstream oss;
 	oss << file.rdbuf();
 	responseMsg.body = oss.str();
 	file.close();
+}
+
+void Response::setBodyError(const std::string& bodyError)
+{
+	responseMsg.body = bodyError;
 }
 
 std::string Response::buildResponse() {
@@ -62,8 +67,21 @@ int Response::treatActionAndResponse(int client_fd, RequestInfo &requestInfo)
 
 void	Response::response(int client_fd, RequestInfo &requestInfo)
 {
-	std::cout << "fullpath: " << requestInfo.fullPath << "\n";
-	if (!requestInfo.fullPath.empty()) {
+	if (requestInfo.pathType == File || requestInfo.pathType == URL)
+		responseToFile(client_fd, requestInfo);
+	else
+		responseToInvalid(client_fd, requestInfo);
+}
+
+void	Response::responseToFile(int client_fd, RequestInfo &requestInfo)
+{
+	// std::cout << "fullpath: " << requestInfo.fullPath << "\n";
+	if (!requestInfo.permissions.read) {
+		setStatusLine("HTTP/1.1", 403, "OK");
+		setHeader("Content-Type", "text/html");
+		setBodyError(FORBIDDEN_ERROR);
+	}
+	else if (!requestInfo.fullPath.empty()) {
 		
 		setStatusLine("HTTP/1.1", 200, "OK");
 		setHeader("Content-Type", "text/html");
@@ -72,9 +90,22 @@ void	Response::response(int client_fd, RequestInfo &requestInfo)
 	} else {
 		setStatusLine("HTTP/1.1", 404, "OK");
 		setHeader("Content-Type", "text/html");
-		setBody(requestInfo.serverRef.default_error_page);
+		setBodyError(NOT_FOUND_ERROR); // sera outro tipo de erro?
 	}
 
+	std::ostringstream sizeStream;
+	sizeStream << responseMsg.body.size();
+	setHeader("Content-Length", sizeStream.str());
+	sendResponse(client_fd);
+}
+
+void	Response::responseToInvalid(int client_fd, RequestInfo &requestInfo)
+{
+	(void)requestInfo;
+	// std::cout << "Bad Request: " << requestInfo.requestedRoute << "\n";
+	setStatusLine("HTTP/1.1", 400, "OK");
+	setHeader("Content-Type", "text/html");
+	setBodyError(BAD_REQUEST_ERROR);
 	std::ostringstream sizeStream;
 	sizeStream << responseMsg.body.size();
 	setHeader("Content-Length", sizeStream.str());
