@@ -53,9 +53,9 @@ e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serve
 		// 	info.fullPath = composeFullPath(routeConfig.root_directory, requestSuffix);
 		// }
 	}
-	// Se não encontrar nenhuma correspondência específica, tratar como INVALID
+	// Se não encontrar nenhuma correspondência específica, tratar como UNKNOWN requests 
 	info.fullPath.clear();
-	return INVALID;
+	return UNKNOWN;
 }
 
 std::string composeFullPath(const std::string &prefix, const std::string &sufix)

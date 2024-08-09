@@ -42,7 +42,7 @@ typedef enum
 	URL,
 	Redirection,
 	CGI,
-	INVALID
+	UNKNOWN
 }	e_pathType;
 
 struct Permission
