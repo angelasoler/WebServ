@@ -25,24 +25,36 @@ e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serve
 			info.fullPath = composeFullPath(routeConfig.root_directory, routeConfig.default_file);
 			return URL;
 		}
+
+		// Verifica se inicia buscando uma rota
 		if (startsWith(requestedRoute, routeConfig.route))
 		{
-			std::string requestSuffix = requestedRoute.substr(routeConfig.route.size());
+			std::string requestSuffix = requestedRoute.substr(routeConfig.route.size() + 1);
 			info.fullPath = composeFullPath(routeConfig.root_directory, requestSuffix);
 		}
 		else
 			info.fullPath = composeFullPath(routeConfig.root_directory, info.requestedRoute);
+
 		// Verificar se o caminho está associado a um CGI
 		if (endsWith(info.fullPath, DEFAULT_CGI_EXTENSION))
 			return CGI;
 
 		// Verificar se é um diretório
-		else if (isDirectory(info.fullPath))
+		else if (isDirectory(info.fullPath)) {
+			// Se for um diretório, tentar encontrar o arquivo index dele
+			info.fullPath = composeFullPath(info.fullPath, routeConfig.default_file);
+			if (!isFile(info.fullPath) || routeConfig.default_file.empty())
+				info.fullPath.clear();
+
+			// Recolher auto-index
+			info.auto_index = routeConfig.directory_listing;
 			return Directory;
+		}
 
 		// Verificar se é um arquivo
-		else if (isFile(info.fullPath))
+		else if (isFile(info.fullPath)) {
 			return File;
+		}
 
 		// Verificar se há uma redireção configurada
 		else if (!routeConfig.redirection.empty())
@@ -53,19 +65,26 @@ e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serve
 		// 	info.fullPath = composeFullPath(routeConfig.root_directory, requestSuffix);
 		// }
 	}
-	// Se não encontrar nenhuma correspondência específica, tratar como INVALID
+	// Se não encontrar nenhuma correspondência específica, tratar como UNKNOWN requests 
 	info.fullPath.clear();
-	return INVALID;
+	return UNKNOWN;
 }
 
-std::string composeFullPath(const std::string &prefix, const std::string &sufix)
+std::string composeFullPath(const std::string& prefix, const std::string& suffix)
 {
-	std::string fullPath;
+	std::string fullPath = prefix;
 
-	if (endsWith(prefix, "/"))
-		fullPath = std::string(prefix) + std::string(sufix);
-	else
-		fullPath = std::string(prefix) + "/" + std::string(sufix);
+	// Remove '/' extra do sufixo se o prefixo já terminar com '/'
+	if (endsWith(prefix, "/")) {
+		// Remove '/' do início do sufixo, se houver
+		if (!suffix.empty() && suffix[0] == '/')
+			fullPath += suffix.substr(1); // Adiciona o sufixo sem o primeiro '/'
+		else
+			fullPath += suffix;
+	}
+	else {
+		fullPath += "/" + suffix;
+	}
 	return fullPath;
 }
 
