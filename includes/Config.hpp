@@ -10,9 +10,9 @@
 // Definições de macros para RouteConfig
 #define DEFAULT_ROUTE_PATH "/"
 #define DEFAULT_REDIRECTION ""
-#define DEFAULT_ROOT_DIRECTORY "/var/www/html"
+#define DEFAULT_ROOT_DIRECTORY "./serverRoot"
 #define DEFAULT_DIRECTORY_LISTING false
-#define DEFAULT_FILE "helloworld.html"
+#define DEFAULT_FILE "index.html"
 #define DEFAULT_CGI_EXTENSION ".cgi"
 #define DEFAULT_UPLOAD_DIRECTORY "/var/www/uploads"
 #define DEFAULT_ACCEPTED_METHODS "GET", "DELETE"
@@ -30,7 +30,7 @@
 
 struct RouteConfig
 {
-	std::string					path;
+	std::string					route;
 	std::vector<std::string>	accepted_methods;
 	std::string					redirection;
 	std::string					root_directory;

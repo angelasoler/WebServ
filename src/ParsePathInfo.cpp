@@ -5,49 +5,87 @@
 
 void	ParsePathInfo::parsePathInfo(RequestInfo &info)
 {
-	info.pathType = identifyPathType(info.path, info.serverRef, info);
-	if (info.pathType == Redirection || info.pathType == File || info.pathType == CGI || info.pathType == Directory)
-		info.permissions = getPermissions(info.fullPath);
+	std::cout << "requestedRoute: " << info.requestedRoute << "\n";
+	info.pathType = identifyFullPathType(info.requestedRoute, info.serverRef, info);
+	info.permissions = getPermissions(info.fullPath);
+	// std::cout << "fullpath: " << info.fullPath << "\n";
 }
 
-e_pathType identifyPathType(std::string& path, ServerConfig& serverConfig, RequestInfo &info)
+e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serverConfig, RequestInfo &info)
 {
-	if (serverConfig.cgi.path_info == path || serverConfig.cgi.script_path == path) {
-		return CGI;
-	}
-
 	// iterar pelas rotas configuradas
 	std::map<std::string, RouteConfig>::const_iterator it;
 	for (it = serverConfig.routes.begin(); it != serverConfig.routes.end(); ++it)
 	{
-		const RouteConfig& route = it->second;
+		const RouteConfig& routeConfig = it->second;
 
 		// Se o caminho corresponde à rota configurada
-		if (path == route.path || path.find(route.path) == 0)
+		if ((requestedRoute == routeConfig.route))
 		{
-
-			// Define o caminho completo pro caso de ser um diretoio ou arquivo
-			info.fullPath = std::string(route.root_directory) + std::string(path);
-
-			// Verificar se é um diretório
-			if (isDirectory(info.fullPath))
-				return Directory;
-
-			// Verificar se é um arquivo
-			else if (isFile(info.fullPath))
-				return File;
-
-			// Verificar se há uma redireção configurada
-			else if (!route.redirection.empty())
-				return Redirection;
-
-			// Verificar se o caminho está associado a um CGI
-			else if (endsWith(info.fullPath, DEFAULT_CGI_EXTENSION))
-				return CGI;
+			info.fullPath = composeFullPath(routeConfig.root_directory, routeConfig.default_file);
+			return URL;
 		}
+
+		// Verifica se inicia buscando uma rota
+		if (startsWith(requestedRoute, routeConfig.route))
+		{
+			std::string requestSuffix = requestedRoute.substr(routeConfig.route.size() + 1);
+			info.fullPath = composeFullPath(routeConfig.root_directory, requestSuffix);
+		}
+		else
+			info.fullPath = composeFullPath(routeConfig.root_directory, info.requestedRoute);
+
+		// Verificar se o caminho está associado a um CGI
+		if (endsWith(info.fullPath, DEFAULT_CGI_EXTENSION))
+			return CGI;
+
+		// Verificar se é um diretório
+		else if (isDirectory(info.fullPath)) {
+			// Se for um diretório, tentar encontrar o arquivo index dele
+			info.fullPath = composeFullPath(info.fullPath, routeConfig.default_file);
+			if (!isFile(info.fullPath) || routeConfig.default_file.empty())
+				info.fullPath.clear();
+
+			// Recolher auto-index
+			info.auto_index = routeConfig.directory_listing;
+			return Directory;
+		}
+
+		// Verificar se é um arquivo
+		else if (isFile(info.fullPath)) {
+			return File;
+		}
+
+		// Verificar se há uma redireção configurada
+		else if (!routeConfig.redirection.empty())
+			return Redirection;
+
+		// else if (info.serverRef.cgi.script_path == requestSuffix) // Caso a requestRoute for o script_path, tera default CGI ?
+		// {
+		// 	info.fullPath = composeFullPath(routeConfig.root_directory, requestSuffix);
+		// }
 	}
-	// Se não encontrar nenhuma correspondência específica, tratar como uma URL padrão
-	return URL;
+	// Se não encontrar nenhuma correspondência específica, tratar como UNKNOWN requests 
+	info.fullPath.clear();
+	return UNKNOWN;
+}
+
+std::string composeFullPath(const std::string& prefix, const std::string& suffix)
+{
+	std::string fullPath = prefix;
+
+	// Remove '/' extra do sufixo se o prefixo já terminar com '/'
+	if (endsWith(prefix, "/")) {
+		// Remove '/' do início do sufixo, se houver
+		if (!suffix.empty() && suffix[0] == '/')
+			fullPath += suffix.substr(1); // Adiciona o sufixo sem o primeiro '/'
+		else
+			fullPath += suffix;
+	}
+	else {
+		fullPath += "/" + suffix;
+	}
+	return fullPath;
 }
 
 bool isFile(const std::string& path) {
@@ -67,12 +105,20 @@ bool endsWith(const std::string& str, const std::string& suffix) {
 	return std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
 }
 
+bool startsWith(const std::string& str, const std::string& prefix) {
+	if (prefix.size() > str.size()) {
+		return false;
+	}
+	return std::equal(prefix.begin(), prefix.end(), str.begin());
+}
+
+
 Permission getPermissions(std::string path)
 {
 	Permission permissions;
 
-	permissions.read = access(path.c_str(), R_OK);
-	permissions.write = access(path.c_str(), W_OK);
-	permissions.execute = access(path.c_str(), X_OK);
+	permissions.read = (access(path.c_str(), R_OK) == 0);
+	permissions.write = (access(path.c_str(), W_OK) == 0);
+	permissions.execute = (access(path.c_str(), X_OK) == 0);
 	return permissions;
 }

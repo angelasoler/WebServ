@@ -41,7 +41,8 @@ typedef enum
 	Directory,
 	URL,
 	Redirection,
-	CGI
+	CGI,
+	UNKNOWN
 }	e_pathType;
 
 struct Permission
@@ -53,13 +54,13 @@ struct Permission
 
 struct RequestInfo
 {
-	std::string					path;
+	std::string					requestedRoute;
 	std::string					fullPath;
 	e_pathType					pathType;
 	e_httpMethodActions			action;
 	Permission					permissions;
 	std::string					body;
-
+	bool						auto_index;
 	// Reference
 	ServerConfig				serverRef;
 };
