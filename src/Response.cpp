@@ -12,107 +12,21 @@ Response::~Response(void) {}
 // MAIN METHOD
 int Response::treatActionAndResponse(int client_fd, RequestInfo &requestInfo)
 {
-	std::cout << "fullPath:  " << requestInfo.fullPath << "\n";
-	switch (requestInfo.action) {
+	switch (requestInfo.action)
+	{
 		case RESPONSE:
-			response(client_fd, requestInfo);
+			getHandler.handle(client_fd, requestInfo, *this);
 			break;
 		case UPLOAD:
-			upload(client_fd, requestInfo);
+			postHandler.handle(client_fd, requestInfo, *this);
 			break;
 		case DELETE:
+			deleteHandler.handle(client_fd, requestInfo, *this);
 			break;
 		case CLOSE:
 			break;
 	}
 	return 1;
-}
-
-
-// RESPONSE
-void	Response::response(int client_fd, RequestInfo &requestInfo)
-{
-	if (requestInfo.pathType == File || requestInfo.pathType == URL)
-		responseToFile(client_fd, requestInfo);
-	else if (requestInfo.pathType == Directory)
-		responseToDirectory(client_fd, requestInfo);
-	else
-		responseToInvalid(client_fd, requestInfo);
-}
-
-void	Response::responseToFile(int client_fd, RequestInfo &requestInfo)
-{
-	// std::cout << "fullpath: " << requestInfo.fullPath << "\n";
-	if (!requestInfo.permissions.read) {
-		setResponse(403, FORBIDDEN_ERROR);
-	}
-	else if (!requestInfo.fullPath.empty()) {
-		setResponse(200, requestInfo.fullPath);
-	} else {
-		setResponse(404, NOT_FOUND_ERROR);
-	}
-	sendResponse(client_fd);
-}
-
-void	Response::responseToDirectory(int client_fd, RequestInfo &requestInfo)
-{
-	// // std::cout << "fullpath: " << requestInfo.fullPath << "\n";
-	if (!endsWith(requestInfo.requestedRoute, "/")) { // ainda nao entendi isso corretamente !
-		setResponse(301, requestInfo.fullPath);
-	}
-	else if (!requestInfo.fullPath.empty()) {
-		setResponse(200, requestInfo.fullPath);
-	}
-	else if (requestInfo.auto_index) {
-		// return auto-index of directiory
-	}
-	else
-		setResponse(403, FORBIDDEN_ERROR);
-	sendResponse(client_fd);
-}
-
-void	Response::responseToInvalid(int client_fd, RequestInfo &requestInfo)
-{
-	(void)requestInfo;
-	// std::cout << "Bad Request: " << requestInfo.requestedRoute << "\n";
-	setResponse(400, BAD_REQUEST_ERROR);
-	sendResponse(client_fd);
-}
-
-// UPLOAD | POST
-void	Response::upload(int client_fd, RequestInfo &requestInfo)
-{
-	(void)client_fd;
-	(void)requestInfo;
-}
-
-// DELETE
-void	Response::deleteAction(int client_fd, RequestInfo &requestInfo)
-{
-	if (requestInfo.pathType == File) {
-		// Delete File Funcion
-		setResponse(204, NO_CONTENT);
-	}
-	else if (!endsWith(requestInfo.requestedRoute, "/")) { // ainda nao entendi isso corretamente !
-		setResponse(409, CONFLICT_ERROR);
-	}
-	else if (!requestInfo.permissions.write) {
-		setResponse(403, FORBIDDEN_ERROR);
-	}
-	else if (deleTeDirectory(requestInfo)) {
-		setResponse(204, NO_CONTENT);
-	}
-	else {
-		setResponse(500, INTERNAL_SERVER_ERROR);
-	}
-	sendResponse(client_fd);
-}
-
-bool	Response::deleTeDirectory(RequestInfo &requestInfo)
-{
-	(void)requestInfo;
-	// Try to delete a Directory
-	return (true);
 }
 
 // PARSE AND SENDING RESPONSE
