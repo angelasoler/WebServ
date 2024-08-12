@@ -7,11 +7,11 @@ class Response;
 class Get
 {
 	public:
-		void handle(int client_fd, RequestInfo &requestInfo, Response &response);
+		void handle(RequestInfo &requestInfo, Response &response);
 	private:
-		void responseToFile(int client_fd, RequestInfo &requestInfo, Response &response);
-		void responseToDirectory(int client_fd, RequestInfo &requestInfo, Response &response);
-		void responseToInvalid(int client_fd, RequestInfo &requestInfo, Response &response);
+		void responseToFile(RequestInfo &requestInfo, Response &response);
+		void responseToDirectory(RequestInfo &requestInfo, Response &response);
+		void responseToInvalid(RequestInfo &requestInfo, Response &response);
 };
 
 #endif // GET_HPP

@@ -15,25 +15,28 @@ int Response::treatActionAndResponse(int client_fd, RequestInfo &requestInfo)
 	switch (requestInfo.action)
 	{
 		case RESPONSE:
-			getHandler.handle(client_fd, requestInfo, *this);
+			getHandler.handle(requestInfo, *this);
 			break;
 		case UPLOAD:
-			postHandler.handle(client_fd, requestInfo, *this);
+			postHandler.handle(requestInfo, *this);
 			break;
 		case DELETE:
-			deleteHandler.handle(client_fd, requestInfo, *this);
+			deleteHandler.handle(requestInfo, *this);
 			break;
 		case CLOSE:
 			break;
 	}
+	sendResponse(client_fd);
 	return 1;
 }
 
-// PARSE AND SENDING RESPONSE
 
-void Response::setStatusLine(const std::string& version, int statusCode, const std::string& reasonPhrase) {
+// INTERNAL METHODS
+
+void Response::setStatusLine(int statusCode, const std::string& reasonPhrase)
+{
 	std::ostringstream statusStream;
-	statusStream << version << " " << statusCode << " " << reasonPhrase;
+	statusStream << "HTTP/1.1 " << statusCode << " " << reasonPhrase;
 	responseMsg.statusLine = statusStream.str();
 }
 
@@ -41,11 +44,12 @@ void Response::setHeader(const std::string& key, const std::string& value) {
 	responseMsg.headers[key] = value;
 }
 
-void Response::setBody(const std::string& bodyFile) {
+void Response::setBodyFromFile(const std::string& bodyFile)
+{
 	std::ifstream file(bodyFile.c_str());
 	if (!file) {
-		setBodyError(NOT_FOUND_ERROR);
-		return ;
+		setBodyFromDefaultPage(NOT_FOUND_ERROR);
+		return;
 	}
 	std::ostringstream oss;
 	oss << file.rdbuf();
@@ -53,95 +57,79 @@ void Response::setBody(const std::string& bodyFile) {
 	file.close();
 }
 
-void Response::setBodyError(const std::string& bodyError)
+void Response::setBodyFromDefaultPage(const std::string& defaultPage)
 {
-	responseMsg.body = bodyError;
+	responseMsg.body = defaultPage;
 }
 
-std::string Response::buildResponse() {
+std::string Response::buildResponse()
+{
 	std::ostringstream responseStream;
 	responseStream << responseMsg.statusLine << "\r\n";
-	for (std::map<std::string, std::string>::const_iterator it = responseMsg.headers.begin(); it != responseMsg.headers.end(); ++it) {
+	for (std::map<std::string, std::string>::const_iterator it = responseMsg.headers.begin(); it != responseMsg.headers.end(); ++it){
 		responseStream << it->first << ": " << it->second << "\r\n";
 	}
 	responseStream << "\r\n" << responseMsg.body;
 	return responseStream.str();
 }
 
-void Response::setResponseMsg(int statusCode, std::string htmlFile)
+// UTILITY METHODS
+
+std::string Response::getStatusMessage(int statusCode)
 {
-	std::string statusMessage;
-	std::string errorBody;
-
-	switch (statusCode) {
-		case 200:
-			statusMessage = "OK";
-			break;
-		case 201:
-			statusMessage = "Created";
-			break;
-		case 204:
-			statusMessage = "No Content";
-			errorBody = NO_CONTENT;
-			break;
-		case 301:
-			statusMessage = "Moved Permanently";
-			break;
-		case 400:
-			statusMessage = "Bad Request";
-			errorBody = BAD_REQUEST_ERROR;
-			break;
-		case 403:
-			statusMessage = "Forbidden";
-			errorBody = FORBIDDEN_ERROR;
-			break;
-		case 404:
-			statusMessage = "Not Found";
-			errorBody = NOT_FOUND_ERROR;
-			break;
-		case 405:
-			statusMessage = "Method Not Allowed";
-			errorBody = METHOD_NOT_ALLOWED_ERROR;
-			break;
-		case 408:
-			statusMessage = "Request Timeout";
-			errorBody = REQUEST_TIMEOUT_ERROR;
-			break;
-		case 409:
-			statusMessage = "Conflict";
-			errorBody = CONFLICT_ERROR;
-			break;
-		case 413:
-			statusMessage = "Payload Too Large";
-			errorBody = PAYLOAD_TOO_LARGE_ERROR;
-			break;
-		case 500:
-			statusMessage = "Internal Server Error";
-			errorBody = INTERNAL_SERVER_ERROR;
-			break;
-		case 501:
-			statusMessage = "Not Implemented";
-			errorBody = NOT_IMPLEMENTED_ERROR;
-			break;
-		case 503:
-			statusMessage = "Service Unavailable";
-			errorBody = SERVICE_UNAVAILABLE_ERROR;
-			break;
-		default:
-			statusCode = 500;
-			statusMessage = "Internal Server Error";
-			errorBody = INTERNAL_SERVER_ERROR;
-			break;
+	switch (statusCode)
+	{
+		case 200: return "OK";
+		case 201: return "Created";
+		case 204: return "No Content";
+		case 301: return "Moved Permanently";
+		case 400: return "Bad Request";
+		case 403: return "Forbidden";
+		case 404: return "Not Found";
+		case 405: return "Method Not Allowed";
+		case 408: return "Request Timeout";
+		case 409: return "Conflict";
+		case 413: return "Payload Too Large";
+		case 500: return "Internal Server Error";
+		case 501: return "Not Implemented";
+		case 503: return "Service Unavailable";
+		default: return "Internal Server Error";
 	}
+}
 
-	setStatusLine("HTTP/1.1", statusCode, statusMessage);
+std::string Response::getDefaultPage(int statusCode)
+{
+	switch (statusCode)
+	{
+		case 204: return NO_CONTENT;
+		case 400: return BAD_REQUEST_ERROR;
+		case 403: return FORBIDDEN_ERROR;
+		case 404: return NOT_FOUND_ERROR;
+		case 405: return METHOD_NOT_ALLOWED_ERROR;
+		case 408: return REQUEST_TIMEOUT_ERROR;
+		case 409: return CONFLICT_ERROR;
+		case 413: return PAYLOAD_TOO_LARGE_ERROR;
+		case 500: return INTERNAL_SERVER_ERROR;
+		case 501: return NOT_IMPLEMENTED_ERROR;
+		case 503: return SERVICE_UNAVAILABLE_ERROR;
+		default: return NO_DEFAULT_ERROR;
+	}
+}
+
+// PUBLIC METHODS
+
+void Response::setResponseMsg(int statusCode, std::string const &htmlFile)
+{
+	std::string statusMessage = getStatusMessage(statusCode);
+	std::string defaultPage = getDefaultPage(statusCode);
+
+	setStatusLine(statusCode, statusMessage);
 	setHeader("Content-Type", "text/html");
 
-	if (!errorBody.empty()) {
-		setBodyError(errorBody);
-	} else {
-		setBody(htmlFile);
-	}
+	if (defaultPage == NO_DEFAULT_ERROR)
+		setBodyFromFile(htmlFile);
+	else
+		setBodyFromDefaultPage(defaultPage);
 
 	// Get response size;
 	std::ostringstream sizeStream;
@@ -149,7 +137,9 @@ void Response::setResponseMsg(int statusCode, std::string htmlFile)
 	setHeader("Content-Length", sizeStream.str());
 }
 
-void Response::sendResponse(int client_fd) {
+// SENDING
+void Response::sendResponse(int client_fd)
+{
 	std::string response = buildResponse();
 	send(client_fd, response.c_str(), response.size(), 0);
 }

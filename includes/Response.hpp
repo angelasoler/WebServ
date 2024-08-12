@@ -25,6 +25,7 @@
 #define INTERNAL_SERVER_ERROR "<html><head><title>ERROR 500</title></head><body><h1>ERROR 500<br>Internal Server Error!</h1></body></html>"
 #define NOT_IMPLEMENTED_ERROR "<html><head><title>ERROR 501</title></head><body><h1>ERROR 501<br>Not Implemented!</h1></body></html>"
 #define SERVICE_UNAVAILABLE_ERROR "<html><head><title>ERROR 503</title></head><body><h1>ERROR 503<br>Service Unavailable!</h1></body></html>"
+#define	NO_DEFAULT_ERROR ""
 
 struct ResponseMsg
 {
@@ -41,16 +42,22 @@ class Response
 		Post		postHandler;
 		Delete		deleteHandler;
 
-		// PARSING AND SENDING
-		void setBody(const std::string& bodyFile);
-		void setBodyError(const std::string& bodyError);
+		// PARSING
+		void setBodyFromFile(const std::string& bodyFile);
+		void setBodyFromDefaultPage(const std::string& bodyError);
 		std::string buildResponse(void);
-		void setStatusLine(const std::string& version, int statusCode, const std::string& reasonPhrase);
+		void setStatusLine(int statusCode, const std::string& reasonPhrase);
 		void setHeader(const std::string& key, const std::string& value);
+
+		// UTILITY
+		std::string	getStatusMessage(int statusCode);
+		std::string	getDefaultPage(int statusCode);
+
+		// SEND RESPONSE
+		void sendResponse(int client_fd);
 	public:
 
-		void setResponseMsg(int statusCode, std::string htmlFile);
-		void sendResponse(int client_fd);
+		void setResponseMsg(int statusCode, std::string const &htmlFile);
 
 		Response();
 		~Response(void);

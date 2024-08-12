@@ -8,9 +8,9 @@ class Response;
 class Post
 {
 	public:
-		void handle(int client_fd, RequestInfo &requestInfo, Response &response);
+		void handle(RequestInfo &requestInfo, Response &response);
 	private:
-		void upload(int client_fd, RequestInfo &requestInfo, Response &response);
+		void upload(RequestInfo &requestInfo, Response &response);
 };
 
 #endif // POST_HPP

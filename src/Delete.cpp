@@ -1,7 +1,7 @@
 #include "Delete.hpp"
 #include "Response.hpp"
 
-void Delete::handle(int client_fd, RequestInfo &requestInfo, Response &response)
+void Delete::handle(RequestInfo &requestInfo, Response &response)
 {
 	if (requestInfo.pathType == File)
 	{
@@ -16,7 +16,6 @@ void Delete::handle(int client_fd, RequestInfo &requestInfo, Response &response)
 		response.setResponseMsg(204, NO_CONTENT);
 	else
 		response.setResponseMsg(500, INTERNAL_SERVER_ERROR);
-	response.sendResponse(client_fd);
 }
 
 bool Delete::deleteDirectory(RequestInfo &requestInfo)
