@@ -2,7 +2,7 @@
 # define DELETE_HPP
 
 # include "Request.hpp"
-# include "Response.hpp"
+class Response;
 
 class Delete
 {

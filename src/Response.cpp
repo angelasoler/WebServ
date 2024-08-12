@@ -68,7 +68,7 @@ std::string Response::buildResponse() {
 	return responseStream.str();
 }
 
-void Response::setResponse(int statusCode, std::string htmlFile)
+void Response::setResponseMsg(int statusCode, std::string htmlFile)
 {
 	std::string statusMessage;
 	std::string errorBody;

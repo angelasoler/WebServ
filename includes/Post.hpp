@@ -2,7 +2,8 @@
 # define POST_HPP
 
 # include "Request.hpp"
-# include "Response.hpp"
+
+class Response;
 
 class Post
 {
