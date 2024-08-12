@@ -7,7 +7,7 @@ class Response;
 class Delete
 {
 	public:
-		void handle(RequestInfo &requestInfo, Response &response);
+		void handle(Response &response);
 	private:
 		bool deleteDirectory(RequestInfo &requestInfo);
 };

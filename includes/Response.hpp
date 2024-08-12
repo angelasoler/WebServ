@@ -13,6 +13,7 @@
 #include <fstream>
 #include <sstream>
 #include <map>
+#include "CGIServer.hpp"
 
 #define NO_CONTENT "<html><head><title>204</title></head><body><h1>204<br>No Content!</h1></body></html>"
 #define BAD_REQUEST_ERROR "<html><head><title>ERROR 400</title></head><body><h1>ERROR 400<br>Bad Request!</h1></body></html>"
@@ -43,7 +44,7 @@ class Response
 		Delete		deleteHandler;
 
 		// PARSING
-		void setBodyFromFile(const std::string& bodyFile);
+		std::string setBodyFromFile(const std::string& bodyFile);
 		void setBodyFromDefaultPage(const std::string& bodyError);
 		std::string buildResponse(void);
 		void setStatusLine(int statusCode, const std::string& reasonPhrase);
@@ -56,6 +57,7 @@ class Response
 		// SEND RESPONSE
 		void sendResponse(int client_fd);
 	public:
+		RequestInfo requestInfo;
 
 		void setResponseMsg(int statusCode, std::string const &htmlFile);
 

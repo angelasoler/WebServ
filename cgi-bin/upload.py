@@ -5,7 +5,7 @@ import cgi
 import os
 
 # Defina o diretório de destino para os uploads
-upload_dir = os.getcwd()
+upload_dir = os.getcwd() + '/serverRoot/upload'
 
 # Crie o objeto de campo de armazenamento para os dados enviados
 form = cgi.FieldStorage()

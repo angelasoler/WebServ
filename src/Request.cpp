@@ -15,10 +15,7 @@ int	Request::readRequest(int client_fd, std::map<int, std::string> &request)
 	if (bytes_read >= 0)
 		buffer[bytes_read] = '\0';
 	if (bytes_read < 0)
-	{
-		std::cerr << "Read failed" << std::endl;
-		// handleError("Read failed");
-	}
+		throw(std::runtime_error("Read request failed."));
 	else if (bytes_read == 0)
 	{
 		std::cout << "Conexão fechada pelo cliente" << std::endl;
@@ -29,7 +26,7 @@ int	Request::readRequest(int client_fd, std::map<int, std::string> &request)
 	{
 		request[client_fd] += buffer;
 		std::cout // TO-DO: adicionar diretiva DEBUG
-		// << buffer
+		<< buffer
 		<< std::endl;
 	}
 	return (0);
@@ -46,7 +43,7 @@ void	breakIntoLines(std::vector<std::string> &lines, std::string text) {
 	} while (tokenLine);
 }
 
-std::map< std::string, std::vector<std::string> > &Request::getHeader(void)
+std::map< std::string, std::vector<std::string> >	&Request::getHeader(void)
 {
 	return (header);
 }
@@ -130,7 +127,7 @@ RequestInfo Request::parseRequest(std::string text, ServerConfig &serverConfig)
 e_httpMethodActions	Request::getMethodAction(void)
 {
 	// printHeaderDataStructure();
- 	if (header["request"][METHOD] == "GET")
+	if (header["request"][METHOD] == "GET")
 	{
 		std::cout << "\tRESPONSE\n" << std::endl;
 		return(RESPONSE);

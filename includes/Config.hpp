@@ -13,13 +13,13 @@
 #define DEFAULT_ROOT_DIRECTORY "./serverRoot"
 #define DEFAULT_DIRECTORY_LISTING false
 #define DEFAULT_FILE "index.html"
-#define DEFAULT_CGI_EXTENSION ".cgi"
-#define DEFAULT_UPLOAD_DIRECTORY "/var/www/uploads"
+#define DEFAULT_CGI_EXTENSION ".py"
+#define DEFAULT_UPLOAD_DIRECTORY "serverRoot/uploads"
 #define DEFAULT_ACCEPTED_METHODS "GET", "DELETE"
 
 // Definições de macros para CGIConfig
-#define DEFAULT_PATH_INFO "/cgi-bin"
-#define DEFAULT_SCRIPT_PATH "/usr/lib/cgi-bin"
+#define DEFAULT_PATH_INFO "cgi-bin"
+#define DEFAULT_SCRIPT_PATH "cgi-bin"
 
 // Definições de macros para ServerConfig
 #define DEFAULT_HOST "127.0.0.1"

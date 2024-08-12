@@ -10,18 +10,19 @@ Response::Response(void) {}
 Response::~Response(void) {}
 
 // MAIN METHOD
-int Response::treatActionAndResponse(int client_fd, RequestInfo &requestInfo)
+int Response::treatActionAndResponse(int client_fd, RequestInfo &requestInfo2)
 {
+	requestInfo = requestInfo2;
 	switch (requestInfo.action)
 	{
 		case RESPONSE:
-			getHandler.handle(requestInfo, *this);
+			getHandler.handle(*this);
 			break;
 		case UPLOAD:
-			postHandler.handle(requestInfo, *this);
+			postHandler.handle(*this);
 			break;
 		case DELETE:
-			deleteHandler.handle(requestInfo, *this);
+			deleteHandler.handle(*this);
 			break;
 		case CLOSE:
 			break;
@@ -29,7 +30,6 @@ int Response::treatActionAndResponse(int client_fd, RequestInfo &requestInfo)
 	sendResponse(client_fd);
 	return 1;
 }
-
 
 // INTERNAL METHODS
 
@@ -44,17 +44,18 @@ void Response::setHeader(const std::string& key, const std::string& value) {
 	responseMsg.headers[key] = value;
 }
 
-void Response::setBodyFromFile(const std::string& bodyFile)
+std::string Response::setBodyFromFile(const std::string& bodyFile)
 {
+	std::string ret;
+
 	std::ifstream file(bodyFile.c_str());
-	if (!file) {
-		setBodyFromDefaultPage(NOT_FOUND_ERROR);
-		return;
-	}
+	if (!file)
+		return NOT_FOUND_ERROR;
 	std::ostringstream oss;
 	oss << file.rdbuf();
-	responseMsg.body = oss.str();
+	ret = oss.str();
 	file.close();
+	return ret;
 }
 
 void Response::setBodyFromDefaultPage(const std::string& defaultPage)
@@ -121,15 +122,16 @@ std::string Response::getDefaultPage(int statusCode)
 void Response::setResponseMsg(int statusCode, std::string const &htmlFile)
 {
 	std::string statusMessage = getStatusMessage(statusCode);
-	std::string defaultPage = getDefaultPage(statusCode);
+	std::string body = getDefaultPage(statusCode);
 
 	setStatusLine(statusCode, statusMessage);
 	setHeader("Content-Type", "text/html");
 
-	if (defaultPage == NO_DEFAULT_ERROR)
-		setBodyFromFile(htmlFile);
-	else
-		setBodyFromDefaultPage(defaultPage);
+	if (requestInfo.pathType == CGI)
+		body = htmlFile;
+	else if (body == NO_DEFAULT_ERROR)
+		body = setBodyFromFile(htmlFile);
+	setBodyFromDefaultPage(body);
 
 	// Get response size;
 	std::ostringstream sizeStream;
