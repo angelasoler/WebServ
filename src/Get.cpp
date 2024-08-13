@@ -1,40 +1,50 @@
 #include "Get.hpp"
 #include "Response.hpp"
 
-void Get::handle(RequestInfo &requestInfo, Response &response)
+void Get::handle(Response &response)
 {
-	if (requestInfo.pathType == File || requestInfo.pathType == URL)
-		responseToFile(requestInfo, response);
-	else if (requestInfo.pathType == Directory)
-		responseToDirectory(requestInfo, response);
+	if (response.requestInfo.pathType == File || response.requestInfo.pathType == URL)
+		responseToFile(response);
+	else if (response.requestInfo.pathType == Directory)
+		responseToDirectory(response);
+	else if (response.requestInfo.pathType == CGI)
+		responseCGI(response);
 	else
-		responseToInvalid(requestInfo, response);
+		responseToInvalid(response);
 }
 
-void Get::responseToFile(RequestInfo &requestInfo, Response &response)
+void Get::responseToFile(Response &response)
 {
-	if (!requestInfo.permissions.read)
+	if (!response.requestInfo.permissions.read)
 		response.setResponseMsg(403, FORBIDDEN_ERROR);
-	else if (!requestInfo.fullPath.empty())
-		response.setResponseMsg(200, requestInfo.fullPath);
+	else if (!response.requestInfo.fullPath.empty())
+		response.setResponseMsg(200, response.requestInfo.fullPath);
 	else
 		response.setResponseMsg(404, NOT_FOUND_ERROR);
 }
 
-void Get::responseToDirectory(RequestInfo &requestInfo, Response &response)
+void Get::responseToDirectory(Response &response)
 {
-	if (!endsWith(requestInfo.requestedRoute, "/"))
-		response.setResponseMsg(301, requestInfo.fullPath);
-	else if (!requestInfo.fullPath.empty())
-		response.setResponseMsg(200, requestInfo.fullPath);
-	else if (requestInfo.auto_index) {}
+	if (!endsWith(response.requestInfo.requestedRoute, "/"))
+		response.setResponseMsg(301, response.requestInfo.fullPath);
+	else if (!response.requestInfo.fullPath.empty())
+		response.setResponseMsg(200, response.requestInfo.fullPath);
+	else if (response.requestInfo.auto_index) {}
 		// Return auto-index of directory
 	else
 		response.setResponseMsg(403, FORBIDDEN_ERROR);
 }
 
-void Get::responseToInvalid(RequestInfo &requestInfo, Response &response)
+void Get::responseToInvalid(Response &response)
 {
-	(void)requestInfo;
 	response.setResponseMsg(400, BAD_REQUEST_ERROR);
+}
+
+void Get::responseCGI(Response &response) {
+	std::string	htmlResponse;
+	CGIServer	cgi(response.requestInfo.requestedRoute);
+
+	cgi.setEnv(response.requestInfo);
+	htmlResponse = cgi.executeScript(response.requestInfo.body);
+	response.setResponseMsg(200, htmlResponse);
 }
