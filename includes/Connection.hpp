@@ -20,7 +20,7 @@ class Connection
 		int		setNonBlocking(int client_fd);
 		void	responseToClient(int client_fd);
 		void	connectNewClient(Server &refServer);
-		void	readClientRequest(int client_fd, int clientIdx);
+		void	readClientRequest(int client_fd);
 		void	treatRequest(int client_fd, int clientIdx);
 		void	initSockets(void);
 	public:

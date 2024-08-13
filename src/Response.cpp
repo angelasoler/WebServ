@@ -10,13 +10,15 @@ Response::Response(void) {}
 Response::~Response(void) {}
 
 // MAIN METHOD
-int Response::treatActionAndResponse(int client_fd, RequestInfo &requestInfo2)
+void	Response::treatActionAndResponse(void)
 {
-	requestInfo = requestInfo2;
+	Post postHandler;
+	Delete deleteHandler;
+	Get getHandler(*this);
 	switch (requestInfo.action)
 	{
 		case RESPONSE:
-			getHandler.handle(*this);
+			getHandler.handler();
 			break;
 		case UPLOAD:
 			postHandler.handle(*this);
@@ -27,8 +29,7 @@ int Response::treatActionAndResponse(int client_fd, RequestInfo &requestInfo2)
 		case CLOSE:
 			break;
 	}
-	sendResponse(client_fd);
-	return 1;
+	sendResponse();
 }
 
 // INTERNAL METHODS
@@ -63,7 +64,7 @@ void Response::setBodyFromDefaultPage(const std::string& defaultPage)
 	responseMsg.body = defaultPage;
 }
 
-std::string Response::buildResponse()
+std::string Response::buildResponse(void)
 {
 	std::ostringstream responseStream;
 	responseStream << responseMsg.statusLine << "\r\n";
@@ -140,7 +141,7 @@ void Response::setResponseMsg(int statusCode, std::string const &htmlFile)
 }
 
 // SENDING
-void Response::sendResponse(int client_fd)
+void Response::sendResponse(void)
 {
 	std::string response = buildResponse();
 	send(client_fd, response.c_str(), response.size(), 0);

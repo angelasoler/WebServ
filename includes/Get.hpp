@@ -7,12 +7,16 @@ class Response;
 class Get
 {
 	public:
-		void handle(Response &response);
+		Get(Response &objectRef);
+
+		void handler(void);
 	private:
-		void responseToFile(Response &response);
-		void responseToDirectory(Response &response);
-		void responseToInvalid(Response &response);
-		void responseCGI(Response &response);
+		Response &response;
+
+		void responseToFile(void);
+		void responseToDirectory(void);
+		void responseToInvalid(void);
+		void responseCGI(void);
 };
 
 #endif // GET_HPP

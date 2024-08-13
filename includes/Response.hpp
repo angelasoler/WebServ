@@ -39,9 +39,6 @@ class Response
 {
 	private:
 		ResponseMsg responseMsg;
-		Get			getHandler;
-		Post		postHandler;
-		Delete		deleteHandler;
 
 		// PARSING
 		std::string setBodyFromFile(const std::string& bodyFile);
@@ -55,15 +52,16 @@ class Response
 		std::string	getDefaultPage(int statusCode);
 
 		// SEND RESPONSE
-		void sendResponse(int client_fd);
+		void sendResponse(void);
 	public:
-		RequestInfo requestInfo;
+		RequestInfo	requestInfo;
+		int			client_fd;
 
 		void setResponseMsg(int statusCode, std::string const &htmlFile);
 
-		Response();
+		Response(void);
 		~Response(void);
-		int treatActionAndResponse(int client_fd, RequestInfo &requestInfo);
+		void treatActionAndResponse(void);
 };
 
 #endif /* RESPONSE_HPP */
