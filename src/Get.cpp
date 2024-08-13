@@ -1,19 +1,21 @@
 #include "Get.hpp"
 #include "Response.hpp"
 
-void Get::handle(Response &response)
+Get::Get(Response &objectRef) : response(objectRef) {}
+
+void Get::handler(void)
 {
 	if (response.requestInfo.pathType == File || response.requestInfo.pathType == URL)
-		responseToFile(response);
+		responseToFile();
 	else if (response.requestInfo.pathType == Directory)
-		responseToDirectory(response);
+		responseToDirectory();
 	else if (response.requestInfo.pathType == CGI)
-		responseCGI(response);
+		responseCGI();
 	else
-		responseToInvalid(response);
+		responseToInvalid();
 }
 
-void Get::responseToFile(Response &response)
+void Get::responseToFile(void)
 {
 	if (!response.requestInfo.permissions.read)
 		response.setResponseMsg(403, FORBIDDEN_ERROR);
@@ -23,7 +25,7 @@ void Get::responseToFile(Response &response)
 		response.setResponseMsg(404, NOT_FOUND_ERROR);
 }
 
-void Get::responseToDirectory(Response &response)
+void Get::responseToDirectory(void)
 {
 	if (!endsWith(response.requestInfo.requestedRoute, "/"))
 		response.setResponseMsg(301, response.requestInfo.fullPath);
@@ -35,12 +37,12 @@ void Get::responseToDirectory(Response &response)
 		response.setResponseMsg(403, FORBIDDEN_ERROR);
 }
 
-void Get::responseToInvalid(Response &response)
+void Get::responseToInvalid(void)
 {
 	response.setResponseMsg(400, BAD_REQUEST_ERROR);
 }
 
-void Get::responseCGI(Response &response) {
+void Get::responseCGI(void) {
 	std::string	htmlResponse;
 	CGIServer	cgi(response.requestInfo.requestedRoute);
 

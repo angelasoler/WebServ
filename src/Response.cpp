@@ -5,33 +5,34 @@
 #include <unistd.h>
 
 // CONSTRUCTOR AND DESTRUCTOR
-Response::Response(void) {}
+
+Response::Response(RequestInfo info, int fd) : client_fd(fd), requestInfo(info) {}
 
 Response::~Response(void) {}
 
 // MAIN METHOD
-int Response::treatActionAndResponse(int client_fd, RequestInfo &requestInfo2)
+void	Response::treatActionAndResponse(void)
 {
-	requestInfo = requestInfo2;
+	Post postHandler;
+	Delete deleteHandler;
+	Get getHandler(*this);
 	switch (requestInfo.action)
 	{
 		case RESPONSE:
-			getHandler.handle(*this);
-			break;
+			getHandler.handler();
+			break ;
 		case UPLOAD:
 			postHandler.handle(*this);
-			break;
+			break ;
 		case DELETE:
 			deleteHandler.handle(*this);
-			break;
+			break ;
 		case CLOSE:
-			break;
+			close(client_fd);
+			return ;
 	}
-	sendResponse(client_fd);
-	return 1;
+	sendResponse();
 }
-
-// INTERNAL METHODS
 
 void Response::setStatusLine(int statusCode, const std::string& reasonPhrase)
 {
@@ -63,7 +64,7 @@ void Response::setBodyFromDefaultPage(const std::string& defaultPage)
 	responseMsg.body = defaultPage;
 }
 
-std::string Response::buildResponse()
+std::string Response::buildResponse(void)
 {
 	std::ostringstream responseStream;
 	responseStream << responseMsg.statusLine << "\r\n";
@@ -140,8 +141,14 @@ void Response::setResponseMsg(int statusCode, std::string const &htmlFile)
 }
 
 // SENDING
-void Response::sendResponse(int client_fd)
+void Response::sendResponse(void)
 {
 	std::string response = buildResponse();
+	// std::cout << " ***** sendResponse *****\n"
+	// 			<< "fd:" << client_fd
+	// 			<< "\n\n-------reponse-----\n"
+	// 			<< response
+	// 			<< "\n-----------------------"
+	// 			<< std::endl;
 	send(client_fd, response.c_str(), response.size(), 0);
 }

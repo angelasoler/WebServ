@@ -38,10 +38,8 @@ struct ResponseMsg
 class Response
 {
 	private:
-		ResponseMsg responseMsg;
-		Get			getHandler;
-		Post		postHandler;
-		Delete		deleteHandler;
+		ResponseMsg	responseMsg;
+		int			client_fd;
 
 		// PARSING
 		std::string setBodyFromFile(const std::string& bodyFile);
@@ -55,15 +53,15 @@ class Response
 		std::string	getDefaultPage(int statusCode);
 
 		// SEND RESPONSE
-		void sendResponse(int client_fd);
+		void sendResponse(void);
 	public:
-		RequestInfo requestInfo;
+		RequestInfo	requestInfo;
 
-		void setResponseMsg(int statusCode, std::string const &htmlFile);
-
-		Response();
+		Response(RequestInfo info, int fd);
 		~Response(void);
-		int treatActionAndResponse(int client_fd, RequestInfo &requestInfo);
+
+		void	setResponseMsg(int statusCode, std::string const &htmlFile);
+		void	treatActionAndResponse(void);
 };
 
 #endif /* RESPONSE_HPP */
