@@ -38,7 +38,8 @@ struct ResponseMsg
 class Response
 {
 	private:
-		ResponseMsg responseMsg;
+		ResponseMsg	responseMsg;
+		int			client_fd;
 
 		// PARSING
 		std::string setBodyFromFile(const std::string& bodyFile);
@@ -55,13 +56,12 @@ class Response
 		void sendResponse(void);
 	public:
 		RequestInfo	requestInfo;
-		int			client_fd;
 
-		void setResponseMsg(int statusCode, std::string const &htmlFile);
-
-		Response(void);
+		Response(RequestInfo info, int fd);
 		~Response(void);
-		void treatActionAndResponse(void);
+
+		void	setResponseMsg(int statusCode, std::string const &htmlFile);
+		void	treatActionAndResponse(void);
 };
 
 #endif /* RESPONSE_HPP */

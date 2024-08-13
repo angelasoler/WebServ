@@ -17,8 +17,8 @@ void	CGIServer::setEnv(RequestInfo &requestInfo) {
 			envVars["REQUEST_METHOD"] = "DELETE";
 			break;
 		case CLOSE:
-			envVars["REQUEST_METHOD"] = "CLOSE";
-			break;
+			throw(std::runtime_error("GBI: Close is impossible at this point"));
+			break ;
 	}
 	envVars["SCRIPT_NAME"] = scriptPath;
 	envVars["SERVER_PROTOCOL"] = "HTTP/1.1";
@@ -34,11 +34,6 @@ void	CGIServer::setEnv(RequestInfo &requestInfo) {
 
 std::string	CGIServer::executeScript(std::string requestData) {
 	std::cout << "\t\t======CGI exec=======" << std::endl;
-	// requestData = "--------------------------d25a4bd4b4883f46\r\n"
-	// 			"Content-Disposition: form-data; name=\"file\"; filename=\"upload-file.txt\"\r\n"
-	// 			"Content-Type: text/plain\r\n\r\n"
-	// 			"hello there general kenoby\r\n"
-	// 			"--------------------------d25a4bd4b4883f46--\r\n\0";
 	std::ostringstream oss;
 	oss << requestData.size();
 	envVars["CONTENT_LENGTH"] = oss.str();

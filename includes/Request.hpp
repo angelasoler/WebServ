@@ -71,24 +71,27 @@ class Request
 		std::map< std::string, std::vector<std::string> >	header;
 
 		// debug
-		void				printHeaderDataStructure(void);
+		void	printHeaderDataStructure(void);
 
 		// Parsing
-		void				parseTheOthers(std::vector<std::string> &lines);
-		void				breakResquesLine(std::string &line);
-		void				parseRequestInfo(ServerConfig &serverConfig, RequestInfo &info);
-		void				parseRequestHeader(std::string text);
+		void	parseTheOthers(std::vector<std::string> &lines);
+		void	breakResquesLine(std::string &line);
+		void	parseRequestInfo(ServerConfig &serverConfig);
+		void	parseRequestHeader(void);
+		void	breakIntoLines(std::vector<std::string> &lines);
 
 		// Aux Parsing
 		e_httpMethodActions									getMethodAction(void);
 		std::map< std::string, std::vector<std::string> >	&getHeader(void);
 	public:
+		std::string	requestsText;
+		RequestInfo	info;
+
 		Request(void);
 		~Request(void);
-		RequestInfo	parseRequest(std::string text, ServerConfig &serverConfig);
-		int			readRequest(int client_fd, \
-								std::map<int, std::string> &request);
-		void		cleanHeader(void);
+		void	parseRequest(ServerConfig &serverConfig);
+		int		readRequest(int client_fd);
+		void	cleanHeader(void);
 };
 
 #endif /* REQUEST_HPP */

@@ -6,9 +6,9 @@ Request::Request(void) {}
 
 Request::~Request(void) {}
 
-int	Request::readRequest(int client_fd, std::map<int, std::string> &request)
+int	Request::readRequest(int client_fd)
 {
-	char	buffer[BUFFER_SIZE + 1]; // Quando o buffer é muito pequeno, precisa de +1 pra colocar o /0
+	char	buffer[BUFFER_SIZE + 1];
 
 	memset(buffer, 0, BUFFER_SIZE + 1);
 	ssize_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE, 0);
@@ -24,7 +24,7 @@ int	Request::readRequest(int client_fd, std::map<int, std::string> &request)
 	}
 	else
 	{
-		request[client_fd] += buffer;
+		requestsText += buffer;
 		std::cout // TO-DO: adicionar diretiva DEBUG
 		<< buffer
 		<< std::endl;
@@ -32,10 +32,10 @@ int	Request::readRequest(int client_fd, std::map<int, std::string> &request)
 	return (0);
 }
 
-void	breakIntoLines(std::vector<std::string> &lines, std::string text) {
+void	Request::breakIntoLines(std::vector<std::string> &lines) {
 	char	*tokenLine;
 
-	tokenLine = std::strtok((char *)text.c_str(), "\n");
+	tokenLine = std::strtok((char *)requestsText.c_str(), "\n");
 	do {
 		std::string	tmp(tokenLine);
 		lines.push_back(tmp);
@@ -81,12 +81,12 @@ void	Request::parseTheOthers(std::vector<std::string> &lines)
 	}
 }
 
-void	Request::parseRequestHeader(std::string text)
+void	Request::parseRequestHeader(void)
 {
 	std::vector<std::string>	lines;
 
 	cleanHeader();
-	breakIntoLines(lines, text);
+	breakIntoLines(lines);
 	breakResquesLine(lines[0]);
 	parseTheOthers(lines);
 }
@@ -105,23 +105,20 @@ void	Request::printHeaderDataStructure(void)
 	std::cout << "\t\t === \t\t ==="  << std::endl;
 }
 
-void	Request::parseRequestInfo(ServerConfig &serverConfig, RequestInfo &info)
+void	Request::parseRequestInfo(ServerConfig &serverConfig)
 {
 	info.action = getMethodAction();
-	// if (info.action == e_httpMethodActions::CLOSE) // se a action for close é bom evitar o resto do parse ?
-	// 	return info;
+	if (info.action == CLOSE)
+		return ;
 	info.requestedRoute = header["request"][ROUTE];
 	info.serverRef = serverConfig;
 }
 
-RequestInfo Request::parseRequest(std::string text, ServerConfig &serverConfig)
+void Request::parseRequest(ServerConfig &serverConfig)
 {
-	RequestInfo info;
-
-	parseRequestHeader(text);
-	parseRequestInfo(serverConfig, info);
+	parseRequestHeader();
+	parseRequestInfo(serverConfig);
 	ParsePathInfo::parsePathInfo(info);
-	return info;
 }
 
 e_httpMethodActions	Request::getMethodAction(void)
@@ -130,17 +127,17 @@ e_httpMethodActions	Request::getMethodAction(void)
 	if (header["request"][METHOD] == "GET")
 	{
 		std::cout << "\tRESPONSE\n" << std::endl;
-		return(RESPONSE);
+		return (RESPONSE);
 	}
 	else if (header["request"][METHOD] == "POST")
 	{
 		std::cout << "\tPOST\n" << std::endl;
-		return(UPLOAD);
+		return (UPLOAD);
 	}
 	else if (header["request"][METHOD] == "DELETE")
 	{
 		std::cout << "\tDELETE\n" << std::endl;
-		return(DELETE);
+		return (DELETE);
 	}
 	else
 	{

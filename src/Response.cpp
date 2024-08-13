@@ -5,7 +5,8 @@
 #include <unistd.h>
 
 // CONSTRUCTOR AND DESTRUCTOR
-Response::Response(void) {}
+
+Response::Response(RequestInfo info, int fd) : client_fd(fd), requestInfo(info) {}
 
 Response::~Response(void) {}
 
@@ -19,20 +20,19 @@ void	Response::treatActionAndResponse(void)
 	{
 		case RESPONSE:
 			getHandler.handler();
-			break;
+			break ;
 		case UPLOAD:
 			postHandler.handle(*this);
-			break;
+			break ;
 		case DELETE:
 			deleteHandler.handle(*this);
-			break;
+			break ;
 		case CLOSE:
-			break;
+			close(client_fd);
+			return ;
 	}
 	sendResponse();
 }
-
-// INTERNAL METHODS
 
 void Response::setStatusLine(int statusCode, const std::string& reasonPhrase)
 {
@@ -144,5 +144,11 @@ void Response::setResponseMsg(int statusCode, std::string const &htmlFile)
 void Response::sendResponse(void)
 {
 	std::string response = buildResponse();
+	// std::cout << " ***** sendResponse *****\n"
+	// 			<< "fd:" << client_fd
+	// 			<< "\n\n-------reponse-----\n"
+	// 			<< response
+	// 			<< "\n-----------------------"
+	// 			<< std::endl;
 	send(client_fd, response.c_str(), response.size(), 0);
 }

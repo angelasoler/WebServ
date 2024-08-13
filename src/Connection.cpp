@@ -55,27 +55,22 @@ void	Connection::connectNewClient(Server &refServer)
 
 void	Connection::readClientRequest(int client_fd)
 {
-	request.readRequest(client_fd, requestsText);
+	request.readRequest(client_fd);
 }
 
-
-void	Connection::treatRequest(int client_fd, int clientIdx)
+void	Connection::responseToClient(int client_fd)
 {
-	if (!(!requestsText.empty() && \
-		!requestsText[client_fd].empty()))
-		return ;
-
-	// parse request
-	response.requestInfo = request.parseRequest(requestsText[client_fd], clientServerConfig[client_fd]);
-
-	// treat response
-	response.client_fd = client_fd;
+	Response	response(request.info, client_fd);
 	response.treatActionAndResponse();
+	request.requestsText.clear();
+}
 
-	// close response
-	poll_fds.erase(poll_fds.begin() + clientIdx); //porque apagar após responder?
-	close(client_fd);//porque fechar toda vez? se for keepalive deve ficar aberto... quais as condições para fechar?
-	requestsText.erase(client_fd);
+void	Connection::treatRequest(int client_fd)
+{
+	if (request.requestsText.empty())
+		return ;
+	request.parseRequest(clientServerConfig[client_fd]);
+	responseToClient(client_fd);
 }
 
 int	Connection::setNonBlocking(int fd)
@@ -88,7 +83,6 @@ int	Connection::setNonBlocking(int fd)
 
 bool	Connection::eventIO(void)
 {
-	nPolls = poll_fds.size();
 	if (poll(poll_fds.data(), poll_fds.size(), -1) < 0) {
 		if (errno == EINTR)
 			return (false);
@@ -108,13 +102,13 @@ void	Connection::verifyServerPollin(void)
 
 void	Connection::requestResponse(void)
 {
-	for (size_t clientIdx = nServers; clientIdx < nPolls; clientIdx++)
+	for (size_t clientIdx = nServers; clientIdx < poll_fds.size(); clientIdx++)
 	{
 		if (poll_fds[clientIdx].revents & POLLIN) {
 			readClientRequest(poll_fds[clientIdx].fd);
 		}
 		if (poll_fds[clientIdx].revents & POLLOUT) {
-			treatRequest(poll_fds[clientIdx].fd, clientIdx);
+			treatRequest(poll_fds[clientIdx].fd);
 		}
 	}
 }
