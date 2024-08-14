@@ -4,7 +4,7 @@
 #include <fstream>
 
 void start_server() {
-	std::system("./webserv &");
+	std::system("./webserv > server-outputs.log &");
 	std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 
