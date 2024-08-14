@@ -94,7 +94,7 @@ TEST(CurlHttpTest, GetRequest301) {
 	ASSERT_NE(curl, nullptr);
 	std::string url = std::string("http://localhost:8080/") + DEFAULT_REDIRECTION;
 	
-	curl_easy_setopt(curl, CURLOPT_URL, url); // É necessario insereri o redirect configurado
+	curl_easy_setopt(curl, CURLOPT_URL, url); // É necessario inserir o redirect configurado
 	curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
