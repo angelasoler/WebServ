@@ -8,6 +8,12 @@ void start_server() {
 	std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 
+void start_server_with_conf(std::string configFile) {
+	std::string fullPath = std::string("./webserv ") + std::string(configFile) + std::string(" > server-outputs.log &");
+	std::system(fullPath.c_str());
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+}
+
 void stop_server() {
 	std::system("pkill --signal SIGINT webserv");
 }

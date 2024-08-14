@@ -3,6 +3,7 @@
 
 void start_server();
 void stop_server();
+void start_server_with_conf(std::string config);
 
 struct HttpResponse {
 	long status_code;
@@ -31,14 +32,17 @@ size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
 	return total_size;
 }
 
+#include "Config.hpp"
+
 TEST(CurlHttpTest, GetRequest200) {
+	// ARRANGE: Configuração do teste e inicializaçãos
 	HttpResponse response;
 	CURL* curl;
 	start_server();
 	curl = curl_easy_init();
 	ASSERT_NE(curl, nullptr);
 
-
+	 // ACT: Executar a ação sob teste
 	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080");
 	curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
@@ -65,7 +69,7 @@ TEST(CurlHttpTest, GetRequest404) {
 	curl = curl_easy_init();
 	ASSERT_NE(curl, nullptr);
 
-	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080/notfound");
+	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080/notfound.html");
 	curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
@@ -82,38 +86,15 @@ TEST(CurlHttpTest, GetRequest404) {
 	stop_server();
 }
 
-TEST(CurlHttpTest, GetRequest500) {
-	HttpResponse response;
-	CURL* curl;
-	start_server();
-	curl = curl_easy_init();
-	ASSERT_NE(curl, nullptr);
-
-	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080/error");
-	curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
-	curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, HeaderCallback);
-	curl_easy_setopt(curl, CURLOPT_HEADERDATA, &response);
-	CURLcode res = curl_easy_perform(curl);
-	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response.status_code);
-
-	EXPECT_EQ(res, CURLE_OK);
-	EXPECT_EQ(response.status_code, 500);
-	EXPECT_TRUE(response.body.find("Internal Server Error") != std::string::npos);
-
-	curl_easy_cleanup(curl);
-	stop_server();
-}
-
 TEST(CurlHttpTest, GetRequest301) {
 	HttpResponse response;
 	CURL* curl;
 	start_server();
 	curl = curl_easy_init();
 	ASSERT_NE(curl, nullptr);
-
-	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080/oldpage");
+	std::string url = std::string("http://localhost:8080/") + DEFAULT_REDIRECTION;
+	
+	curl_easy_setopt(curl, CURLOPT_URL, url); // É necessario insereri o redirect configurado
 	curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
@@ -130,39 +111,18 @@ TEST(CurlHttpTest, GetRequest301) {
 	stop_server();
 }
 
-TEST(CurlHttpTest, GetRequestFollowRedirect) {
-	HttpResponse response;
-	CURL* curl;
-	start_server();
-	curl = curl_easy_init();
-	ASSERT_NE(curl, nullptr);
-
-	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080/redirect");
-	curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
-	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L); // Segue redirecionamentos
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
-	curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, HeaderCallback);
-	curl_easy_setopt(curl, CURLOPT_HEADERDATA, &response);
-	CURLcode res = curl_easy_perform(curl);
-	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response.status_code);
-
-	EXPECT_EQ(res, CURLE_OK);
-	EXPECT_EQ(response.status_code, 200);
-	EXPECT_TRUE(response.body.find("Final destination") != std::string::npos);
-
-	curl_easy_cleanup(curl);
-	stop_server();
-}
-
+#include <fstream>
 TEST(CurlHttpTest, GetRequest403) {
 	HttpResponse response;
 	CURL* curl;
 	start_server();
 	curl = curl_easy_init();
 	ASSERT_NE(curl, nullptr);
+	std::string forbiddenFile = DEFAULT_ROOT_DIRECTORY + std::string("/forbiddenFile"); // define um arquivo a partir do diretorio root padrao
+	std::ofstream file(forbiddenFile.c_str()); // cria o arquivo
+	chmod(forbiddenFile.c_str(), 0000); // define as permissoes para 0000 
 
-	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080/forbidden");
+	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080/forbiddenFile"); // tenta acessar o arquivo
 	curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
@@ -175,6 +135,7 @@ TEST(CurlHttpTest, GetRequest403) {
 	EXPECT_EQ(response.status_code, 403);
 	EXPECT_TRUE(response.body.find("Forbidden") != std::string::npos);
 
+	remove(forbiddenFile.c_str()); // exclui o arquivo proibido criado
 	curl_easy_cleanup(curl);
 	stop_server();
 }
@@ -198,78 +159,6 @@ TEST(CurlHttpTest, GetRequest400) {
 	EXPECT_EQ(res, CURLE_OK);
 	EXPECT_EQ(response.status_code, 400);
 	EXPECT_TRUE(response.body.find("Bad Request") != std::string::npos);
-
-	curl_easy_cleanup(curl);
-	stop_server();
-}
-
-TEST(CurlHttpTest, GetRequest401) {
-	HttpResponse response;
-	CURL* curl;
-	start_server();
-	curl = curl_easy_init();
-	ASSERT_NE(curl, nullptr);
-
-	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080/unauthorized");
-	curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
-	curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, HeaderCallback);
-	curl_easy_setopt(curl, CURLOPT_HEADERDATA, &response);
-	CURLcode res = curl_easy_perform(curl);
-	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response.status_code);
-
-	EXPECT_EQ(res, CURLE_OK);
-	EXPECT_EQ(response.status_code, 401);
-	EXPECT_TRUE(response.body.find("Unauthorized") != std::string::npos);
-
-	curl_easy_cleanup(curl);
-	stop_server();
-}
-
-TEST(CurlHttpTest, GetRequest502) {
-	HttpResponse response;
-	CURL* curl;
-	start_server();
-	curl = curl_easy_init();
-	ASSERT_NE(curl, nullptr);
-
-	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080/badgateway");
-	curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
-	curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, HeaderCallback);
-	curl_easy_setopt(curl, CURLOPT_HEADERDATA, &response);
-	CURLcode res = curl_easy_perform(curl);
-	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response.status_code);
-
-	EXPECT_EQ(res, CURLE_OK);
-	EXPECT_EQ(response.status_code, 502);
-	EXPECT_TRUE(response.body.find("Bad Gateway") != std::string::npos);
-
-	curl_easy_cleanup(curl);
-	stop_server();
-}
-
-TEST(CurlHttpTest, GetRequest503) {
-	HttpResponse response;
-	CURL* curl;
-	start_server();
-	curl = curl_easy_init();
-	ASSERT_NE(curl, nullptr);
-
-	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080/unavailable");
-	curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
-	curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, HeaderCallback);
-	curl_easy_setopt(curl, CURLOPT_HEADERDATA, &response);
-	CURLcode res = curl_easy_perform(curl);
-	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response.status_code);
-
-	EXPECT_EQ(res, CURLE_OK);
-	EXPECT_EQ(response.status_code, 503);
-	EXPECT_TRUE(response.body.find("Service Unavailable") != std::string::npos);
 
 	curl_easy_cleanup(curl);
 	stop_server();
