@@ -90,7 +90,7 @@ class Request
 		Request(void);
 		~Request(void);
 		void	parseRequest(ServerConfig &serverConfig);
-		int		readRequest(int client_fd);
+		void	readRequest(int client_fd);
 		void	cleanHeader(void);
 };
 
