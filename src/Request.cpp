@@ -1,12 +1,13 @@
 
 #include "Request.hpp"
 #include "ParsePathInfo.hpp"
+#include <cerrno>
 
 Request::Request(void) {}
 
 Request::~Request(void) {}
 
-int	Request::readRequest(int client_fd)
+void	Request::readRequest(int client_fd)
 {
 	char	buffer[BUFFER_SIZE + 1];
 
@@ -14,22 +15,23 @@ int	Request::readRequest(int client_fd)
 	ssize_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE, 0);
 	if (bytes_read >= 0)
 		buffer[bytes_read] = '\0';
-	if (bytes_read < 0)
-		throw(std::runtime_error("Read request failed."));
+	if (bytes_read < 0) {
+		return ;
+	}
 	else if (bytes_read == 0)
 	{
 		std::cout << "Conexão fechada pelo cliente" << std::endl;
 		close(client_fd);
-		return (1);
+		return ;
 	}
 	else
 	{
 		requestsText += buffer;
 		std::cout // TO-DO: adicionar diretiva DEBUG
-		<< buffer
+		// << buffer
 		<< std::endl;
 	}
-	return (0);
+	return ;
 }
 
 void	Request::breakIntoLines(std::vector<std::string> &lines) {
