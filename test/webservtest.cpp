@@ -3,9 +3,14 @@
 #include <thread>
 #include <fstream>
 
-
 void start_server() {
-	std::system("./webserv &");
+	std::system("./webserv > server-outputs.log &");
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+}
+
+void start_server_with_conf(std::string configFile) {
+	std::string fullPath = std::string("./webserv ") + std::string(configFile) + std::string(" > server-outputs.log &");
+	std::system(fullPath.c_str());
 	std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 
@@ -31,10 +36,28 @@ std::string exec(std::string command) {
 	return result;
 }
 
+// TEST(HttpTest, get500) {
+
+// //multiplas conexoe
+// TEST(HttpTest, multiConecction) {
+
+// TEST(HttpTest, CurlGetStatusCodes) {
+// 	//ARRANGE
+// 	- Startar Server
+// 	- fazer uma requisição GET / com curl //valida
+// 	- fazer uma requisição GET /caminho que não existe
+// 	- parsea stdout do crul
+// 	//ASSERT
+// 	-verificar codigo 200
+// }
+
 TEST(HttpTest, FirefoxGetRequest) {
+	// ARRANGE
 	start_server();
+	// ACT
 	int result = std::system("test/test-firefox");
 
+	// ASSERT
 	EXPECT_EQ(result, 0);
 	stop_server();
 }
@@ -57,29 +80,29 @@ TEST(ConfigTest, NoServersFile) {
 	
 	// Verificação do primeiro servidor
 	const ServerConfig& server1 = config->servers[0];
-	EXPECT_EQ(server1.host, "127.0.0.1");
-	EXPECT_EQ(server1.port, 8080);
-	EXPECT_EQ(server1.server_names[0], "localhost");
-	EXPECT_EQ(server1.default_error_page, "/error.html");
-	EXPECT_EQ(server1.client_body_limit, 1048576);
+	EXPECT_EQ(server1.host, DEFAULT_HOST);
+	EXPECT_EQ(server1.port, DEFAULT_PORT);
+	EXPECT_EQ(server1.server_names[0], DEFAULT_SERVER_NAME);
+	EXPECT_EQ(server1.default_error_page, DEFAULT_ERROR_PAGE);
+	EXPECT_EQ(server1.client_body_limit, DEFAULT_CLIENT_BODY_LIMIT);
 
 	// Verificação da rota do primeiro servidor
 	ASSERT_EQ(server1.routes.size(), 1);
-	const RouteConfig& route1 = server1.routes.at("/");
-	EXPECT_EQ(route1.path, "/");
-	EXPECT_EQ(route1.redirection, "");
+	const RouteConfig& route1 = server1.routes.at(DEFAULT_ROUTE_PATH);
+	EXPECT_EQ(route1.route, DEFAULT_ROUTE_PATH);
+	EXPECT_EQ(route1.redirection, DEFAULT_REDIRECTION);
 	EXPECT_EQ(route1.root_directory, DEFAULT_ROOT_DIRECTORY);
 	EXPECT_EQ(route1.accepted_methods.size(), 2);
 	EXPECT_EQ(route1.accepted_methods[0], "GET");
 	EXPECT_EQ(route1.accepted_methods[1], "DELETE");
 	EXPECT_EQ(route1.directory_listing, false);
 	EXPECT_EQ(route1.default_file, DEFAULT_FILE);
-	EXPECT_EQ(route1.cgi_extension, ".cgi");
-	EXPECT_EQ(route1.upload_directory, "/var/www/uploads");
+	EXPECT_EQ(route1.cgi_extension, DEFAULT_CGI_EXTENSION);
+	EXPECT_EQ(route1.upload_directory, DEFAULT_UPLOAD_DIRECTORY);
 
 	// Verificação do CGI do primeiro servidor
-	EXPECT_EQ(server1.cgi.path_info, "/cgi-bin");
-	EXPECT_EQ(server1.cgi.script_path, "/usr/lib/cgi-bin");
+	EXPECT_EQ(server1.cgi.path_info, DEFAULT_PATH_INFO);
+	EXPECT_EQ(server1.cgi.script_path, DEFAULT_SCRIPT_PATH);
 }
 
 TEST(ConfigTest, NoServers) {
@@ -90,29 +113,29 @@ TEST(ConfigTest, NoServers) {
 	
 	// Verificação do primeiro servidor
 	const ServerConfig& server1 = config->servers[0];
-	EXPECT_EQ(server1.host, "127.0.0.1");
-	EXPECT_EQ(server1.port, 8080);
-	EXPECT_EQ(server1.server_names[0], "localhost");
-	EXPECT_EQ(server1.default_error_page, "/error.html");
-	EXPECT_EQ(server1.client_body_limit, 1048576);
+	EXPECT_EQ(server1.host, DEFAULT_HOST);
+	EXPECT_EQ(server1.port, DEFAULT_PORT);
+	EXPECT_EQ(server1.server_names[0], DEFAULT_SERVER_NAME);
+	EXPECT_EQ(server1.default_error_page, DEFAULT_ERROR_PAGE);
+	EXPECT_EQ(server1.client_body_limit, DEFAULT_CLIENT_BODY_LIMIT);
 
 	// Verificação da rota do primeiro servidor
 	ASSERT_EQ(server1.routes.size(), 1);
-	const RouteConfig& route1 = server1.routes.at("/");
-	EXPECT_EQ(route1.path, "/");
-	EXPECT_EQ(route1.redirection, "");
+	const RouteConfig& route1 = server1.routes.at(DEFAULT_ROUTE_PATH);
+	EXPECT_EQ(route1.route, DEFAULT_ROUTE_PATH);
+	EXPECT_EQ(route1.redirection, DEFAULT_REDIRECTION);
 	EXPECT_EQ(route1.root_directory, DEFAULT_ROOT_DIRECTORY);
 	EXPECT_EQ(route1.accepted_methods.size(), 2);
 	EXPECT_EQ(route1.accepted_methods[0], "GET");
 	EXPECT_EQ(route1.accepted_methods[1], "DELETE");
 	EXPECT_EQ(route1.directory_listing, false);
 	EXPECT_EQ(route1.default_file, DEFAULT_FILE);
-	EXPECT_EQ(route1.cgi_extension, ".cgi");
-	EXPECT_EQ(route1.upload_directory, "/var/www/uploads");
+	EXPECT_EQ(route1.cgi_extension, DEFAULT_CGI_EXTENSION);
+	EXPECT_EQ(route1.upload_directory, DEFAULT_UPLOAD_DIRECTORY);
 
 	// Verificação do CGI do primeiro servidor
-	EXPECT_EQ(server1.cgi.path_info, "/cgi-bin");
-	EXPECT_EQ(server1.cgi.script_path, "/usr/lib/cgi-bin");
+	EXPECT_EQ(server1.cgi.path_info, DEFAULT_PATH_INFO);
+	EXPECT_EQ(server1.cgi.script_path, DEFAULT_SCRIPT_PATH);
 }
 
 TEST(ConfigTest, OneServer) {
@@ -135,7 +158,7 @@ TEST(ConfigTest, OneServer) {
 	// Verificação da rota do primeiro servidor
 	ASSERT_EQ(server1.routes.size(), 1);
 	const RouteConfig& route1 = server1.routes.at("/route_x");
-	EXPECT_EQ(route1.path, "/route_x");
+	EXPECT_EQ(route1.route, "/route_x");
 	EXPECT_EQ(route1.redirection, "/route_x_redirection");
 	EXPECT_EQ(route1.root_directory, "/var/www/route_x");
 	EXPECT_EQ(route1.accepted_methods.size(), 3);
@@ -169,7 +192,7 @@ TEST(ConfigTest, TwoServers) {
 	// Verificação da rota do primeiro servidor
 	ASSERT_EQ(server1.routes.size(), 1);
 	const RouteConfig& route1 = server1.routes.at("/route_x");
-	EXPECT_EQ(route1.path, "/route_x");
+	EXPECT_EQ(route1.route, "/route_x");
 	EXPECT_EQ(route1.redirection, "/route_x_redirection");
 	EXPECT_EQ(route1.root_directory, "/var/www/route_x");
 	EXPECT_EQ(route1.accepted_methods.size(), 3);
@@ -196,7 +219,7 @@ TEST(ConfigTest, TwoServers) {
 	// Verificação da rota do segundo servidor
 	ASSERT_EQ(server2.routes.size(), 1);
 	const RouteConfig& route2 = server2.routes.at("/route_y");
-	EXPECT_EQ(route2.path, "/route_y");
+	EXPECT_EQ(route2.route, "/route_y");
 	EXPECT_EQ(route2.root_directory, "/var/www/route_y");
 	EXPECT_EQ(route2.accepted_methods.size(), 1);
 	EXPECT_EQ(route2.accepted_methods[0], "GET");
@@ -226,7 +249,7 @@ TEST(ConfigTest, ThreeServers) {
 
 	ASSERT_EQ(server1.routes.size(), 1);
 	const RouteConfig& route1 = server1.routes.at("/route_x");
-	EXPECT_EQ(route1.path, "/route_x");
+	EXPECT_EQ(route1.route, "/route_x");
 	EXPECT_EQ(route1.redirection, "/route_x_redirection");
 	EXPECT_EQ(route1.root_directory, "/var/www/route_x");
 	EXPECT_EQ(route1.accepted_methods.size(), 3);
@@ -251,7 +274,7 @@ TEST(ConfigTest, ThreeServers) {
 	// Verificação da rota do segundo servidor
 	ASSERT_EQ(server2.routes.size(), 1);
 	const RouteConfig& route2 = server2.routes.at("/route_y");
-	EXPECT_EQ(route2.path, "/route_y");
+	EXPECT_EQ(route2.route, "/route_y");
 	EXPECT_EQ(route2.root_directory, "/var/www/route_y");
 	EXPECT_EQ(route2.accepted_methods.size(), 1);
 	EXPECT_EQ(route2.accepted_methods[0], "GET");
@@ -276,7 +299,7 @@ TEST(ConfigTest, ThreeServers) {
 
 	ASSERT_EQ(server3.routes.size(), 1);
 	const RouteConfig& route3 = server3.routes.at("/route_z");
-	EXPECT_EQ(route3.path, "/route_z");
+	EXPECT_EQ(route3.route, "/route_z");
 	EXPECT_EQ(route3.root_directory, "/var/www/route_z");
 	EXPECT_EQ(route3.accepted_methods.size(), 1);
 	EXPECT_EQ(route3.accepted_methods[0], "GET");
@@ -306,7 +329,7 @@ TEST(ConfigTest, NoHostOnDefaultServer) {
 	// Verificação da rota do primeiro servidor
 	ASSERT_EQ(server1.routes.size(), 1);
 	const RouteConfig& route1 = server1.routes.at("/route_x");
-	EXPECT_EQ(route1.path, "/route_x");
+	EXPECT_EQ(route1.route, "/route_x");
 	EXPECT_EQ(route1.redirection, "/route_x_redirection");
 	EXPECT_EQ(route1.root_directory, "/var/www/route_x");
 	EXPECT_EQ(route1.accepted_methods.size(), 3);
@@ -333,7 +356,7 @@ TEST(ConfigTest, NoHostOnDefaultServer) {
 	// Verificação da rota do segundo servidor
 	ASSERT_EQ(server2.routes.size(), 1);
 	const RouteConfig& route2 = server2.routes.at("/route_y");
-	EXPECT_EQ(route2.path, "/route_y");
+	EXPECT_EQ(route2.route, "/route_y");
 	EXPECT_EQ(route2.root_directory, "/var/www/route_y");
 	EXPECT_EQ(route2.accepted_methods.size(), 1);
 	EXPECT_EQ(route2.accepted_methods[0], "GET");
@@ -364,7 +387,7 @@ TEST(ConfigTest, InvalidServerId1) {
 	// Verificação da rota do primeiro servidor
 	ASSERT_EQ(server1.routes.size(), 1);
 	const RouteConfig& route1 = server1.routes.at("/route_x");
-	EXPECT_EQ(route1.path, "/route_x");
+	EXPECT_EQ(route1.route, "/route_x");
 	EXPECT_EQ(route1.redirection, "/route_x_redirection");
 	EXPECT_EQ(route1.root_directory, "/var/www/route_x");
 	EXPECT_EQ(route1.accepted_methods.size(), 3);
@@ -397,7 +420,7 @@ TEST(ConfigTest, InvalidServerId1ValidServerId2) {
 
 	ASSERT_EQ(server1.routes.size(), 1);
 	const RouteConfig& route1 = server1.routes.at("/route_x");
-	EXPECT_EQ(route1.path, "/route_x");
+	EXPECT_EQ(route1.route, "/route_x");
 	EXPECT_EQ(route1.redirection, "/route_x_redirection");
 	EXPECT_EQ(route1.root_directory, "/var/www/route_x");
 	EXPECT_EQ(route1.accepted_methods.size(), 3);
@@ -422,7 +445,7 @@ TEST(ConfigTest, InvalidServerId1ValidServerId2) {
 
 	ASSERT_EQ(server3.routes.size(), 1);
 	const RouteConfig& route3 = server3.routes.at("/route_z");
-	EXPECT_EQ(route3.path, "/route_z");
+	EXPECT_EQ(route3.route, "/route_z");
 	EXPECT_EQ(route3.root_directory, "/var/www/route_z");
 	EXPECT_EQ(route3.accepted_methods.size(), 1);
 	EXPECT_EQ(route3.accepted_methods[0], "GET");
@@ -448,7 +471,7 @@ TEST(PathTest, SimpleRoute) {
 
 	// Setup Request Info
 	RequestInfo info;
-	info.path = "/";
+	info.requestedRoute = "/";
 	info.action = RESPONSE;
 	info.serverRef = serverConfig;
 
@@ -467,7 +490,7 @@ TEST(PathTest, SimpleRouteB) {
 
 	// Setup Request Info
 	RequestInfo info;
-	info.path = "/other_directory";
+	info.requestedRoute = "/other_directory";
 	info.action = RESPONSE;
 	info.serverRef = serverConfig;
 
@@ -486,7 +509,7 @@ TEST(PathTest, SimpleRouteC) {
 
 	// Setup Request Info
 	RequestInfo info;
-	info.path = "/test_route";
+	info.requestedRoute = "/test_route";
 	info.action = RESPONSE;
 	info.serverRef = serverConfig;
 

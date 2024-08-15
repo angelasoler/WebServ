@@ -53,31 +53,24 @@ void	Connection::connectNewClient(Server &refServer)
 	poll_fds.push_back(client_poll_fd);
 }
 
-void	Connection::readClientRequest(int client_fd, int clientIdx)
+void	Connection::readClientRequest(int client_fd)
 {
-	if (request.readRequest(client_fd, requestsText)) {
-		poll_fds.erase(poll_fds.begin() + clientIdx);
-	}
+	request.readRequest(client_fd);
 }
 
-void	Connection::treatRequest(int client_fd, int clientIdx) {
-	std::string			text;
+void	Connection::responseToClient(int client_fd)
+{
+	Response	response(request.info, client_fd);
+	response.treatActionAndResponse();
+	request.requestsText.clear();
+}
 
-	if (!(!requestsText.empty() && \
-		!requestsText[client_fd].empty()))
+void	Connection::treatRequest(int client_fd)
+{
+	if (request.requestsText.empty())
 		return ;
-
-	// parse request
-	text = requestsText[client_fd];
-	RequestInfo requestInfo = request.parseRequest(text, clientServerConfig[client_fd]);
-
-	// treat response
-	response.treatActionAndResponse(client_fd, requestInfo);
-
-	// close response
-	poll_fds.erase(poll_fds.begin() + clientIdx);
-	close(client_fd);
-	requestsText.erase(client_fd);
+	request.parseRequest(clientServerConfig[client_fd]);
+	responseToClient(client_fd);
 }
 
 int	Connection::setNonBlocking(int fd)
@@ -90,7 +83,6 @@ int	Connection::setNonBlocking(int fd)
 
 bool	Connection::eventIO(void)
 {
-	nPolls = poll_fds.size();
 	if (poll(poll_fds.data(), poll_fds.size(), -1) < 0) {
 		if (errno == EINTR)
 			return (false);
@@ -110,13 +102,13 @@ void	Connection::verifyServerPollin(void)
 
 void	Connection::requestResponse(void)
 {
-	for (size_t clientIdx = nServers; clientIdx < nPolls; clientIdx++)
+	for (size_t clientIdx = nServers; clientIdx < poll_fds.size(); clientIdx++)
 	{
 		if (poll_fds[clientIdx].revents & POLLIN) {
-			readClientRequest(poll_fds[clientIdx].fd, clientIdx);
+			readClientRequest(poll_fds[clientIdx].fd);
 		}
 		if (poll_fds[clientIdx].revents & POLLOUT) {
-			treatRequest(poll_fds[clientIdx].fd, clientIdx);
+			treatRequest(poll_fds[clientIdx].fd);
 		}
 	}
 }

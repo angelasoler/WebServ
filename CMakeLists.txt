@@ -20,9 +20,13 @@ include_directories(includes)
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 add_executable(webserv ${SOURCES})
 
+find_package(CURL REQUIRED)
+include_directories(${CURL_INCLUDE_DIRS})
+
 list(REMOVE_ITEM SOURCES "${CMAKE_SOURCE_DIR}/src/main.cpp")
-add_executable(webservtest test/webservtest.cpp ${SOURCES})
-target_link_libraries(webservtest gtest_main)
+file(GLOB_RECURSE TEST_SOURCES "test/*.cpp")
+add_executable(webservtest ${TEST_SOURCES} ${SOURCES})
+target_link_libraries(webservtest gtest_main ${CURL_LIBRARIES})
 
 include(GoogleTest)
 gtest_discover_tests(webservtest)
