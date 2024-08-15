@@ -14,19 +14,37 @@ it will answer to all the requests that don’t belong to an other server).??
 - o tamanho do body deve ser respeito deacordo ao config-file(POST)
 
 // as rotas podem ter uma ou mais das seguentes regras:
-- só deve executar os petodos configurados
+- só deve executar os metodos configurados
 
 - executa redirections se configurado
 
-- se um pasta está definida ela será a root onde será procura,
- senão, procura na root do server?
+- se uma pasta está definida ela será a root onde serão procurados os querys,
+ senão, procura na root do server
 
 - se directory listing está on renderizar html com links para os conteudos do diretorio
 
-- se está off retornar default file (e se não tiver default file? eu faço)
+- se está off retornar default file (e se não tiver default file usa default file do webserver)
 
 - cgi roda com python, aceita GET e POST
+    -cgi em post pode receber argumentos para o fomulario que serão parseados da query
 
-- o cgi-script se encontra na pasta cgi-bin e qualquer coisa que use path relativos deve funcionar
+-  path relativos do cgi-script devem funcionar
     `The CGI should be run in the correct directory for relative path file access.`
 
+////// não tão prioritario pois na testa na regua /////
+- coisas obrigatoria de http/1.1
+
+Linha de Requisição (Request Line)
+
+Método HTTP: Deve ser especificado (ex.: GET, POST, DELETE, etc.).
+URI: O caminho do recurso solicitado deve ser incluído (ex.: /index.html).
+Versão do Protocolo: Deve ser HTTP/1.1.
+
+Host: Deve ser sempre incluído para identificar o host e, opcionalmente, a porta (ex.: Host: www.example.com). Isso é obrigatório em HTTP/1.1, diferentemente do HTTP/1.0.
+Outros cabeçalhos podem ser incluídos conforme necessário, mas não são obrigatórios:
+
+Após os cabeçalhos de requisição, deve haver uma linha em branco (um Enter) para separar os cabeçalhos do corpo da requisição, se existir.
+Corpo da Requisição (Request Body) (POST)
+
+O corpo não é obrigatório para métodos como GET e DELETE.
+////////////////////

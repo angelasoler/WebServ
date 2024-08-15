@@ -4,22 +4,12 @@
 
 CGIServer::CGIServer(const std::string scriptPath) : scriptPath(scriptPath) {}
 
-void	CGIServer::setEnv(RequestInfo &requestInfo) {
-	switch (requestInfo.action)
-	{
-		case RESPONSE:
-			envVars["REQUEST_METHOD"] = "GET";
-			break;
-		case UPLOAD:
-			envVars["REQUEST_METHOD"] = "POST";
-			break;
-		case DELETE:
-			envVars["REQUEST_METHOD"] = "DELETE";
-			break;
-		case CLOSE:
-			throw(std::runtime_error("GBI: Close is impossible at this point"));
-			break ;
-	}
+void	CGIServer::setEnv(RequestInfo &requestInfo)
+{
+	if (requestInfo.action == RESPONSE)
+		envVars["REQUEST_METHOD"] = "GET";
+	if (requestInfo.action == UPLOAD)
+		envVars["REQUEST_METHOD"] = "POST";
 	envVars["SCRIPT_NAME"] = scriptPath;
 	envVars["SERVER_PROTOCOL"] = "HTTP/1.1";
 	// envVars["QUERY_STRING"] = "";
