@@ -28,7 +28,6 @@ void	Response::treatActionAndResponse(void)
 			deleteHandler.handle(*this);
 			break ;
 		case CLOSE:
-			close(client_fd);
 			return ;
 	}
 	sendResponse();

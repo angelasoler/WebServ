@@ -62,6 +62,7 @@ void	Connection::responseToClient(int client_fd)
 {
 	Response	response(request.info, client_fd);
 	response.treatActionAndResponse();
+	
 	request.requestsText.clear();
 }
 
@@ -109,6 +110,10 @@ void	Connection::requestResponse(void)
 		}
 		if (poll_fds[clientIdx].revents & POLLOUT) {
 			treatRequest(poll_fds[clientIdx].fd);
+			if (request.info.action == CLOSE) {
+				poll_fds.erase(poll_fds.begin() + clientIdx);
+				close(poll_fds[clientIdx].fd);
+			}
 		}
 	}
 }
