@@ -12,16 +12,14 @@ class Connection
 {
 	private:
 		Request						request;
-		Response					response;
-		std::map<int, std::string>	requestsText;
-		size_t						nPolls;
 		std::vector<Server>			servers;
+		size_t						nPolls;
 
 		int		setNonBlocking(int client_fd);
 		void	responseToClient(int client_fd);
 		void	connectNewClient(Server &refServer);
-		void	readClientRequest(int client_fd, int clientIdx);
-		void	treatRequest(int client_fd, int clientIdx);
+		void	readClientRequest(int client_fd);
+		void	treatRequest(int client_fd);
 		void	initSockets(void);
 	public:
 		size_t						nServers;

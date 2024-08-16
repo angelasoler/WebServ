@@ -3,7 +3,6 @@
 #include <thread>
 #include <fstream>
 
-
 void start_server() {
 	std::system("./webserv &");
 	std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -31,10 +30,28 @@ std::string exec(std::string command) {
 	return result;
 }
 
+// TEST(HttpTest, get500) {
+
+// //multiplas conexoe
+// TEST(HttpTest, multiConecction) {
+
+// TEST(HttpTest, CurlGetStatusCodes) {
+// 	//ARRANGE
+// 	- Startar Server
+// 	- fazer uma requisição GET / com curl //valida
+// 	- fazer uma requisição GET /caminho que não existe
+// 	- parsea stdout do crul
+// 	//ASSERT
+// 	-verificar codigo 200
+// }
+
 TEST(HttpTest, FirefoxGetRequest) {
+	// ARRANGE
 	start_server();
+	// ACT
 	int result = std::system("test/test-firefox");
 
+	// ASSERT
 	EXPECT_EQ(result, 0);
 	stop_server();
 }
@@ -434,6 +451,8 @@ TEST(ConfigTest, InvalidServerId1ValidServerId2) {
 	EXPECT_EQ(server3.cgi.path_info, "/cgi-bin/route_z");
 	EXPECT_EQ(server3.cgi.script_path, "/usr/lib/cgi-bin/route_z.cgi");
 }
+
+
 
 // #include "Config.hpp"
 // #include "PathChecker.hpp"

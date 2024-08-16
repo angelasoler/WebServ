@@ -5,121 +5,38 @@
 #include <unistd.h>
 
 // CONSTRUCTOR AND DESTRUCTOR
-Response::Response(void) {}
+
+Response::Response(RequestInfo info, int fd) : client_fd(fd), requestInfo(info) {}
 
 Response::~Response(void) {}
 
 // MAIN METHOD
-int Response::treatActionAndResponse(int client_fd, RequestInfo &requestInfo)
+void	Response::treatActionAndResponse(void)
 {
-	std::cout << "fullPath:  " << requestInfo.fullPath << "\n";
-	switch (requestInfo.action) {
+	Post postHandler;
+	Delete deleteHandler;
+	Get getHandler(*this);
+	switch (requestInfo.action)
+	{
 		case RESPONSE:
-			response(client_fd, requestInfo);
-			break;
+			getHandler.handler();
+			break ;
 		case UPLOAD:
-			upload(client_fd, requestInfo);
-			break;
+			postHandler.handle(*this);
+			break ;
 		case DELETE:
-			break;
+			deleteHandler.handle(*this);
+			break ;
 		case CLOSE:
-			break;
+			return ;
 	}
-	return 1;
+	sendResponse();
 }
 
-
-// RESPONSE
-void	Response::response(int client_fd, RequestInfo &requestInfo)
+void Response::setStatusLine(int statusCode, const std::string& reasonPhrase)
 {
-	if (requestInfo.pathType == File || requestInfo.pathType == URL)
-		responseToFile(client_fd, requestInfo);
-	else if (requestInfo.pathType == Directory)
-		responseToDirectory(client_fd, requestInfo);
-	else
-		responseToInvalid(client_fd, requestInfo);
-}
-
-void	Response::responseToFile(int client_fd, RequestInfo &requestInfo)
-{
-	// std::cout << "fullpath: " << requestInfo.fullPath << "\n";
-	if (!requestInfo.permissions.read) {
-		setResponse(403, FORBIDDEN_ERROR);
-	}
-	else if (!requestInfo.fullPath.empty()) {
-		setResponse(200, requestInfo.fullPath);
-	} else {
-		setResponse(404, NOT_FOUND_ERROR);
-	}
-	sendResponse(client_fd);
-}
-
-void	Response::responseToDirectory(int client_fd, RequestInfo &requestInfo)
-{
-	// // std::cout << "fullpath: " << requestInfo.fullPath << "\n";
-	if (!endsWith(requestInfo.requestedRoute, "/")) { // ainda nao entendi isso corretamente !
-		setResponse(301, requestInfo.fullPath);
-	}
-	else if (!requestInfo.fullPath.empty()) {
-		setResponse(200, requestInfo.fullPath);
-	}
-	else if (requestInfo.auto_index) {
-		// return auto-index of directiory
-	}
-	else
-		setResponse(403, FORBIDDEN_ERROR);
-	sendResponse(client_fd);
-}
-
-void	Response::responseToInvalid(int client_fd, RequestInfo &requestInfo)
-{
-	(void)requestInfo;
-	// std::cout << "Bad Request: " << requestInfo.requestedRoute << "\n";
-	setResponse(400, BAD_REQUEST_ERROR);
-	sendResponse(client_fd);
-}
-
-// UPLOAD | POST
-void	Response::upload(int client_fd, RequestInfo &requestInfo)
-{
-	(void)client_fd;
-	(void)requestInfo;
-}
-
-// DELETE
-void	Response::deleteAction(int client_fd, RequestInfo &requestInfo)
-{
-	if (requestInfo.pathType == File) {
-		// Delete File Funcion
-		setResponse(204, NO_CONTENT);
-	}
-	else if (!endsWith(requestInfo.requestedRoute, "/")) { // ainda nao entendi isso corretamente !
-		setResponse(409, CONFLICT_ERROR);
-	}
-	else if (!requestInfo.permissions.write) {
-		setResponse(403, FORBIDDEN_ERROR);
-	}
-	else if (deleTeDirectory(requestInfo)) {
-		setResponse(204, NO_CONTENT);
-	}
-	else {
-		setResponse(500, INTERNAL_SERVER_ERROR);
-	}
-	sendResponse(client_fd);
-}
-
-bool	Response::deleTeDirectory(RequestInfo &requestInfo)
-{
-	(void)requestInfo;
-	// Try to delete a Directory
-	return (true);
-}
-
-// PARSE AND SENDING RESPONSE
-
-void Response::setStatusLine(const std::string& version, int statusCode, const std::string& reasonPhrase) {
 	std::ostringstream statusStream;
-	statusStream << version << " " << statusCode << " " << reasonPhrase;
+	statusStream << "HTTP/1.1 " << statusCode << " " << reasonPhrase;
 	responseMsg.statusLine = statusStream.str();
 }
 
@@ -127,107 +44,94 @@ void Response::setHeader(const std::string& key, const std::string& value) {
 	responseMsg.headers[key] = value;
 }
 
-void Response::setBody(const std::string& bodyFile) {
+std::string Response::setBodyFromFile(const std::string& bodyFile)
+{
+	std::string ret;
+
 	std::ifstream file(bodyFile.c_str());
-	if (!file) {
-		setBodyError(NOT_FOUND_ERROR);
-		return ;
-	}
+	if (!file)
+		return NOT_FOUND_ERROR;
 	std::ostringstream oss;
 	oss << file.rdbuf();
-	responseMsg.body = oss.str();
+	ret = oss.str();
 	file.close();
+	return ret;
 }
 
-void Response::setBodyError(const std::string& bodyError)
+void Response::setBodyFromDefaultPage(const std::string& defaultPage)
 {
-	responseMsg.body = bodyError;
+	responseMsg.body = defaultPage;
 }
 
-std::string Response::buildResponse() {
+std::string Response::buildResponse(void)
+{
 	std::ostringstream responseStream;
 	responseStream << responseMsg.statusLine << "\r\n";
-	for (std::map<std::string, std::string>::const_iterator it = responseMsg.headers.begin(); it != responseMsg.headers.end(); ++it) {
+	for (std::map<std::string, std::string>::const_iterator it = responseMsg.headers.begin(); it != responseMsg.headers.end(); ++it){
 		responseStream << it->first << ": " << it->second << "\r\n";
 	}
 	responseStream << "\r\n" << responseMsg.body;
 	return responseStream.str();
 }
 
-void Response::setResponse(int statusCode, std::string htmlFile)
+// UTILITY METHODS
+
+std::string Response::getStatusMessage(int statusCode)
 {
-	std::string statusMessage;
-	std::string errorBody;
-
-	switch (statusCode) {
-		case 200:
-			statusMessage = "OK";
-			break;
-		case 201:
-			statusMessage = "Created";
-			break;
-		case 204:
-			statusMessage = "No Content";
-			errorBody = NO_CONTENT;
-			break;
-		case 301:
-			statusMessage = "Moved Permanently";
-			break;
-		case 400:
-			statusMessage = "Bad Request";
-			errorBody = BAD_REQUEST_ERROR;
-			break;
-		case 403:
-			statusMessage = "Forbidden";
-			errorBody = FORBIDDEN_ERROR;
-			break;
-		case 404:
-			statusMessage = "Not Found";
-			errorBody = NOT_FOUND_ERROR;
-			break;
-		case 405:
-			statusMessage = "Method Not Allowed";
-			errorBody = METHOD_NOT_ALLOWED_ERROR;
-			break;
-		case 408:
-			statusMessage = "Request Timeout";
-			errorBody = REQUEST_TIMEOUT_ERROR;
-			break;
-		case 409:
-			statusMessage = "Conflict";
-			errorBody = CONFLICT_ERROR;
-			break;
-		case 413:
-			statusMessage = "Payload Too Large";
-			errorBody = PAYLOAD_TOO_LARGE_ERROR;
-			break;
-		case 500:
-			statusMessage = "Internal Server Error";
-			errorBody = INTERNAL_SERVER_ERROR;
-			break;
-		case 501:
-			statusMessage = "Not Implemented";
-			errorBody = NOT_IMPLEMENTED_ERROR;
-			break;
-		case 503:
-			statusMessage = "Service Unavailable";
-			errorBody = SERVICE_UNAVAILABLE_ERROR;
-			break;
-		default:
-			statusCode = 500;
-			statusMessage = "Internal Server Error";
-			errorBody = INTERNAL_SERVER_ERROR;
-			break;
+	switch (statusCode)
+	{
+		case 200: return "OK";
+		case 201: return "Created";
+		case 204: return "No Content";
+		case 301: return "Moved Permanently";
+		case 400: return "Bad Request";
+		case 403: return "Forbidden";
+		case 404: return "Not Found";
+		case 405: return "Method Not Allowed";
+		case 408: return "Request Timeout";
+		case 409: return "Conflict";
+		case 413: return "Payload Too Large";
+		case 500: return "Internal Server Error";
+		case 501: return "Not Implemented";
+		case 503: return "Service Unavailable";
+		default: return "Internal Server Error";
 	}
+}
 
-	setStatusLine("HTTP/1.1", statusCode, statusMessage);
+std::string Response::getDefaultPage(int statusCode)
+{
+	switch (statusCode)
+	{
+		case 204: return NO_CONTENT;
+		case 400: return BAD_REQUEST_ERROR;
+		case 403: return FORBIDDEN_ERROR;
+		case 404: return NOT_FOUND_ERROR;
+		case 405: return METHOD_NOT_ALLOWED_ERROR;
+		case 408: return REQUEST_TIMEOUT_ERROR;
+		case 409: return CONFLICT_ERROR;
+		case 413: return PAYLOAD_TOO_LARGE_ERROR;
+		case 500: return INTERNAL_SERVER_ERROR;
+		case 501: return NOT_IMPLEMENTED_ERROR;
+		case 503: return SERVICE_UNAVAILABLE_ERROR;
+		default: return NO_DEFAULT_ERROR;
+	}
+}
+
+// PUBLIC METHODS
+
+void Response::setResponseMsg(int statusCode, std::string const &htmlFile)
+{
+	std::string statusMessage = getStatusMessage(statusCode);
+	std::string body = getDefaultPage(statusCode);
+
+	setStatusLine(statusCode, statusMessage);
 	setHeader("Content-Type", "text/html");
 
-	if (!errorBody.empty()) {
-		setBodyError(errorBody);
-	} else {
-		setBody(htmlFile);
-	}
+	if (requestInfo.pathType == CGI)
+		body = htmlFile;
+	else if (body == NO_DEFAULT_ERROR)
+		body = setBodyFromFile(htmlFile);
+	setBodyFromDefaultPage(body);
 
 	// Get response size;
 	std::ostringstream sizeStream;
@@ -235,7 +139,15 @@ void Response::setResponse(int statusCode, std::string htmlFile)
 	setHeader("Content-Length", sizeStream.str());
 }
 
-void Response::sendResponse(int client_fd) {
+// SENDING
+void Response::sendResponse(void)
+{
 	std::string response = buildResponse();
+	// std::cout << " ***** sendResponse *****\n"
+	// 			<< "fd:" << client_fd
+	// 			<< "\n\n-------reponse-----\n"
+	// 			<< response
+	// 			<< "\n-----------------------"
+	// 			<< std::endl;
 	send(client_fd, response.c_str(), response.size(), 0);
 }
