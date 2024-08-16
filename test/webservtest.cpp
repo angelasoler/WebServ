@@ -459,9 +459,8 @@ TEST(ConfigTest, InvalidServerId1ValidServerId2) {
 }
 
 #include <gtest/gtest.h>
-#include "ParsePathInfo.hpp" // Supondo que RequestInfo esteja declarada aqui
+#include "ParsePathInfo.hpp"
 
-// Função que será testada (deve ser implementada por você)
 RequestInfo parseHttpRequest(const std::string& httpRequest)
 {
 	Request			request;
@@ -476,65 +475,64 @@ RequestInfo parseHttpRequest(const std::string& httpRequest)
 }
 
 TEST(RequestInfoTest, HandlesGetRequest) {
-    std::string getRequest = 
-        "GET /index.html HTTP/1.1\r\n"
-        "Host: localhost\r\n"
-        "Connection: close\r\n\r\n";
+	std::string getRequest = 
+		"GET /index.html HTTP/1.1\r\n"
+		"Host: localhost\r\n"
+		"Connection: close\r\n\r\n";
 
-    RequestInfo requestInfo = parseHttpRequest(getRequest);
+	RequestInfo requestInfo = parseHttpRequest(getRequest);
 
-    // Verificando o preenchimento da struct
-    EXPECT_EQ(requestInfo.requestedRoute, "/index.html");
-    EXPECT_EQ(requestInfo.action, RESPONSE); // Supondo que GET mapeie para RESPONSE
-    EXPECT_EQ(requestInfo.pathType, File); // Supondo que "/index.html" seja reconhecido como File
-    EXPECT_EQ(requestInfo.permissions.read, true);
-    EXPECT_EQ(requestInfo.permissions.write, false);
-    EXPECT_EQ(requestInfo.permissions.execute, false);
-    EXPECT_EQ(requestInfo.auto_index, false);
-    EXPECT_EQ(requestInfo.body, "");
+	EXPECT_EQ(requestInfo.requestedRoute, "/index.html");
+	EXPECT_EQ(requestInfo.action, RESPONSE);
+	EXPECT_EQ(requestInfo.pathType, File);
+	EXPECT_EQ(requestInfo.permissions.read, true);
+	EXPECT_EQ(requestInfo.permissions.write, false);
+	EXPECT_EQ(requestInfo.permissions.execute, false);
+	EXPECT_EQ(requestInfo.auto_index, false);
+	EXPECT_EQ(requestInfo.body, "");
 }
 
 TEST(RequestInfoTest, HandlesPostRequest) {
-    std::string postRequest = 
-        "POST /submit HTTP/1.1\r\n"
-        "Host: localhost\r\n"
-        "Content-Type: application/x-www-form-urlencoded\r\n"
-        "Content-Length: 27\r\n\r\n"
-        "name=John&age=30&city=NYC";
+	std::string postRequest = 
+		"POST /submit HTTP/1.1\r\n"
+		"Host: localhost\r\n"
+		"Content-Type: application/x-www-form-urlencoded\r\n"
+		"Content-Length: 27\r\n\r\n"
+		"name=John&age=30&city=NYC";
 
-    RequestInfo requestInfo = parseHttpRequest(postRequest);
+	RequestInfo requestInfo = parseHttpRequest(postRequest);
 
-    // Verificando o preenchimento da struct
-    EXPECT_EQ(requestInfo.requestedRoute, "/submit");
-    EXPECT_EQ(requestInfo.action, UPLOAD); // Supondo que POST mapeie para UPLOAD
-    EXPECT_EQ(requestInfo.pathType, URL); // Supondo que "/submit" seja reconhecido como URL
-    EXPECT_EQ(requestInfo.permissions.read, true);
-    EXPECT_EQ(requestInfo.permissions.write, true);
-    EXPECT_EQ(requestInfo.permissions.execute, false);
-    EXPECT_EQ(requestInfo.auto_index, false);
-    EXPECT_EQ(requestInfo.body, "name=John&age=30&city=NYC");
-    // EXPECT_EQ(requestInfo.requestBody["name"][0], "John");
-    // EXPECT_EQ(requestInfo.requestBody["age"][0], "30");
-    // EXPECT_EQ(requestInfo.requestBody["city"][0], "NYC");
+	// Verificando o preenchimento da struct
+	EXPECT_EQ(requestInfo.requestedRoute, "/submit");
+	EXPECT_EQ(requestInfo.action, UPLOAD);
+	EXPECT_EQ(requestInfo.pathType, URL);
+	EXPECT_EQ(requestInfo.permissions.read, true);
+	EXPECT_EQ(requestInfo.permissions.write, true);
+	EXPECT_EQ(requestInfo.permissions.execute, false);
+	EXPECT_EQ(requestInfo.auto_index, false);
+	EXPECT_EQ(requestInfo.body, "name=John&age=30&city=NYC");
+	// EXPECT_EQ(requestInfo.requestBody["name"][0], "John");
+	// EXPECT_EQ(requestInfo.requestBody["age"][0], "30");
+	// EXPECT_EQ(requestInfo.requestBody["city"][0], "NYC");
 }
 
 TEST(RequestInfoTest, HandlesDeleteRequest) {
-    std::string deleteRequest = 
-        "DELETE /remove HTTP/1.1\r\n"
-        "Host: localhost\r\n"
-        "Connection: close\r\n\r\n";
+	std::string deleteRequest = 
+		"DELETE /remove HTTP/1.1\r\n"
+		"Host: localhost\r\n"
+		"Connection: close\r\n\r\n";
 
-    RequestInfo requestInfo = parseHttpRequest(deleteRequest);
+	RequestInfo requestInfo = parseHttpRequest(deleteRequest);
 
-    // Verificando o preenchimento da struct
-    EXPECT_EQ(requestInfo.requestedRoute, "/remove");
-    EXPECT_EQ(requestInfo.action, DELETE);
-    EXPECT_EQ(requestInfo.pathType, File); // Supondo que "/remove" seja reconhecido como File
-    EXPECT_EQ(requestInfo.permissions.read, false);
-    EXPECT_EQ(requestInfo.permissions.write, true);
-    EXPECT_EQ(requestInfo.permissions.execute, false);
-    EXPECT_EQ(requestInfo.auto_index, false);
-    EXPECT_EQ(requestInfo.body, "");
+	// Verificando o preenchimento da struct
+	EXPECT_EQ(requestInfo.requestedRoute, "/remove");
+	EXPECT_EQ(requestInfo.action, DELETE);
+	EXPECT_EQ(requestInfo.pathType, File);
+	EXPECT_EQ(requestInfo.permissions.read, false);
+	EXPECT_EQ(requestInfo.permissions.write, true);
+	EXPECT_EQ(requestInfo.permissions.execute, false);
+	EXPECT_EQ(requestInfo.auto_index, false);
+	EXPECT_EQ(requestInfo.body, "");
 }
 
 int main(int argc, char **argv) {
