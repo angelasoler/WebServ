@@ -458,68 +458,84 @@ TEST(ConfigTest, InvalidServerId1ValidServerId2) {
 	EXPECT_EQ(server3.cgi.script_path, "/usr/lib/cgi-bin/route_z.cgi");
 }
 
-#include "Config.hpp"
-#include "ParsePathInfo.hpp"
-#define	SERVER_ROOT_TEST "test/server_root_test"
-#define	SERVER_CONFIG_TEST_PATH "test/path_test_files/OneServer.conf"
+#include <gtest/gtest.h>
+#include "ParsePathInfo.hpp" // Supondo que RequestInfo esteja declarada aqui
 
-TEST(PathTest, SimpleRoute) {
-	// Setup ServerConfig
-	Config  *config = Config::getInstance();
-	config->loadConfig(SERVER_CONFIG_TEST_PATH);
-	ServerConfig serverConfig = config->servers[0];
+// Função que será testada (deve ser implementada por você)
+RequestInfo parseHttpRequest(const std::string& httpRequest)
+{
+	Request			request;
+	Config  		*config = Config::getInstance();
 
-	// Setup Request Info
-	RequestInfo info;
-	info.requestedRoute = "/";
-	info.action = RESPONSE;
-	info.serverRef = serverConfig;
+	config->loadDefaultConfig();
+	ServerConfig server = config->servers[0];
 
-	// Parse Request Info
-	ParsePathInfo::parsePathInfo(info);
-	EXPECT_EQ(info.pathType, Directory);
-	EXPECT_EQ(info.permissions.read, true);
-	EXPECT_EQ(info.permissions.write, true);
+	request.requestsText = httpRequest;
+	request.parseRequest(server);
+	return request.info;
 }
 
-TEST(PathTest, SimpleRouteB) {
-	// Setup ServerConfig
-	Config  *config = Config::getInstance();
-	config->loadConfig("test/path_test_files/OneServerB.conf");
-	ServerConfig serverConfig = config->servers[0];
+TEST(RequestInfoTest, HandlesGetRequest) {
+    std::string getRequest = 
+        "GET /index.html HTTP/1.1\r\n"
+        "Host: localhost\r\n"
+        "Connection: close\r\n\r\n";
 
-	// Setup Request Info
-	RequestInfo info;
-	info.requestedRoute = "/other_directory";
-	info.action = RESPONSE;
-	info.serverRef = serverConfig;
+    RequestInfo requestInfo = parseHttpRequest(getRequest);
 
-	// Parse Request Info
-	ParsePathInfo::parsePathInfo(info);
-	EXPECT_EQ(info.pathType, Directory);
-	EXPECT_EQ(info.permissions.read, true);
-	EXPECT_EQ(info.permissions.write, true);
+    // Verificando o preenchimento da struct
+    EXPECT_EQ(requestInfo.requestedRoute, "/index.html");
+    EXPECT_EQ(requestInfo.action, RESPONSE); // Supondo que GET mapeie para RESPONSE
+    EXPECT_EQ(requestInfo.pathType, File); // Supondo que "/index.html" seja reconhecido como File
+    EXPECT_EQ(requestInfo.permissions.read, true);
+    EXPECT_EQ(requestInfo.permissions.write, false);
+    EXPECT_EQ(requestInfo.permissions.execute, false);
+    EXPECT_EQ(requestInfo.auto_index, false);
+    EXPECT_EQ(requestInfo.body, "");
 }
 
-TEST(PathTest, SimpleRouteC) {
-	// Setup ServerConfig
-	Config  *config = Config::getInstance();
-	config->loadConfig("test/path_test_files/OneServerC.conf");
-	ServerConfig serverConfig = config->servers[0];
+TEST(RequestInfoTest, HandlesPostRequest) {
+    std::string postRequest = 
+        "POST /submit HTTP/1.1\r\n"
+        "Host: localhost\r\n"
+        "Content-Type: application/x-www-form-urlencoded\r\n"
+        "Content-Length: 27\r\n\r\n"
+        "name=John&age=30&city=NYC";
 
-	// Setup Request Info
-	RequestInfo info;
-	info.requestedRoute = "/test_route";
-	info.action = RESPONSE;
-	info.serverRef = serverConfig;
+    RequestInfo requestInfo = parseHttpRequest(postRequest);
 
-	// Parse Request Info
-	ParsePathInfo::parsePathInfo(info);
-	EXPECT_EQ(info.pathType, URL);
-	// EXPECT_EQ(info.permissions.read, true);
-	// EXPECT_EQ(info.permissions.write, true);
+    // Verificando o preenchimento da struct
+    EXPECT_EQ(requestInfo.requestedRoute, "/submit");
+    EXPECT_EQ(requestInfo.action, UPLOAD); // Supondo que POST mapeie para UPLOAD
+    EXPECT_EQ(requestInfo.pathType, URL); // Supondo que "/submit" seja reconhecido como URL
+    EXPECT_EQ(requestInfo.permissions.read, true);
+    EXPECT_EQ(requestInfo.permissions.write, true);
+    EXPECT_EQ(requestInfo.permissions.execute, false);
+    EXPECT_EQ(requestInfo.auto_index, false);
+    EXPECT_EQ(requestInfo.body, "name=John&age=30&city=NYC");
+    // EXPECT_EQ(requestInfo.requestBody["name"][0], "John");
+    // EXPECT_EQ(requestInfo.requestBody["age"][0], "30");
+    // EXPECT_EQ(requestInfo.requestBody["city"][0], "NYC");
 }
 
+TEST(RequestInfoTest, HandlesDeleteRequest) {
+    std::string deleteRequest = 
+        "DELETE /remove HTTP/1.1\r\n"
+        "Host: localhost\r\n"
+        "Connection: close\r\n\r\n";
+
+    RequestInfo requestInfo = parseHttpRequest(deleteRequest);
+
+    // Verificando o preenchimento da struct
+    EXPECT_EQ(requestInfo.requestedRoute, "/remove");
+    EXPECT_EQ(requestInfo.action, DELETE);
+    EXPECT_EQ(requestInfo.pathType, File); // Supondo que "/remove" seja reconhecido como File
+    EXPECT_EQ(requestInfo.permissions.read, false);
+    EXPECT_EQ(requestInfo.permissions.write, true);
+    EXPECT_EQ(requestInfo.permissions.execute, false);
+    EXPECT_EQ(requestInfo.auto_index, false);
+    EXPECT_EQ(requestInfo.body, "");
+}
 
 int main(int argc, char **argv) {
 	::testing::InitGoogleTest(&argc, argv);

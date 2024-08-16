@@ -22,18 +22,18 @@
 
 typedef enum
 {
+	METHOD,
+	ROUTE,
+	HTTP_VERSION
+}	e_requestLinePart;
+
+typedef enum
+{
 	RESPONSE,
 	UPLOAD,
 	DELETE,
 	CLOSE
 }	e_httpMethodActions;
-
-typedef enum
-{
-	METHOD,
-	ROUTE,
-	HTTP_VERSION
-}	e_requestLinePart;
 
 typedef enum
 {
@@ -63,6 +63,9 @@ struct RequestInfo
 	bool					auto_index;
 	// Reference
 	ServerConfig			serverRef;
+
+	// Request
+	std::map< std::string, std::vector<std::string> >	requestBody;
 };
 
 class Request
