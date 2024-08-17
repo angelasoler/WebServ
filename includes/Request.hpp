@@ -65,7 +65,7 @@ struct RequestInfo
 	ServerConfig			serverRef;
 
 	// Request
-	std::map< std::string, std::vector<std::string> >	requestBody;
+	std::map< std::string, std::string>	requestBody;
 };
 
 class Request

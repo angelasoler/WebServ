@@ -498,7 +498,7 @@ TEST(RequestInfoTest, HandlesPostRequestWithFormUrlEncoded) {
 		"Host: localhost\r\n"
 		"Content-Type: application/x-www-form-urlencoded\r\n"
 		"Content-Length: 29\r\n\r\n"
-		"username=testuser&password=1234";
+		"username=testuser&age=34";
 
 	RequestInfo requestInfo = parseHttpRequest(postRequest);
 
@@ -509,11 +509,9 @@ TEST(RequestInfoTest, HandlesPostRequestWithFormUrlEncoded) {
 	EXPECT_EQ(requestInfo.permissions.write, true);
 	EXPECT_EQ(requestInfo.permissions.execute, false);
 	EXPECT_EQ(requestInfo.auto_index, false);
-	EXPECT_EQ(requestInfo.body, "username=testuser&password=1234");
-	ASSERT_FALSE(requestInfo.requestBody["username"].empty());
-	EXPECT_EQ(requestInfo.requestBody["username"][0], "testuser");
-	ASSERT_FALSE(requestInfo.requestBody["password"].empty());
-	EXPECT_EQ(requestInfo.requestBody["password"][0], "1234");
+	EXPECT_EQ(requestInfo.body, "username=testuser&age=34");
+	EXPECT_EQ(requestInfo.requestBody["username"], "testuser");
+	EXPECT_EQ(requestInfo.requestBody["age"], "34");
 }
 
 TEST(RequestInfoTest, HandlesPostRequest) {
@@ -535,12 +533,9 @@ TEST(RequestInfoTest, HandlesPostRequest) {
 	EXPECT_EQ(requestInfo.permissions.execute, false);
 	EXPECT_EQ(requestInfo.auto_index, false);
 	EXPECT_EQ(requestInfo.body, "name=John&age=30&city=NYC");
-	ASSERT_FALSE(requestInfo.requestBody["name"].empty());
-	EXPECT_EQ(requestInfo.requestBody["name"][0], "John");
-	ASSERT_FALSE(requestInfo.requestBody["age"].empty());
-	EXPECT_EQ(requestInfo.requestBody["age"][0], "30");
-	ASSERT_FALSE(requestInfo.requestBody["city"].empty());
-	EXPECT_EQ(requestInfo.requestBody["city"][0], "NYC");
+	EXPECT_EQ(requestInfo.requestBody["name"], "John");
+	EXPECT_EQ(requestInfo.requestBody["age"], "30");
+	EXPECT_EQ(requestInfo.requestBody["city"], "NYC");
 }
 
 TEST(RequestInfoTest, HandlesDeleteRequest) {
