@@ -55,7 +55,7 @@ TEST(CurlHttpTest, GetRequest200) {
 TEST(CurlHttpTest, GetRequest404) {
 	HttpResponse response;
 	CURL* curl;
-	start_server();
+	start_server("");
 	curl = curl_easy_init();
 	ASSERT_NE(curl, nullptr);
 
@@ -79,7 +79,7 @@ TEST(CurlHttpTest, GetRequest404) {
 TEST(CurlHttpTest, GetRequest301) {
 	HttpResponse response;
 	CURL* curl;
-	start_server();
+	start_server("");
 	curl = curl_easy_init();
 	ASSERT_NE(curl, nullptr);
 	std::string url = std::string("http://localhost:8080/") + DEFAULT_REDIRECTION;
@@ -105,7 +105,7 @@ TEST(CurlHttpTest, GetRequest301) {
 TEST(CurlHttpTest, GetRequest403) {
 	HttpResponse response;
 	CURL* curl;
-	start_server();
+	start_server("");
 	curl = curl_easy_init();
 	ASSERT_NE(curl, nullptr);
 	std::string forbiddenFile = DEFAULT_ROOT_DIRECTORY + std::string("/forbiddenFile"); // define um arquivo a partir do diretorio root padrao
@@ -133,7 +133,7 @@ TEST(CurlHttpTest, GetRequest403) {
 TEST(CurlHttpTest, GetRequest400) {
 	HttpResponse response;
 	CURL* curl;
-	start_server();
+	start_server("");
 	curl = curl_easy_init();
 	ASSERT_NE(curl, nullptr);
 

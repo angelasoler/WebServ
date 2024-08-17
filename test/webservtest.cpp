@@ -3,18 +3,11 @@
 #include <thread>
 #include <fstream>
 
-// void start_server() {
-// 	std::system("./webserv > server-outputs.log &");
-// 	std::this_thread::sleep_for(std::chrono::seconds(1));
-// }
-
-// void start_server_with_conf(std::string configFile) {
-// 	std::string fullPath = std::string("./webserv ") + std::string(configFile) + std::string(" > server-outputs.log &");
-// 	std::system(fullPath.c_str());
 void start_server(std::string configFile) {
 	std::string	binaryName = "./webserv";
+	std::string	logFileRedirection = " > server-outputs.log";
 	std::string	ampersandOp = "&";
-	std::string	finalExec = binaryName + configFile + ampersandOp;
+	std::string	finalExec = binaryName + configFile + logFileRedirection + ampersandOp;
 
 	std::system(finalExec.c_str());
 	std::this_thread::sleep_for(std::chrono::seconds(1));

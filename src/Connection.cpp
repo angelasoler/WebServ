@@ -69,7 +69,6 @@ void	Connection::responseToClient(int client_fd)
 void	Connection::treatRequest(int client_fd)
 {
 	if (request.requestsText.empty()) {
-		std::cout << "POLLOUT" << std::endl;
 		request.info.action = RESPONSE;
 		return ;
 	}

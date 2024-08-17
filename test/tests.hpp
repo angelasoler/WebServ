@@ -2,7 +2,7 @@
 #define TEST_H
 
 #include <curl/curl.h>
-#include <iostream>
+#include <fstream>
 
 struct HttpResponse {
 	long status_code;

@@ -69,7 +69,7 @@ TEST(SubjectTests, DefaultErrorPageConfig) {
 	EXPECT_EQ(response.status_code, 404);
 	EXPECT_TRUE(response.body.find("This is a default error page") != std::string::npos);
 	//pegar title
-	EXPECT_TRUE(response..body.find("Error Title") != std::string::npos);
+	EXPECT_TRUE(response.body.find("Error Title") != std::string::npos);
 
 	curl_easy_cleanup(curl);
 	stop_server();
