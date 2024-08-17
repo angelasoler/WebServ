@@ -1,4 +1,5 @@
 
+#include "tests.hpp"
 #include "Config.hpp"
 
 TEST(ConfigTest, NoServersFile) {
