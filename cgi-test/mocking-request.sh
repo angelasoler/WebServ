@@ -8,3 +8,6 @@ export CONTENT_LENGTH=$(wc -c < request.txt)  # Tamanho do conteúdo
 # Executar o script Python, passando o conteúdo do formulário via stdin
 cat request.txt | /usr/bin/python3 cgi-bin/upload.py
 # cat request.txt | ./cgi-bin/upload.py
+
+["/usr/bin/python3", "cgi-bin/upload.py", ""] ?name=valor&age=n
+env var ["QUERY STRNG"]

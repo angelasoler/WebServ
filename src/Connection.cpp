@@ -68,8 +68,10 @@ void	Connection::responseToClient(int client_fd)
 
 void	Connection::treatRequest(int client_fd)
 {
-	if (request.requestsText.empty())
+	if (request.requestsText.empty()) {
+		request.info.action = RESPONSE;
 		return ;
+	}
 	request.parseRequest(clientServerConfig[client_fd]);
 	responseToClient(client_fd);
 }
@@ -111,8 +113,8 @@ void	Connection::requestResponse(void)
 		if (poll_fds[clientIdx].revents & POLLOUT) {
 			treatRequest(poll_fds[clientIdx].fd);
 			if (request.info.action == CLOSE) {
-				poll_fds.erase(poll_fds.begin() + clientIdx);
 				close(poll_fds[clientIdx].fd);
+				poll_fds.erase(poll_fds.begin() + clientIdx);
 			}
 		}
 	}

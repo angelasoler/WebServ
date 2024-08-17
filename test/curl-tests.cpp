@@ -1,15 +1,6 @@
-#include <gtest/gtest.h>
-#include <curl/curl.h>
 
-void start_server();
-void stop_server();
-void start_server_with_conf(std::string config);
-
-struct HttpResponse {
-	long status_code;
-	std::map<std::string, std::string> headers;
-	std::string body;
-};
+#include "tests.hpp"
+#include "Config.hpp"
 
 size_t HeaderCallback(char* buffer, size_t size, size_t nitems, void* userdata) {
 	size_t total_size = size * nitems;
@@ -32,13 +23,11 @@ size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
 	return total_size;
 }
 
-#include "Config.hpp"
-
 TEST(CurlHttpTest, GetRequest200) {
 	// ARRANGE: Configuração do teste e inicializaçãos
 	HttpResponse response;
 	CURL* curl;
-	start_server();
+	start_server("");
 	curl = curl_easy_init();
 	ASSERT_NE(curl, nullptr);
 
@@ -65,7 +54,7 @@ TEST(CurlHttpTest, GetRequest200) {
 TEST(CurlHttpTest, GetRequest404) {
 	HttpResponse response;
 	CURL* curl;
-	start_server();
+	start_server("");
 	curl = curl_easy_init();
 	ASSERT_NE(curl, nullptr);
 
@@ -89,7 +78,7 @@ TEST(CurlHttpTest, GetRequest404) {
 TEST(CurlHttpTest, GetRequest301) {
 	HttpResponse response;
 	CURL* curl;
-	start_server();
+	start_server("");
 	curl = curl_easy_init();
 	ASSERT_NE(curl, nullptr);
 	std::string url = std::string("http://localhost:8080/") + DEFAULT_REDIRECTION;
@@ -111,11 +100,10 @@ TEST(CurlHttpTest, GetRequest301) {
 	stop_server();
 }
 
-#include <fstream>
 TEST(CurlHttpTest, GetRequest403) {
 	HttpResponse response;
 	CURL* curl;
-	start_server();
+	start_server("");
 	curl = curl_easy_init();
 	ASSERT_NE(curl, nullptr);
 	std::string forbiddenFile = DEFAULT_ROOT_DIRECTORY + std::string("/forbiddenFile"); // define um arquivo a partir do diretorio root padrao
@@ -143,7 +131,7 @@ TEST(CurlHttpTest, GetRequest403) {
 TEST(CurlHttpTest, GetRequest400) {
 	HttpResponse response;
 	CURL* curl;
-	start_server();
+	start_server("");
 	curl = curl_easy_init();
 	ASSERT_NE(curl, nullptr);
 
