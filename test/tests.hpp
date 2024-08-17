@@ -1,8 +1,11 @@
 #ifndef TEST_H
 #define TEST_H
 
+#include <gtest/gtest.h>
 #include <curl/curl.h>
 #include <fstream>
+#include <cstdlib>
+#include <thread>
 
 struct HttpResponse {
 	long status_code;

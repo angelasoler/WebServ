@@ -1,5 +1,6 @@
-#include <gtest/gtest.h>
+
 #include "tests.hpp"
+#include "Config.hpp"
 
 size_t HeaderCallback(char* buffer, size_t size, size_t nitems, void* userdata) {
 	size_t total_size = size * nitems;
@@ -21,8 +22,6 @@ size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
 	response->body.append((char*)contents, total_size);
 	return total_size;
 }
-
-#include "Config.hpp"
 
 TEST(CurlHttpTest, GetRequest200) {
 	// ARRANGE: Configuração do teste e inicializaçãos
@@ -101,7 +100,6 @@ TEST(CurlHttpTest, GetRequest301) {
 	stop_server();
 }
 
-#include <fstream>
 TEST(CurlHttpTest, GetRequest403) {
 	HttpResponse response;
 	CURL* curl;
