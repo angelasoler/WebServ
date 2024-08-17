@@ -45,7 +45,6 @@ void Config::addServer(const ServerConfig& server)
 	servers.push_back(server);
 }
 
-
 void Config::configReset()
 {
 	currentServer = ServerConfig();

@@ -1,3 +1,6 @@
+#ifndef CGI_HPP
+#define CGI_HPP
+
 #include <iostream>
 #include <cstdlib>
 #include <cstring>
@@ -18,3 +21,5 @@ class CGIServer {
 		const std::string					scriptPath;
 		std::map<std::string, std::string>	envVars;
 };
+
+#endif

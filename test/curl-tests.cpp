@@ -1,14 +1,5 @@
 #include <gtest/gtest.h>
-#include <curl/curl.h>
-
-void start_server();
-void stop_server();
-
-struct HttpResponse {
-	long status_code;
-	std::map<std::string, std::string> headers;
-	std::string body;
-};
+#include "tests.hpp"
 
 size_t HeaderCallback(char* buffer, size_t size, size_t nitems, void* userdata) {
 	size_t total_size = size * nitems;
@@ -35,7 +26,7 @@ TEST(HttpTest, GetRequest) {
 	// ARRANGE: Configuração do teste e inicialização
 	HttpResponse response;
 	CURL* curl;
-	start_server();
+	start_server("");
 	curl = curl_easy_init();
 	ASSERT_NE(curl, nullptr);
 

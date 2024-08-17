@@ -3,8 +3,12 @@
 #include <thread>
 #include <fstream>
 
-void start_server() {
-	std::system("./webserv &");
+void start_server(std::string configFile) {
+	std::string	binaryName = "./webserv";
+	std::string	ampersandOp = "&";
+	std::string	finalExec = binaryName + configFile + ampersandOp;
+
+	std::system(finalExec.c_str());
 	std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 
@@ -30,24 +34,9 @@ std::string exec(std::string command) {
 	return result;
 }
 
-// TEST(HttpTest, get500) {
-
-// //multiplas conexoe
-// TEST(HttpTest, multiConecction) {
-
-// TEST(HttpTest, CurlGetStatusCodes) {
-// 	//ARRANGE
-// 	- Startar Server
-// 	- fazer uma requisição GET / com curl //valida
-// 	- fazer uma requisição GET /caminho que não existe
-// 	- parsea stdout do crul
-// 	//ASSERT
-// 	-verificar codigo 200
-// }
-
 TEST(HttpTest, FirefoxGetRequest) {
 	// ARRANGE
-	start_server();
+	start_server("");
 	// ACT
 	int result = std::system("test/test-firefox");
 
@@ -57,7 +46,7 @@ TEST(HttpTest, FirefoxGetRequest) {
 }
 
 TEST(HttpTest, TelnetGetRequest) {
-	start_server();
+	start_server("");
 	std::string response = exec("test/test-telnet");
 
 	EXPECT_NE(response.find("Hello"), std::string::npos);
