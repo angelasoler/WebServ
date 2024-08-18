@@ -2,15 +2,21 @@
 # define POST_HPP
 
 # include "Request.hpp"
+# include "IHttpMethod.hpp"
 
 class Response;
 
-class Post
+class Post : public IHttpMethod
 {
 	public:
-		void handle(Response &response);
+		Post(Response &objectRef);
+		~Post(void);
+
+		void handleRequest(void);
 	private:
-		void upload(Response &response);
+		Response &response;
+
+		void upload(void);
 };
 
 #endif // POST_HPP

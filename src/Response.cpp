@@ -3,8 +3,7 @@
 #include "ParsePathInfo.hpp"
 #include <sys/socket.h>
 #include <unistd.h>
-
-// CONSTRUCTOR AND DESTRUCTOR
+# include "IHttpMethod.hpp"
 
 Response::Response(RequestInfo info, int fd) : client_fd(fd), requestInfo(info) {}
 
@@ -13,23 +12,24 @@ Response::~Response(void) {}
 // MAIN METHOD
 void	Response::treatActionAndResponse(void)
 {
-	Post postHandler;
-	Delete deleteHandler;
-	Get getHandler(*this);
+	IHttpMethod	*method;
+
 	switch (requestInfo.action)
 	{
 		case RESPONSE:
-			getHandler.handler();
+			method = new Get(*this);
 			break ;
 		case UPLOAD:
-			postHandler.handle(*this);
+			method = new Post(*this);
 			break ;
 		case DELETE:
-			deleteHandler.handle(*this);
+			method = new Delete(*this);
 			break ;
 		case CLOSE:
 			return ;
 	}
+	method->handleRequest();
+	delete method;
 	sendResponse();
 }
 

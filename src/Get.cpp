@@ -3,7 +3,9 @@
 
 Get::Get(Response &objectRef) : response(objectRef) {}
 
-void Get::handler(void)
+Get::~Get(void) {}
+
+void Get::handleRequest(void)
 {
 	if (response.requestInfo.pathType == File || response.requestInfo.pathType == URL)
 		responseToFile();

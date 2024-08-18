@@ -2,14 +2,17 @@
 # define GET_HPP
 
 # include "Request.hpp"
+# include "IHttpMethod.hpp"
+
 class Response;
 
-class Get
+class Get : public IHttpMethod
 {
 	public:
 		Get(Response &objectRef);
+		~Get(void);
 
-		void handler(void);
+		void handleRequest(void);
 	private:
 		Response &response;
 

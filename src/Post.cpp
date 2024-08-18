@@ -1,13 +1,14 @@
 #include "Post.hpp"
 #include "Response.hpp"
 
-void Post::handle(Response &response)
-{
-	upload(response);
-}
+Post::Post(Response &objectRef) : response(objectRef) {}
 
-void Post::upload(Response &response)
+Post::~Post(void) {}
+
+void Post::handleRequest()
+{}
+
+void Post::upload()
 {
-	(void)response;
 	// Handle file upload logic here
 }
