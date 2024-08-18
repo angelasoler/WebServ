@@ -2,14 +2,21 @@
 # define DELETE_HPP
 
 # include "Request.hpp"
+# include "IHttpMethod.hpp"
+
 class Response;
 
-class Delete
+class Delete : public IHttpMethod
 {
 	public:
-		void handle(Response &response);
+		Delete(Response &objectRef);
+		~Delete(void);
+
+		void handleRequest(void);
 	private:
-		bool deleteDirectory(RequestInfo &requestInfo);
+		Response &response;
+
+		bool deleteDirectory(void);
 };
 
 #endif // DELETE_HPP

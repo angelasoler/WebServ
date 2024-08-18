@@ -1,7 +1,11 @@
 #include "Delete.hpp"
 #include "Response.hpp"
 
-void Delete::handle(Response &response)
+Delete::Delete(Response &objectRef) : response(objectRef) {}
+
+Delete::~Delete(void) {}
+
+void Delete::handleRequest(void)
 {
 	if (response.requestInfo.pathType == File)
 	{
@@ -12,15 +16,14 @@ void Delete::handle(Response &response)
 		response.setResponseMsg(409, CONFLICT_ERROR);
 	else if (!response.requestInfo.permissions.write)
 		response.setResponseMsg(403, FORBIDDEN_ERROR);
-	else if (deleteDirectory(response.requestInfo))
+	else if (deleteDirectory())
 		response.setResponseMsg(204, NO_CONTENT);
 	else
 		response.setResponseMsg(500, INTERNAL_SERVER_ERROR);
 }
 
-bool Delete::deleteDirectory(RequestInfo &requestInfo)
+bool Delete::deleteDirectory(void)
 {
-	(void)requestInfo;
 	// Try to delete a directory
 	return true;
 }
