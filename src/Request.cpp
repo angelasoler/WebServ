@@ -1,6 +1,7 @@
 
 #include "Request.hpp"
 #include "ParsePathInfo.hpp"
+#include "ParseBodyInfo.hpp"
 #include "TimeNow.hpp"
 #include <fstream>
 
@@ -132,6 +133,7 @@ void Request::parseRequest(ServerConfig &serverConfig)
 	parseRequestHeader();
 	parseRequestInfo(serverConfig);
 	ParsePathInfo::parsePathInfo(info);
+	ParseBodyInfo::parseBodyInfo(requestsText, info);
 }
 
 e_httpMethodActions	Request::getMethodAction(void)

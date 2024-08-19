@@ -65,6 +65,7 @@ struct RequestInfo
 	ServerConfig			serverRef;
 
 	// Request
+	std::string				contentType;
 	std::map< std::string, std::string>	requestBody;
 };
 
