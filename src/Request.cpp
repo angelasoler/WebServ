@@ -1,6 +1,7 @@
 
 #include "Request.hpp"
 #include "ParsePathInfo.hpp"
+#include "ParseBodyInfo.hpp"
 #include <cerrno>
 
 Request::Request(void) {}
@@ -92,7 +93,7 @@ void	Request::parseRequestHeader(void)
 	breakIntoLines(lines);
 	breakResquesLine(lines[0]);
 	parseTheOthers(lines);
-	printHeaderDataStructure();
+	// printHeaderDataStructure();
 }
 
 void	Request::printHeaderDataStructure(void)
@@ -123,6 +124,7 @@ void Request::parseRequest(ServerConfig &serverConfig)
 	parseRequestHeader();
 	parseRequestInfo(serverConfig);
 	ParsePathInfo::parsePathInfo(info);
+	ParseBodyInfo::parseBodyInfo(requestsText, info);
 }
 
 e_httpMethodActions	Request::getMethodAction(void)
