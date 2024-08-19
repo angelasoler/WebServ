@@ -29,7 +29,7 @@ void	Request::readRequest(int client_fd)
 	{
 		requestsText += buffer;
 		std::cout // TO-DO: adicionar diretiva DEBUG
-		<< buffer
+		// << buffer
 		<< std::endl;
 	}
 	return ;

@@ -5,14 +5,15 @@
 
 void	ParsePathInfo::parsePathInfo(RequestInfo &info)
 {
-	std::cout << "requestedRoute: " << info.requestedRoute << "\n";
+	std::cout << "requestedRoute: " << info.requestedRoute << std::endl;
+	std::cout << "info.fullPath:\t" << info.fullPath << std::endl;
 	info.pathType = identifyFullPathType(info.requestedRoute, info.serverRef, info);
 	info.permissions = getPermissions(info.fullPath);
-	// std::cout << "fullpath: " << info.fullPath << "\n";
 }
 
 e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serverConfig, RequestInfo &info)
 {
+	std::cout << "identifyFullPathType:\t" << info.fullPath << std::endl;
 	// iterar pelas rotas configuradas
 	std::map<std::string, RouteConfig>::const_iterator it;
 	for (it = serverConfig.routes.begin(); it != serverConfig.routes.end(); ++it)
@@ -52,7 +53,7 @@ e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serve
 		}
 
 		// Verificar se é um arquivo
-		else if (isFile(info.fullPath)) {
+		else if (isFile(info.requestedRoute)) {
 			return File;
 		}
 
@@ -89,8 +90,11 @@ std::string composeFullPath(const std::string& prefix, const std::string& suffix
 }
 
 bool isFile(const std::string& path) {
+	std::string tmp = path;
+	tmp.erase(0, 1);
 	struct stat buffer;
-	return (stat(path.c_str(), &buffer) == 0 && S_ISREG(buffer.st_mode));
+	std::cout << "isFile:\t" << tmp << std::endl;
+	return (stat(tmp.c_str(), &buffer) == 0 && S_ISREG(buffer.st_mode));
 }
 
 bool isDirectory(const std::string& path) {
@@ -111,7 +115,6 @@ bool startsWith(const std::string& str, const std::string& prefix) {
 	}
 	return std::equal(prefix.begin(), prefix.end(), str.begin());
 }
-
 
 Permission getPermissions(std::string path)
 {

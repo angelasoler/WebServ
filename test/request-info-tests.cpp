@@ -4,8 +4,8 @@
 
 RequestInfo parseHttpRequest(const std::string& httpRequest)
 {
-	Request			request;
-	Config  		*config = Config::getInstance();
+	Request	request;
+	Config	*config = Config::getInstance();
 
 	config->loadDefaultConfig();
 	ServerConfig server = config->servers[0];
