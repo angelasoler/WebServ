@@ -98,7 +98,6 @@ class Config
 		void			loadConfig(const std::string& configFilePath);
 };
 
-void	printConfig(Config& config);
-void	printServerConfig(ServerConfig& serverConfig);
+void	printConfig(void);
 
 #endif //CONFIG_HPP

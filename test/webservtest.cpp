@@ -3,7 +3,7 @@
 
 void start_server(std::string configFile) {
 	std::string	binaryName = "./webserv";
-	std::string	logFileRedirection = " > server-outputs.log";
+	std::string	logFileRedirection = " > logs/server-outputs.log";
 	std::string	ampersandOp = "&";
 	std::string	finalExec = binaryName + configFile + logFileRedirection + ampersandOp;
 

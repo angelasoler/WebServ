@@ -44,18 +44,20 @@ class Response
 		int			client_fd;
 
 		// PARSING
-		std::string setBodyFromFile(const std::string& bodyFile);
-		void setBodyFromDefaultPage(const std::string& bodyError);
-		std::string buildResponse(void);
-		void setStatusLine(int statusCode, const std::string& reasonPhrase);
-		void setHeader(const std::string& key, const std::string& value);
+		std::string	setBodyFromFile(const std::string& bodyFile);
+		void		setBodyFromDefaultPage(const std::string& bodyError);
+		std::string	buildResponse(void);
+		void		setStatusLine(int statusCode, const std::string& reasonPhrase);
+		void		setHeader(const std::string& key, const std::string& value);
 
 		// UTILITY
 		std::string	getStatusMessage(int statusCode);
 		std::string	getDefaultPage(int statusCode);
 
 		// SEND RESPONSE
-		void sendResponse(void);
+		void	sendResponse(void);
+		void	printResponse(std::string &response);
+
 	public:
 		RequestInfo	requestInfo;
 

@@ -13,7 +13,7 @@ int initializeConfig(int argc, char* argv[]) {
 		std::cerr << "Usage: ./webserv [config_file.conf]" << std::endl;
 		return (0);
 	}
-	// printConfig(config);
+	printConfig();
 	return (1);
 }
 

@@ -183,8 +183,8 @@ void Config::finishRoute(void)
 
 bool Config::isInPorts(int port)
 {
-    std::vector<int>::const_iterator it = std::find(usedPorts.begin(), usedPorts.end(), port);
-    return it != usedPorts.end();
+	std::vector<int>::const_iterator it = std::find(usedPorts.begin(), usedPorts.end(), port);
+	return it != usedPorts.end();
 }
 
 void Config::finishServer(void)

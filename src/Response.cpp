@@ -4,6 +4,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 # include "IHttpMethod.hpp"
+# include "TimeNow.hpp"
 
 Response::Response(RequestInfo info, int fd) : client_fd(fd), requestInfo(info) {}
 
@@ -139,15 +140,23 @@ void Response::setResponseMsg(int statusCode, std::string const &htmlFile)
 	setHeader("Content-Length", sizeStream.str());
 }
 
+void	Response::printResponse(std::string &response)
+{
+	std::ofstream	responseLog("logs/response.log", std::ios_base::app);
+
+	responseLog << std::endl << TimeNow();
+	responseLog << "\nfd:" << client_fd
+				<< "\n-------reponse-----\n"
+				<< response
+				<< "\n-----------------------"
+				<< std::endl;
+	responseLog.close();
+}
+
 // SENDING
 void Response::sendResponse(void)
 {
 	std::string response = buildResponse();
-	// std::cout << " ***** sendResponse *****\n"
-	// 			<< "fd:" << client_fd
-	// 			<< "\n\n-------reponse-----\n"
-	// 			<< response
-	// 			<< "\n-----------------------"
-	// 			<< std::endl;
+	printResponse(response);
 	send(client_fd, response.c_str(), response.size(), 0);
 }
