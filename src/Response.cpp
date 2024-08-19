@@ -29,7 +29,8 @@ void	Response::treatActionAndResponse(void)
 		case CLOSE:
 			return ;
 	}
-	method->handleRequest();
+	status = method->handleRequest();,
+	ms
 	delete method;
 	sendResponse();
 }

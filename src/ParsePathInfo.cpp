@@ -29,7 +29,7 @@ e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serve
 		// Verifica se inicia buscando uma rota
 		if (startsWith(requestedRoute, routeConfig.route))
 		{
-			std::string requestSuffix = requestedRoute.substr(routeConfig.route.size() + 1);
+			std::string requestSuffix = requestedRoute.substr(routeConfig.route.size());
 			info.fullPath = composeFullPath(routeConfig.root_directory, requestSuffix);
 		}
 		else

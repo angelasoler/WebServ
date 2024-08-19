@@ -20,7 +20,7 @@ void Get::handleRequest(void)
 void Get::responseToFile(void)
 {
 	if (!response.requestInfo.permissions.read)
-		response.setResponseMsg(403, FORBIDDEN_ERROR);
+		return(403);
 	else if (!response.requestInfo.fullPath.empty())
 		response.setResponseMsg(200, response.requestInfo.fullPath);
 	else
