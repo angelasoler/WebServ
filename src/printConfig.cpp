@@ -2,72 +2,75 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <fstream>
 #include "Config.hpp"
+#include "TimeNow.hpp"
 
-void printRouteConfig(RouteConfig& routeConfig)
+void printRouteConfig(RouteConfig& routeConfig, std::ofstream &fd)
 {
-	std::cout << "Path: " << routeConfig.route << std::endl;
+	fd << "Path: " << routeConfig.route << std::endl;
 
-	std::cout << "Accepted Methods: ";
+	fd << "Accepted Methods: ";
 	for (std::vector<std::string>::iterator it = routeConfig.accepted_methods.begin();
 		 it != routeConfig.accepted_methods.end(); ++it)
 	{
-		std::cout << *it << " ";
+		fd << *it << " ";
 	}
-	std::cout << std::endl;
+	fd << std::endl;
 
-	std::cout << "Redirection: " << routeConfig.redirection << std::endl;
-	std::cout << "Root Directory: " << routeConfig.root_directory << std::endl;
-	std::cout << "Directory Listing: " << (routeConfig.directory_listing ? "Yes" : "No") << std::endl;
-	std::cout << "Default File: " << routeConfig.default_file << std::endl;
-	std::cout << "CGI Extension: " << routeConfig.cgi_extension << std::endl;
-	std::cout << "Upload Directory: " << routeConfig.upload_directory << std::endl;
-	std::cout << std::endl;
+	fd << "Redirection: " << routeConfig.redirection << std::endl;
+	fd << "Root Directory: " << routeConfig.root_directory << std::endl;
+	fd << "Directory Listing: " << (routeConfig.directory_listing ? "Yes" : "No") << std::endl;
+	fd << "Default File: " << routeConfig.default_file << std::endl;
+	fd << "CGI Extension: " << routeConfig.cgi_extension << std::endl;
+	fd << "Upload Directory: " << routeConfig.upload_directory << std::endl;
+	fd << std::endl;
 }
 
-void printCGIConfig(CGIConfig& cgiConfig)
+void printServerConfig(ServerConfig& serverConfig, std::ofstream &fd)
 {
-	std::cout << "Path Info: " << cgiConfig.path_info << std::endl;
-	std::cout << "Script Path: " << cgiConfig.script_path << std::endl;
-	std::cout << std::endl;
-}
+	fd << "Host: " << serverConfig.host << std::endl;
+	fd << "Port: " << serverConfig.port << std::endl;
 
-void printServerConfig(ServerConfig& serverConfig)
-{
-	std::cout << "Host: " << serverConfig.host << std::endl;
-	std::cout << "Port: " << serverConfig.port << std::endl;
-
-	std::cout << "Server Names: ";
-	for (std::vector<std::string>::iterator it = serverConfig.server_names.begin();
-		 it != serverConfig.server_names.end(); ++it) {
-		std::cout << *it << " ";
+	fd << "Server Names: ";
+	std::vector<std::string>::iterator severNameIt;
+	for (severNameIt = serverConfig.server_names.begin();
+		 severNameIt != serverConfig.server_names.end(); ++severNameIt) {
+		fd << *severNameIt << " ";
 	}
-	std::cout << std::endl;
+	fd << std::endl;
 
-	std::cout << "Default Error Page: " << serverConfig.default_error_page << std::endl;
-	std::cout << "Client Body Limit: " << serverConfig.client_body_limit << std::endl;
-	printCGIConfig(serverConfig.cgi);
+	fd << "Default Error Page: " 
+		<< serverConfig.default_error_page << std::endl;
+	fd << "Client Body Limit: " 
+		<< serverConfig.client_body_limit << std::endl;
 
-	std::cout << "Routes: " << std::endl;
-	for (std::map<std::string, RouteConfig>::iterator it = serverConfig.routes.begin();
-		 it != serverConfig.routes.end(); ++it)
+	fd << "Routes: " << std::endl;
+	std::map<std::string, RouteConfig>::iterator routeIt;
+	for (routeIt = serverConfig.routes.begin();
+		 routeIt != serverConfig.routes.end(); ++routeIt)
 	{
-		std::cout << "Route Key: " << it->first << std::endl;
-		printRouteConfig(it->second);
+		fd << "Route Key: " << routeIt->first << std::endl;
+		printRouteConfig(routeIt->second, fd);
 	}
 }
 
-void printConfig(Config& config)
+void printConfig(void)
 {
-	std::cout << "Servers: " << std::endl;
+	Config	*config = Config::getInstance();
+	std::ofstream	configLog("logs/config.log", std::ios_base::app);
+
+	configLog << TimeNow() << std::endl;
+	configLog << "Servers: " << std::endl;
 	int i = 0;
-	for (std::vector<ServerConfig>::iterator it = config.servers.begin();
-		 it != config.servers.end(); ++it)
+	for (std::vector<ServerConfig>::iterator it = config->servers.begin();
+		 it != config->servers.end(); ++it)
 	{
-		std::cout << "\t==== Server "
+		configLog << "\t==== Server "
 				<< ++i
 				<< "====="
 				<< std::endl;
-		printServerConfig(*it);
+		printServerConfig(*it, configLog);
 	}
+	configLog.close();
 }

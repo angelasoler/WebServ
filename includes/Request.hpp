@@ -75,6 +75,7 @@ class Request
 
 		// debug
 		void	printHeaderDataStructure(void);
+		void	printRequest(void);
 
 		// Parsing
 		void	parseTheOthers(std::vector<std::string> &lines);

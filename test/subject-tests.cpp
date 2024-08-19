@@ -44,7 +44,8 @@ TEST(SubjectTests, DefaultErrorPageConfig) {
 	// ARRANGE: Configuração do teste e inicialização
 	////
 	std::ofstream	defaultErrorFile("static_pages/error.html");
-	defaultErrorFile << "<html><head><title>Error Title</title></head><body><h1>This is a default error page</h1></body></html>";
+	defaultErrorFile << "<html><head><title>Error Title</title>"
+					<< "</head><body><h1>This is a default error page</h1></body></html>";
 	defaultErrorFile.close();
 	////
 	HttpResponse response;
