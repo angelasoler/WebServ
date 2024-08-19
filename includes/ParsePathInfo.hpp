@@ -28,4 +28,4 @@ bool		isFile(const std::string& path);
 bool 		isDirectory(const std::string& path);
 e_pathType	identifyFullPathType(std::string& requestedRoute, ServerConfig& serverConfig, RequestInfo &info);
 Permission	getPermissions(std::string path);
-#endif // PATHCHECKER_HPP
+#endif // PARSEPATHINFO_HPP

@@ -29,7 +29,7 @@ void	Request::readRequest(int client_fd)
 	{
 		requestsText += buffer;
 		std::cout // TO-DO: adicionar diretiva DEBUG
-		<< buffer
+		// << buffer
 		<< std::endl;
 	}
 	return ;
@@ -92,6 +92,7 @@ void	Request::parseRequestHeader(void)
 	breakIntoLines(lines);
 	breakResquesLine(lines[0]);
 	parseTheOthers(lines);
+	printHeaderDataStructure();
 }
 
 void	Request::printHeaderDataStructure(void)
