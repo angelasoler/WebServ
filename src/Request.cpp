@@ -39,7 +39,7 @@ void	Request::readRequest(int client_fd)
 	else
 	{
 		requestsText += buffer;
-		printRequest();
+		// printRequest();
 	}
 	return ;
 }
@@ -101,6 +101,7 @@ void	Request::parseRequestHeader(void)
 	breakIntoLines(lines);
 	breakResquesLine(lines[0]);
 	parseTheOthers(lines);
+	// printHeaderDataStructure();
 }
 
 void	Request::printHeaderDataStructure(void)
