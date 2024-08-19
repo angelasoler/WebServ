@@ -1,11 +1,22 @@
 
 #include "Request.hpp"
 #include "ParsePathInfo.hpp"
-#include <cerrno>
+#include "TimeNow.hpp"
+#include <fstream>
 
 Request::Request(void) {}
 
 Request::~Request(void) {}
+
+void	Request::printRequest(void)
+{
+	std::ofstream	requestLog("logs/request.log", std::ios_base::app);
+
+	requestLog << TimeNow()
+				<< std::endl;
+	requestLog << requestsText
+				<< std::endl;
+}
 
 void	Request::readRequest(int client_fd)
 {
@@ -16,21 +27,19 @@ void	Request::readRequest(int client_fd)
 	if (bytes_read >= 0)
 		buffer[bytes_read] = '\0';
 	if (bytes_read < 0) {
-		close(client_fd); //limpar poll_fd?
+		close(client_fd); //limpar poll_fd
 		return ;
 	}
 	else if (bytes_read == 0)
 	{
 		std::cout << "Conexão fechada pelo cliente" << std::endl;
-		close(client_fd); //limpar poll_fd?
+		close(client_fd); //limpar poll_fd
 		return ;
 	}
 	else
 	{
 		requestsText += buffer;
-		std::cout // TO-DO: adicionar diretiva DEBUG
-		<< buffer
-		<< std::endl;
+		printRequest();
 	}
 	return ;
 }
