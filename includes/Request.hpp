@@ -94,7 +94,7 @@ class Request
 		Request(void);
 		~Request(void);
 		void	parseRequest(ServerConfig &serverConfig);
-		void	readRequest(int client_fd);
+		bool	readRequest(int client_fd);
 		void	cleanHeader(void);
 };
 

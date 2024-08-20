@@ -158,5 +158,7 @@ void Response::sendResponse(void)
 {
 	std::string response = buildResponse();
 	printResponse(response);
-	send(client_fd, response.c_str(), response.size(), 0);
+	int ret = send(client_fd, response.c_str(), response.size(), 0);
+	if (ret == -1)
+		requestInfo.action = CLOSE;
 }

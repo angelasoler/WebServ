@@ -18,30 +18,18 @@ void	Request::printRequest(void)
 				<< std::endl;
 }
 
-void	Request::readRequest(int client_fd)
+bool	Request::readRequest(int client_fd)
 {
 	char	buffer[BUFFER_SIZE + 1];
 
 	memset(buffer, 0, BUFFER_SIZE + 1);
 	ssize_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE, 0);
-	if (bytes_read >= 0)
-		buffer[bytes_read] = '\0';
-	if (bytes_read < 0) {
-		close(client_fd); //limpar poll_fd
-		return ;
-	}
-	else if (bytes_read == 0)
-	{
-		std::cout << "Conexão fechada pelo cliente" << std::endl;
-		close(client_fd); //limpar poll_fd
-		return ;
-	}
+	if (bytes_read < 0 || !bytes_read)
+		return true;
 	else
-	{
 		requestsText += buffer;
-		printRequest();
-	}
-	return ;
+	printRequest();
+	return false;
 }
 
 void	Request::breakIntoLines(std::vector<std::string> &lines) {
