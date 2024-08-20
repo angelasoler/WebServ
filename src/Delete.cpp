@@ -5,21 +5,28 @@ Delete::Delete(Response &objectRef) : response(objectRef) {}
 
 Delete::~Delete(void) {}
 
-void Delete::handleRequest(void)
+void	Delete::buildBody(void)
+{
+	std::string body = response.getDefaultPage();
+
+	response.setBody(body);
+}
+
+int Delete::handleRequest(void)
 {
 	if (response.requestInfo.pathType == File)
 	{
 		// Handle file deletion
-		response.setResponseMsg(204, NO_CONTENT);
+		return (204);
 	}
 	else if (!endsWith(response.requestInfo.requestedRoute, "/"))
-		response.setResponseMsg(409, CONFLICT_ERROR);
+		return (409);
 	else if (!response.requestInfo.permissions.write)
-		response.setResponseMsg(403, FORBIDDEN_ERROR);
+		return (403);
 	else if (deleteDirectory())
-		response.setResponseMsg(204, NO_CONTENT);
+		return (204);
 	else
-		response.setResponseMsg(500, INTERNAL_SERVER_ERROR);
+		return (500);
 }
 
 bool Delete::deleteDirectory(void)

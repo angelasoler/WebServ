@@ -23,7 +23,7 @@ size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
 	return total_size;
 }
 
-TEST(CurlHttpTest, GetRequest200) {
+TEST(GETstatusCodes, Request200) {
 	// ARRANGE: Configuração do teste e inicializaçãos
 	HttpResponse response;
 	CURL* curl;
@@ -51,7 +51,7 @@ TEST(CurlHttpTest, GetRequest200) {
 	stop_server();
 }
 
-TEST(CurlHttpTest, GetRequest404) {
+TEST(GETstatusCodes, Request404) {
 	HttpResponse response;
 	CURL* curl;
 	start_server("");
@@ -75,7 +75,7 @@ TEST(CurlHttpTest, GetRequest404) {
 	stop_server();
 }
 
-TEST(CurlHttpTest, GetRequest301) {
+TEST(GETstatusCodes, Request301) {
 	HttpResponse response;
 	CURL* curl;
 	start_server("");
@@ -100,7 +100,7 @@ TEST(CurlHttpTest, GetRequest301) {
 	stop_server();
 }
 
-TEST(CurlHttpTest, GetRequest403) {
+TEST(GETstatusCodes, Request403) {
 	HttpResponse response;
 	CURL* curl;
 	start_server("");
@@ -128,7 +128,7 @@ TEST(CurlHttpTest, GetRequest403) {
 	stop_server();
 }
 
-TEST(CurlHttpTest, GetRequest400) {
+TEST(GETstatusCodes, Request400) {
 	HttpResponse response;
 	CURL* curl;
 	start_server("");

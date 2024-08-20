@@ -12,11 +12,12 @@ class Post : public IHttpMethod
 		Post(Response &objectRef);
 		~Post(void);
 
-		void handleRequest(void);
+		int handleRequest(void);
 	private:
 		Response &response;
 
-		void upload(void);
+		void	upload(void);
+		void	buildBody(void);
 };
 
 #endif // POST_HPP
