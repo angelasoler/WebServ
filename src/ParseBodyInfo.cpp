@@ -8,12 +8,13 @@ void ParseBodyInfo::parseBodyInfo(std::string requestText, RequestInfo &info)
 {	
 	(void)requestText;
 	(void)info;
+	info.body = requestText;
 	// parseRequest(requestText, info);
     // std::istringstream requestStream(requestText);
     // std::string line;
 
     // while (std::getline(requestStream, line))
-	std::cout << "AAAAAAAAAAAAA:  " << requestText << " :AAAAAAAAAAAAAAAAAA\n";
+	// std::cout << "Request:  " << requestText << " \n";
 }
 
 

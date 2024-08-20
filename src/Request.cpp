@@ -131,6 +131,7 @@ void	Request::parseRequestInfo(ServerConfig &serverConfig)
 void Request::parseRequest(ServerConfig &serverConfig)
 {
 	parseRequestHeader();
+	std::cout << requestsText;
 	parseRequestInfo(serverConfig);
 	ParsePathInfo::parsePathInfo(info);
 	ParseBodyInfo::parseBodyInfo(requestsText, info);
