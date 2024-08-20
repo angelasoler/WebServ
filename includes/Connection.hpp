@@ -21,6 +21,7 @@ class Connection
 		void	readClientRequest(int client_fd);
 		void	treatRequest(int client_fd);
 		void	initSockets(void);
+		void	cleanClient(int clientIdx);
 	public:
 		size_t						nServers;
 		std::vector<struct pollfd>	poll_fds;

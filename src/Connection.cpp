@@ -55,7 +55,8 @@ void	Connection::connectNewClient(Server &refServer)
 
 void	Connection::readClientRequest(int client_fd)
 {
-	request.readRequest(client_fd);
+	if (request.readRequest(client_fd))
+		request.info.action = CLOSE;
 }
 
 void	Connection::responseToClient(int client_fd)
@@ -103,20 +104,30 @@ void	Connection::verifyServerPollin(void)
 	}
 }
 
+void	Connection::cleanClient(int clientIdx)
+{
+	if (request.info.action == CLOSE) {
+		std::cout << "\n ***** Close Client *****\n"
+				<< "\tfd:\t"
+				<< poll_fds[clientIdx].fd
+				<< "\nclient correctly cleaned"
+				<< std::endl;
+		close(poll_fds[clientIdx].fd);
+		poll_fds.erase(poll_fds.begin() + clientIdx);
+	}
+}
+
 void	Connection::requestResponse(void)
 {
 	for (size_t clientIdx = nServers; clientIdx < poll_fds.size(); clientIdx++)
 	{
 		if (poll_fds[clientIdx].revents & POLLIN) {
 			readClientRequest(poll_fds[clientIdx].fd);
+			cleanClient(clientIdx);
 		}
 		if (poll_fds[clientIdx].revents & POLLOUT) {
 			treatRequest(poll_fds[clientIdx].fd);
-			if (request.info.action == CLOSE) {
-				std::cout << "client correctly cleaned" << std::endl;
-				close(poll_fds[clientIdx].fd);
-				poll_fds.erase(poll_fds.begin() + clientIdx);
-			}
+			cleanClient(clientIdx);
 		}
 	}
 }
