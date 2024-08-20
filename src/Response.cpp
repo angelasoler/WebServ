@@ -29,8 +29,7 @@ void	Response::treatActionAndResponse(void)
 		case CLOSE:
 			return ;
 	}
-	status = method->handleRequest();,
-	ms
+	method->handleRequest();
 	delete method;
 	sendResponse();
 }
@@ -145,7 +144,7 @@ void	Response::printResponse(std::string &response)
 {
 	std::ofstream	responseLog("logs/response.log", std::ios_base::app);
 
-	responseLog << std::endl << TimeNow();
+	responseLog << TimeNow() << std::endl;
 	responseLog << "\nfd:" << client_fd
 				<< "\n-------reponse-----\n"
 				<< response
@@ -159,5 +158,7 @@ void Response::sendResponse(void)
 {
 	std::string response = buildResponse();
 	printResponse(response);
-	send(client_fd, response.c_str(), response.size(), 0);
+	int ret = send(client_fd, response.c_str(), response.size(), 0);
+	if (ret < 0)
+		std::cout << "send fail, close and clean client" << std::endl;
 }

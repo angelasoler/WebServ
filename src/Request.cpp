@@ -24,9 +24,9 @@ void	Request::readRequest(int client_fd)
 
 	memset(buffer, 0, BUFFER_SIZE + 1);
 	ssize_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE, 0);
-	if (bytes_read >= 0)
+	if (bytes_read > 0)
 		buffer[bytes_read] = '\0';
-	if (bytes_read < 0) {
+	if (bytes_read <= 0) {
 		close(client_fd); //limpar poll_fd
 		return ;
 	}

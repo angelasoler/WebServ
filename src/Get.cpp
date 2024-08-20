@@ -5,8 +5,16 @@ Get::Get(Response &objectRef) : response(objectRef) {}
 
 Get::~Get(void) {}
 
+void printResquestInfo()
+{
+	std::cout << std::endl;
+}
+
 void Get::handleRequest(void)
 {
+	std::cout << "response.requestInfo.pathType:\t"
+			<< response.requestInfo.pathType
+			<< std::endl;
 	if (response.requestInfo.pathType == File || response.requestInfo.pathType == URL)
 		responseToFile();
 	else if (response.requestInfo.pathType == Directory)
@@ -20,7 +28,7 @@ void Get::handleRequest(void)
 void Get::responseToFile(void)
 {
 	if (!response.requestInfo.permissions.read)
-		return(403);
+		response.setResponseMsg(403, FORBIDDEN_ERROR);
 	else if (!response.requestInfo.fullPath.empty())
 		response.setResponseMsg(200, response.requestInfo.fullPath);
 	else
