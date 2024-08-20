@@ -48,12 +48,13 @@ void	Get::buildBody(void)
 
 int	Get::responseToFile(void)
 {
-	if (!response.requestInfo.permissions.read)
+	if (response.requestInfo.permissions.notFound)
+		return (404);
+	else if (!response.requestInfo.permissions.read)
 		return (403);
 	else if (!response.requestInfo.fullPath.empty())
 		return (200);
-	else
-		return (404);
+	return(400);
 }
 
 int	Get::responseToDirectory(void)
