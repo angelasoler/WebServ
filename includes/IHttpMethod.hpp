@@ -7,7 +7,8 @@ class Response;
 
 class IHttpMethod {
 	public:
-		virtual void handleRequest() = 0;
+		virtual void buildBody(void) = 0;
+		virtual int handleRequest() = 0;
 		virtual ~IHttpMethod();
 };
 

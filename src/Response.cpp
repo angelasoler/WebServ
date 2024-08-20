@@ -3,7 +3,6 @@
 #include "ParsePathInfo.hpp"
 #include <sys/socket.h>
 #include <unistd.h>
-# include "IHttpMethod.hpp"
 # include "TimeNow.hpp"
 
 Response::Response(RequestInfo info, int fd) : client_fd(fd), requestInfo(info) {}
@@ -29,13 +28,16 @@ void	Response::treatActionAndResponse(void)
 		case CLOSE:
 			return ;
 	}
-	method->handleRequest();
-	delete method;
+	statusCode = method->handleRequest();
+	setResponseMsg(method);
 	sendResponse();
+	delete method;
 }
 
-void Response::setStatusLine(int statusCode, const std::string& reasonPhrase)
+void Response::setStatusLine(void)
 {
+	const std::string& reasonPhrase = getStatusMessage();
+
 	std::ostringstream statusStream;
 	statusStream << "HTTP/1.1 " << statusCode << " " << reasonPhrase;
 	responseMsg.statusLine = statusStream.str();
@@ -45,23 +47,9 @@ void Response::setHeader(const std::string& key, const std::string& value) {
 	responseMsg.headers[key] = value;
 }
 
-std::string Response::setBodyFromFile(const std::string& bodyFile)
+void Response::setBody(const std::string& body)
 {
-	std::string ret;
-
-	std::ifstream file(bodyFile.c_str());
-	if (!file)
-		return NOT_FOUND_ERROR;
-	std::ostringstream oss;
-	oss << file.rdbuf();
-	ret = oss.str();
-	file.close();
-	return ret;
-}
-
-void Response::setBodyFromDefaultPage(const std::string& defaultPage)
-{
-	responseMsg.body = defaultPage;
+	responseMsg.body = body;
 }
 
 std::string Response::buildResponse(void)
@@ -77,7 +65,7 @@ std::string Response::buildResponse(void)
 
 // UTILITY METHODS
 
-std::string Response::getStatusMessage(int statusCode)
+std::string Response::getStatusMessage(void)
 {
 	switch (statusCode)
 	{
@@ -99,7 +87,7 @@ std::string Response::getStatusMessage(int statusCode)
 	}
 }
 
-std::string Response::getDefaultPage(int statusCode)
+std::string Response::getDefaultPage(void)
 {
 	switch (statusCode)
 	{
@@ -120,19 +108,11 @@ std::string Response::getDefaultPage(int statusCode)
 
 // PUBLIC METHODS
 
-void Response::setResponseMsg(int statusCode, std::string const &htmlFile)
+void Response::setResponseMsg(IHttpMethod *method)
 {
-	std::string statusMessage = getStatusMessage(statusCode);
-	std::string body = getDefaultPage(statusCode);
-
-	setStatusLine(statusCode, statusMessage);
+	setStatusLine();
 	setHeader("Content-Type", "text/html");
-
-	if (requestInfo.pathType == CGI)
-		body = htmlFile;
-	else if (body == NO_DEFAULT_ERROR)
-		body = setBodyFromFile(htmlFile);
-	setBodyFromDefaultPage(body);
+	method->buildBody();
 
 	// Get response size;
 	std::ostringstream sizeStream;

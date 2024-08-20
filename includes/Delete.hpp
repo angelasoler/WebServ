@@ -12,11 +12,12 @@ class Delete : public IHttpMethod
 		Delete(Response &objectRef);
 		~Delete(void);
 
-		void handleRequest(void);
+		int handleRequest(void);
 	private:
 		Response &response;
 
-		bool deleteDirectory(void);
+		bool		deleteDirectory(void);
+		void	buildBody(void);
 };
 
 #endif // DELETE_HPP
