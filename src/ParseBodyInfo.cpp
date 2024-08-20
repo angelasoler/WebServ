@@ -89,7 +89,7 @@ void ParseBodyInfo::parseBodyInfo(std::string requestText, RequestInfo &info)
     // // Processar o corpo da requisição
     // size_t bodyPos = requestText.find("\\r\\n\\r\\n");
     // std::string body = requestText.substr(bodyPos + 4);
-    // info.body = getContentAfterNull(requestText, 5);
+    info.body = getContentAfterNull(requestText, 5);
     std::cout << info.body << "//OK\n";
     // handleMultipartData(boundary, body);
 
