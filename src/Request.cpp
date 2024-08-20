@@ -4,6 +4,7 @@
 #include "ParseBodyInfo.hpp"
 #include "TimeNow.hpp"
 #include <fstream>
+#include <cerrno>
 
 Request::Request(void) {}
 
