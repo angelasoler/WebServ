@@ -26,8 +26,7 @@ bool	Request::readRequest(int client_fd)
 	ssize_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE, 0);
 	if (bytes_read < 0 || !bytes_read)
 		return true;
-	else
-		requestsText += buffer;
+	requestsText += buffer;
 	printRequest();
 	return false;
 }
