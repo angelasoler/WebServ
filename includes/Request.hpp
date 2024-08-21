@@ -60,13 +60,15 @@ struct RequestInfo
 	e_pathType				pathType;
 	e_httpMethodActions		action;
 	Permission				permissions;
-	std::string				body;
 	bool					auto_index;
 	// Reference
 	ServerConfig			serverRef;
 
-	// Request
-	std::map< std::string, std::string>	requestBody;
+	// About Body
+	std::string							boundary;
+	std::string							body;
+	std::string							contentType;
+	std::map< std::string, std::string>	bodyValues;
 };
 
 class Request

@@ -6,8 +6,9 @@
 
 void	ParsePathInfo::parsePathInfo(RequestInfo &info)
 {
-	std::cout << "requestedRoute: " << info.requestedRoute << "\n";
+	// std::cout << "requestedRoute: " << info.requestedRoute << "\n";
 	info.pathType = identifyFullPathType(info.requestedRoute, info.serverRef, info);
+
 	info.permissions = getPermissions(info.fullPath);
 	// std::cout << "fullpath: " << info.fullPath << "\n";
 }
@@ -19,6 +20,8 @@ e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serve
 	for (it = serverConfig.routes.begin(); it != serverConfig.routes.end(); ++it)
 	{
 		const RouteConfig& routeConfig = it->second;
+
+		info.auto_index = routeConfig.directory_listing;
 
 		// Se o caminho corresponde à rota configurada
 		if ((requestedRoute == routeConfig.route))
@@ -49,7 +52,6 @@ e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serve
 				info.fullPath.clear();
 
 			// Recolher auto-index
-			info.auto_index = routeConfig.directory_listing;
 			return Directory;
 		}
 

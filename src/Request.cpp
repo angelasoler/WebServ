@@ -1,8 +1,10 @@
 
 #include "Request.hpp"
 #include "ParsePathInfo.hpp"
+#include "ParseBodyInfo.hpp"
 #include "TimeNow.hpp"
 #include <fstream>
+#include <cerrno>
 
 Request::Request(void) {}
 
@@ -28,7 +30,7 @@ bool	Request::readRequest(int client_fd)
 		return true;
 	else
 		requestsText += buffer;
-	printRequest();
+	// printRequest();
 	return false;
 }
 
@@ -89,6 +91,7 @@ void	Request::parseRequestHeader(void)
 	breakIntoLines(lines);
 	breakResquesLine(lines[0]);
 	parseTheOthers(lines);
+	// printHeaderDataStructure();
 }
 
 void	Request::printHeaderDataStructure(void)
@@ -111,6 +114,10 @@ void	Request::parseRequestInfo(ServerConfig &serverConfig)
 	if (info.action == CLOSE)
 		return ;
 	info.requestedRoute = header["request"][ROUTE];
+	if (header.find("Content-Type") != header.end() && !header["Content-Type"].empty())
+	{
+		info.contentType = header["Content-Type"][0];
+	}
 	info.serverRef = serverConfig;
 }
 
@@ -119,6 +126,7 @@ void Request::parseRequest(ServerConfig &serverConfig)
 	parseRequestHeader();
 	parseRequestInfo(serverConfig);
 	ParsePathInfo::parsePathInfo(info);
+	ParseBodyInfo::parseBodyInfo(requestsText, info);
 }
 
 e_httpMethodActions	Request::getMethodAction(void)
