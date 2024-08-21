@@ -114,16 +114,16 @@ void	Request::parseRequestInfo(ServerConfig &serverConfig)
 	if (info.action == CLOSE)
 		return ;
 	info.requestedRoute = header["request"][ROUTE];
+	if (header.find("Content-Type") != header.end() && !header["Content-Type"].empty())
+	{
+		info.contentType = header["Content-Type"][0];
+	}
 	info.serverRef = serverConfig;
 }
 
 void Request::parseRequest(ServerConfig &serverConfig)
 {
-	static int interactions;
-
-	interactions++;
 	parseRequestHeader();
-	// std::cout << requestsText << ": interaction number: " << interactions << "\n";
 	parseRequestInfo(serverConfig);
 	ParsePathInfo::parsePathInfo(info);
 	ParseBodyInfo::parseBodyInfo(requestsText, info);

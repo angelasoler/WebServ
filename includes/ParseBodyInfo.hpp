@@ -19,4 +19,9 @@ class ParseBodyInfo
 		ParseBodyInfo();
 };
 
+void 		parseBodyValues(RequestInfo &info);
+void 		extractBody(std::string requestText, RequestInfo &info);
+std::string stringWithNewDivisor(std::string text, std::string newDivisor);
+std::string trim(const std::string& str);
+
 #endif // PARSEBODYINFO_HPP

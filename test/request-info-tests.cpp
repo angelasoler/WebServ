@@ -29,7 +29,7 @@ TEST(RequestInfoTest, HandlesGetRequest) {
 	EXPECT_EQ(requestInfo.pathType, File);
 	EXPECT_EQ(requestInfo.permissions.read, true);
 	ASSERT_TRUE(requestInfo.body.empty());
-	ASSERT_TRUE(requestInfo.requestBody.empty());
+	ASSERT_TRUE(requestInfo.bodyValues.empty());
 }
 
 TEST(RequestInfoTest, HandlesPostRequest) {
@@ -47,9 +47,9 @@ TEST(RequestInfoTest, HandlesPostRequest) {
 	EXPECT_EQ(requestInfo.pathType, URL);
 	EXPECT_EQ(requestInfo.auto_index, DEFAULT_DIRECTORY_LISTING);
 	EXPECT_EQ(requestInfo.body, "name=John&age=30&city=NYC");
-	// EXPECT_EQ(requestInfo.requestBody["name"], "John");
-	// EXPECT_EQ(requestInfo.requestBody["age"], "30");
-	// EXPECT_EQ(requestInfo.requestBody["city"], "NYC");
+	EXPECT_EQ(requestInfo.bodyValues["name"], "John");
+	EXPECT_EQ(requestInfo.bodyValues["age"], "30");
+	EXPECT_EQ(requestInfo.bodyValues["city"], "NYC");
 }
 
 TEST(RequestInfoTest, HandlesPostRequestWithFormUrlEncoded) {
@@ -67,8 +67,8 @@ TEST(RequestInfoTest, HandlesPostRequestWithFormUrlEncoded) {
 	EXPECT_EQ(requestInfo.pathType, URL);
 	EXPECT_EQ(requestInfo.auto_index, DEFAULT_DIRECTORY_LISTING);
 	EXPECT_EQ(requestInfo.body, "username=testuser&age=34");
-	// EXPECT_EQ(requestInfo.requestBody["username"], "testuser");
-	// EXPECT_EQ(requestInfo.requestBody["age"], "34");
+	EXPECT_EQ(requestInfo.bodyValues["username"], "testuser");
+	EXPECT_EQ(requestInfo.bodyValues["age"], "34");
 }
 
 TEST(RequestInfoTest, HandlesDeleteRequest) {
@@ -87,7 +87,7 @@ TEST(RequestInfoTest, HandlesDeleteRequest) {
 	EXPECT_EQ(requestInfo.permissions.write, true);
 	EXPECT_EQ(requestInfo.auto_index, DEFAULT_DIRECTORY_LISTING);
 	ASSERT_TRUE(requestInfo.body.empty());
-	ASSERT_TRUE(requestInfo.requestBody.empty());
+	ASSERT_TRUE(requestInfo.bodyValues.empty());
 }
 
 TEST(RequestInfoTest, HandlesPostRequestWithHtmlBody) {
@@ -107,7 +107,7 @@ TEST(RequestInfoTest, HandlesPostRequestWithHtmlBody) {
 	EXPECT_EQ(requestInfo.permissions.write, true);
 	EXPECT_EQ(requestInfo.permissions.execute, false);
 	EXPECT_EQ(requestInfo.auto_index, DEFAULT_DIRECTORY_LISTING);
-	// EXPECT_EQ(requestInfo.body, "<html><body><p>This is a test</p></body></html>");
+	EXPECT_EQ(requestInfo.body, "<html><body><p>This is a test</p></body></html>");
 }
 
 TEST(RequestInfoTest, HandlesPostRequestWithMultipartFormData) {
@@ -135,6 +135,6 @@ TEST(RequestInfoTest, HandlesPostRequestWithMultipartFormData) {
 	EXPECT_EQ(requestInfo.permissions.write, true);
 	EXPECT_EQ(requestInfo.permissions.execute, false);
 	EXPECT_EQ(requestInfo.auto_index, DEFAULT_DIRECTORY_LISTING);
-	// EXPECT_TRUE(requestInfo.body.find("value1") != std::string::npos);
-	// EXPECT_TRUE(requestInfo.body.find("file content here") != std::string::npos);
+	EXPECT_TRUE(requestInfo.body.find("value1") != std::string::npos);
+	EXPECT_TRUE(requestInfo.body.find("file content here") != std::string::npos);
 }
