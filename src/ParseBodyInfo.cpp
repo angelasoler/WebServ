@@ -2,7 +2,7 @@
 #include <sys/stat.h>
 #include <string.h>
 
-void parseBody(RequestInfo &info);
+void parseBodyValues(RequestInfo &info);
 void extractBody(std::string requestText, RequestInfo &info);
 std::string stringWithNewDivisor(std::string text, std::string newDivisor);
 
@@ -13,7 +13,7 @@ void ParseBodyInfo::parseBodyInfo(std::string requestText, RequestInfo &info)
 	extractBody(requestText, info);
 	const std::string contentTypeHeader = "Content-Type: application/x-www-form-urlencoded\r\n";
 	if (requestText.find(contentTypeHeader) != std::string::npos)
-		parseBody(info);
+		parseBodyValues(info);
 }
 
 void extractBody(std::string requestText, RequestInfo &info)
@@ -44,7 +44,7 @@ void extractBody(std::string requestText, RequestInfo &info)
 	}
 }
 
-void parseBody(RequestInfo &info)
+void parseBodyValues(RequestInfo &info)
 {
 	(void)info;
 }
