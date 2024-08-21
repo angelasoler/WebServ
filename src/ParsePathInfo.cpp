@@ -1,4 +1,5 @@
 #include "ParsePathInfo.hpp"
+#include <cerrno>
 #include <sys/stat.h>
 #include <string.h>
 
@@ -46,7 +47,8 @@ e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serve
 		else if (isDirectory(info.fullPath)) {
 			// Se for um diretório, tentar encontrar o arquivo index dele
 			info.fullPath = composeFullPath(info.fullPath, routeConfig.default_file);
-			if (!isFile(info.fullPath) || routeConfig.default_file.empty())
+			struct stat buffer;
+			if (!(stat(info.fullPath.c_str(), &buffer) == 0 && S_ISREG(buffer.st_mode)) || routeConfig.default_file.empty())
 				info.fullPath.clear();
 
 			// Recolher auto-index
@@ -61,11 +63,6 @@ e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serve
 		// Verificar se há uma redireção configurada
 		else if (!routeConfig.redirection.empty())
 			return Redirection;
-
-		// else if (info.serverRef.cgi.script_path == requestSuffix) // Caso a requestRoute for o script_path, tera default CGI ?
-		// {
-		// 	info.fullPath = composeFullPath(routeConfig.root_directory, requestSuffix);
-		// }
 	}
 	// Se não encontrar nenhuma correspondência específica, tratar como UNKNOWN requests 
 	info.fullPath.clear();
@@ -92,6 +89,19 @@ std::string composeFullPath(const std::string& prefix, const std::string& suffix
 
 bool isFile(const std::string& path) {
 	struct stat buffer;
+
+	if (access(path.c_str(), R_OK)) {
+		switch (errno)
+		{
+			case EACCES:
+				std::cout << "no permission" << std::endl;
+				return true;
+			
+			case ENOENT:
+				std::cout << "not found" << std::endl;
+				return true;
+		}
+	}
 	return (stat(path.c_str(), &buffer) == 0 && S_ISREG(buffer.st_mode));
 }
 
@@ -114,13 +124,22 @@ bool startsWith(const std::string& str, const std::string& prefix) {
 	return std::equal(prefix.begin(), prefix.end(), str.begin());
 }
 
-
 Permission getPermissions(std::string path)
 {
 	Permission permissions;
 
+	if (access(path.c_str(), R_OK)) {
+		if (errno == ENOENT) {
+			permissions.notFound = true;
+			permissions.read = -1;
+			permissions.write = -1;
+			permissions.execute = -1;
+			return permissions;
+		}
+	}
 	permissions.read = (access(path.c_str(), R_OK) == 0);
 	permissions.write = (access(path.c_str(), W_OK) == 0);
 	permissions.execute = (access(path.c_str(), X_OK) == 0);
+	permissions.notFound = false;
 	return permissions;
 }

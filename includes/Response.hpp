@@ -14,6 +14,7 @@
 #include <sstream>
 #include <map>
 #include "CGIServer.hpp"
+# include "IHttpMethod.hpp"
 
 #define NO_CONTENT "<html><head><title>204</title></head><body><h1>204<br>No Content!</h1></body></html>"
 #define BAD_REQUEST_ERROR "<html><head><title>ERROR 400</title></head><body><h1>ERROR 400<br>Bad Request!</h1></body></html>"
@@ -40,17 +41,16 @@ class Response
 	private:
 		ResponseMsg	responseMsg;
 		int			client_fd;
+		int			statusCode;
 
 		// PARSING
-		std::string	setBodyFromFile(const std::string& bodyFile);
-		void		setBodyFromDefaultPage(const std::string& bodyError);
 		std::string	buildResponse(void);
-		void		setStatusLine(int statusCode, const std::string& reasonPhrase);
 		void		setHeader(const std::string& key, const std::string& value);
+		void		setStatusLine(void);
+		void		setResponseMsg(IHttpMethod *method);
 
 		// UTILITY
-		std::string	getStatusMessage(int statusCode);
-		std::string	getDefaultPage(int statusCode);
+		std::string	getStatusMessage(void);
 
 		// SEND RESPONSE
 		void	sendResponse(void);
@@ -62,8 +62,9 @@ class Response
 		Response(RequestInfo info, int fd);
 		~Response(void);
 
-		void	setResponseMsg(int statusCode, std::string const &htmlFile);
-		void	treatActionAndResponse(void);
+		void		treatActionAndResponse(void);
+		void		setBody(const std::string& body);
+		std::string	getDefaultPage(void);
 };
 
 #endif /* RESPONSE_HPP */

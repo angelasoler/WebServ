@@ -5,50 +5,82 @@ Get::Get(Response &objectRef) : response(objectRef) {}
 
 Get::~Get(void) {}
 
-void Get::handleRequest(void)
+int Get::handleRequest(void)
 {
-	if (response.requestInfo.pathType == File || response.requestInfo.pathType == URL)
-		responseToFile();
-	else if (response.requestInfo.pathType == Directory)
-		responseToDirectory();
-	else if (response.requestInfo.pathType == CGI)
-		responseCGI();
-	else
-		responseToInvalid();
+	switch (response.requestInfo.pathType)
+	{
+		case Directory:
+			return responseToDirectory();
+		case CGI:
+			return responseCGI();
+		case URL:
+		case File:
+			return responseToFile();
+		default:
+			return responseToInvalid();
+	}
 }
 
-void Get::responseToFile(void)
+std::string	Get::getBodyFromFile(const std::string& fileName)
 {
-	if (!response.requestInfo.permissions.read)
-		response.setResponseMsg(403, FORBIDDEN_ERROR);
+	std::string ret;
+
+	std::ifstream file(fileName.c_str());
+	if (!file)
+		return NOT_FOUND_ERROR;
+	std::ostringstream oss;
+	oss << file.rdbuf();
+	ret = oss.str();
+	file.close();
+	return ret;
+}
+
+void	Get::buildBody(void)
+{
+	if (response.requestInfo.pathType == CGI)
+		return ;
+	std::string body = response.getDefaultPage();
+
+	if (body == NO_DEFAULT_ERROR)
+		body = getBodyFromFile(response.requestInfo.fullPath);
+	response.setBody(body);
+}
+
+int	Get::responseToFile(void)
+{
+	if (response.requestInfo.permissions.notFound)
+		return (404);
+	else if (!response.requestInfo.permissions.read)
+		return (403);
 	else if (!response.requestInfo.fullPath.empty())
-		response.setResponseMsg(200, response.requestInfo.fullPath);
-	else
-		response.setResponseMsg(404, NOT_FOUND_ERROR);
+		return (200);
+	return(400);
 }
 
-void Get::responseToDirectory(void)
+int	Get::responseToDirectory(void)
 {
 	if (!endsWith(response.requestInfo.requestedRoute, "/"))
-		response.setResponseMsg(301, response.requestInfo.fullPath);
+		return (301);
 	else if (!response.requestInfo.fullPath.empty())
-		response.setResponseMsg(200, response.requestInfo.fullPath);
-	else if (response.requestInfo.auto_index) {}
-		// Return auto-index of directory
-	else
-		response.setResponseMsg(403, FORBIDDEN_ERROR);
+		return (200);
+	else if (response.requestInfo.auto_index) {
+		// TO-DO: Return  auto-index of directory
+		return 404;
+	}
+	return (403);
 }
 
-void Get::responseToInvalid(void)
+int	Get::responseToInvalid(void)
 {
-	response.setResponseMsg(400, BAD_REQUEST_ERROR);
+	return(400);
 }
 
-void Get::responseCGI(void) {
+int	Get::responseCGI(void) {
 	std::string	htmlResponse;
 	CGIServer	cgi(response.requestInfo.requestedRoute);
 
 	cgi.setEnv(response.requestInfo);
 	htmlResponse = cgi.executeScript(response.requestInfo.body);
-	response.setResponseMsg(200, htmlResponse);
+	response.setBody(htmlResponse);
+	return(200);
 }

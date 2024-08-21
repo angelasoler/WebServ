@@ -50,6 +50,7 @@ struct Permission
 	bool	read;
 	bool	write;
 	bool	execute;
+	bool	notFound;
 };
 
 struct RequestInfo
