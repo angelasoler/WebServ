@@ -18,6 +18,7 @@ void	Request::printRequest(void)
 				<< std::endl;
 	requestLog << requestsText
 				<< std::endl;
+	requestLog.close();
 }
 
 bool	Request::readRequest(int client_fd)
@@ -28,9 +29,8 @@ bool	Request::readRequest(int client_fd)
 	ssize_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE, 0);
 	if (bytes_read < 0 || !bytes_read)
 		return true;
-	else
-		requestsText += buffer;
-	// printRequest();
+	requestsText += buffer;
+	printRequest();
 	return false;
 }
 
@@ -91,21 +91,23 @@ void	Request::parseRequestHeader(void)
 	breakIntoLines(lines);
 	breakResquesLine(lines[0]);
 	parseTheOthers(lines);
-	// printHeaderDataStructure();
+	printHeaderDataStructure();
 }
 
 void	Request::printHeaderDataStructure(void)
 {
 	std::map< std::string, std::vector<std::string> >::iterator	headerIt;
+	std::ofstream		parsedRequest("logs/parsedHeader.log");
 
-	std::cout << "\t\t === parse header ==="  << std::endl;
+	parsedRequest << "\t\t === parsed header ==="  << std::endl;
 	for (headerIt = header.begin(); headerIt != header.end(); headerIt++) {
-		std::cout << headerIt->first << std::endl;
+		parsedRequest << headerIt->first << std::endl;
 		std::vector<std::string>::iterator it;
 		for (it = headerIt->second.begin(); it != headerIt->second.end(); it++)
-			std::cout << "\t" << *it << std::endl;
+			parsedRequest << "\t" << *it << std::endl;
 	}
-	std::cout << "\t\t === \t\t ==="  << std::endl;
+	parsedRequest << "\t\t === \t\t ==="  << std::endl;
+	parsedRequest.close();
 }
 
 void	Request::parseRequestInfo(ServerConfig &serverConfig)
