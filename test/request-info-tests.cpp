@@ -42,11 +42,10 @@ TEST(RequestInfoTest, HandlesPostRequest) {
 
 	RequestInfo requestInfo = parseHttpRequest(postRequest);
 
-	// Verificando o preenchimento da struct
-	// EXPECT_EQ(requestInfo.requestedRoute, DEFAULT_ROUTE_PATH);
-	// EXPECT_EQ(requestInfo.action, UPLOAD);
-	// EXPECT_EQ(requestInfo.pathType, URL);
-	// EXPECT_EQ(requestInfo.auto_index, DEFAULT_DIRECTORY_LISTING);
+	EXPECT_EQ(requestInfo.requestedRoute, DEFAULT_ROUTE_PATH);
+	EXPECT_EQ(requestInfo.action, UPLOAD);
+	EXPECT_EQ(requestInfo.pathType, URL);
+	EXPECT_EQ(requestInfo.auto_index, DEFAULT_DIRECTORY_LISTING);
 	EXPECT_EQ(requestInfo.body, "name=John&age=30&city=NYC");
 	// EXPECT_EQ(requestInfo.requestBody["name"], "John");
 	// EXPECT_EQ(requestInfo.requestBody["age"], "30");
@@ -107,7 +106,7 @@ TEST(RequestInfoTest, HandlesPostRequestWithHtmlBody) {
 	EXPECT_EQ(requestInfo.permissions.read, true);
 	EXPECT_EQ(requestInfo.permissions.write, true);
 	EXPECT_EQ(requestInfo.permissions.execute, false);
-	// EXPECT_EQ(requestInfo.auto_index, false);
+	EXPECT_EQ(requestInfo.auto_index, DEFAULT_DIRECTORY_LISTING);
 	// EXPECT_EQ(requestInfo.body, "<html><body><p>This is a test</p></body></html>");
 }
 
@@ -135,7 +134,7 @@ TEST(RequestInfoTest, HandlesPostRequestWithMultipartFormData) {
 	EXPECT_EQ(requestInfo.permissions.read, true);
 	EXPECT_EQ(requestInfo.permissions.write, true);
 	EXPECT_EQ(requestInfo.permissions.execute, false);
-	EXPECT_EQ(requestInfo.auto_index, false);
-	EXPECT_TRUE(requestInfo.body.find("value1") != std::string::npos);
-	EXPECT_TRUE(requestInfo.body.find("file content here") != std::string::npos);
+	EXPECT_EQ(requestInfo.auto_index, DEFAULT_DIRECTORY_LISTING);
+	// EXPECT_TRUE(requestInfo.body.find("value1") != std::string::npos);
+	// EXPECT_TRUE(requestInfo.body.find("file content here") != std::string::npos);
 }

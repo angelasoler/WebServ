@@ -119,7 +119,11 @@ void	Request::parseRequestInfo(ServerConfig &serverConfig)
 
 void Request::parseRequest(ServerConfig &serverConfig)
 {
+	static int interactions;
+
+	interactions++;
 	parseRequestHeader();
+	// std::cout << requestsText << ": interaction number: " << interactions << "\n";
 	parseRequestInfo(serverConfig);
 	ParsePathInfo::parsePathInfo(info);
 	ParseBodyInfo::parseBodyInfo(requestsText, info);
