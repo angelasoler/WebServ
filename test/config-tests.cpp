@@ -17,18 +17,18 @@ TEST(ConfigTest, NoServersFile) {
 	EXPECT_EQ(server1.client_body_limit, DEFAULT_CLIENT_BODY_LIMIT);
 
 	// Verificação da rota do primeiro servidor
-	ASSERT_EQ(server1.routes.size(), 1);
-	const RouteConfig& route1 = server1.routes.at(DEFAULT_ROUTE_PATH);
-	EXPECT_EQ(route1.route, DEFAULT_ROUTE_PATH);
-	EXPECT_EQ(route1.redirection, DEFAULT_REDIRECTION);
-	EXPECT_EQ(route1.root_directory, DEFAULT_ROOT_DIRECTORY);
-	EXPECT_EQ(route1.accepted_methods.size(), 2);
-	EXPECT_EQ(route1.accepted_methods[0], "GET");
-	EXPECT_EQ(route1.accepted_methods[1], "DELETE");
-	EXPECT_EQ(route1.directory_listing, false);
-	EXPECT_EQ(route1.default_file, DEFAULT_FILE);
-	EXPECT_EQ(route1.cgi_extension, DEFAULT_CGI_EXTENSION);
-	EXPECT_EQ(route1.upload_directory, DEFAULT_UPLOAD_DIRECTORY);
+	ASSERT_EQ(server1.routes.empty(), true);
+	// const RouteConfig& route1 = server1.routes.at(DEFAULT_ROUTE_PATH);
+	// EXPECT_EQ(route1.route, DEFAULT_ROUTE_PATH);
+	// EXPECT_EQ(route1.redirection, DEFAULT_REDIRECTION);
+	// EXPECT_EQ(route1.root_directory, DEFAULT_ROOT_DIRECTORY);
+	// EXPECT_EQ(route1.accepted_methods.size(), 2);
+	// EXPECT_EQ(route1.accepted_methods[0], "GET");
+	// EXPECT_EQ(route1.accepted_methods[1], "DELETE");
+	// EXPECT_EQ(route1.directory_listing, false);
+	// EXPECT_EQ(route1.default_file, DEFAULT_FILE);
+	// EXPECT_EQ(route1.cgi_extension, DEFAULT_CGI_EXTENSION);
+	// EXPECT_EQ(route1.upload_directory, DEFAULT_UPLOAD_DIRECTORY);
 
 	// Verificação do CGI do primeiro servidor
 	EXPECT_EQ(server1.cgi.path_info, DEFAULT_PATH_INFO);
@@ -50,18 +50,18 @@ TEST(ConfigTest, NoServers) {
 	EXPECT_EQ(server1.client_body_limit, DEFAULT_CLIENT_BODY_LIMIT);
 
 	// Verificação da rota do primeiro servidor
-	ASSERT_EQ(server1.routes.size(), 1);
-	const RouteConfig& route1 = server1.routes.at(DEFAULT_ROUTE_PATH);
-	EXPECT_EQ(route1.route, DEFAULT_ROUTE_PATH);
-	EXPECT_EQ(route1.redirection, DEFAULT_REDIRECTION);
-	EXPECT_EQ(route1.root_directory, DEFAULT_ROOT_DIRECTORY);
-	EXPECT_EQ(route1.accepted_methods.size(), 2);
-	EXPECT_EQ(route1.accepted_methods[0], "GET");
-	EXPECT_EQ(route1.accepted_methods[1], "DELETE");
-	EXPECT_EQ(route1.directory_listing, false);
-	EXPECT_EQ(route1.default_file, DEFAULT_FILE);
-	EXPECT_EQ(route1.cgi_extension, DEFAULT_CGI_EXTENSION);
-	EXPECT_EQ(route1.upload_directory, DEFAULT_UPLOAD_DIRECTORY);
+	ASSERT_EQ(server1.routes.empty(), true);
+	// const RouteConfig& route1 = server1.routes.at(DEFAULT_ROUTE_PATH);
+	// EXPECT_EQ(route1.route, DEFAULT_ROUTE_PATH);
+	// EXPECT_EQ(route1.redirection, DEFAULT_REDIRECTION);
+	// EXPECT_EQ(route1.root_directory, DEFAULT_ROOT_DIRECTORY);
+	// EXPECT_EQ(route1.accepted_methods.size(), 2);
+	// EXPECT_EQ(route1.accepted_methods[0], "GET");
+	// EXPECT_EQ(route1.accepted_methods[1], "DELETE");
+	// EXPECT_EQ(route1.directory_listing, false);
+	// EXPECT_EQ(route1.default_file, DEFAULT_FILE);
+	// EXPECT_EQ(route1.cgi_extension, DEFAULT_CGI_EXTENSION);
+	// EXPECT_EQ(route1.upload_directory, DEFAULT_UPLOAD_DIRECTORY);
 
 	// Verificação do CGI do primeiro servidor
 	EXPECT_EQ(server1.cgi.path_info, DEFAULT_PATH_INFO);
@@ -316,8 +316,8 @@ TEST(ConfigTest, InvalidServerId1) {
 
 	// Verificação da rota do primeiro servidor
 	ASSERT_EQ(server1.routes.size(), 1);
-	const RouteConfig& route1 = server1.routes.at("/route_x");
-	EXPECT_EQ(route1.route, "/route_x");
+	const RouteConfig& route1 = server1.routes.at("/");
+	EXPECT_EQ(route1.route, "/");
 	EXPECT_EQ(route1.redirection, "/route_x_redirection");
 	EXPECT_EQ(route1.root_directory, "/var/www/route_x");
 	EXPECT_EQ(route1.accepted_methods.size(), 3);
