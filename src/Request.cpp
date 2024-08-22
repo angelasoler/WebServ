@@ -2,6 +2,7 @@
 #include "Request.hpp"
 #include "ParsePathInfo.hpp"
 #include "ParseBodyInfo.hpp"
+#include "PrintRequestInfo.hpp"
 #include "TimeNow.hpp"
 #include <fstream>
 #include <cerrno>
@@ -129,6 +130,7 @@ void Request::parseRequest(ServerConfig &serverConfig)
 	parseRequestInfo(serverConfig);
 	ParsePathInfo::parsePathInfo(info);
 	ParseBodyInfo::parseBodyInfo(requestsText, info);
+	PrintRequestInfo::printRequestInfo(info);
 }
 
 e_httpMethodActions	Request::getMethodAction(void)
