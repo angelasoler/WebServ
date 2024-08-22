@@ -101,6 +101,7 @@ void Config::loadConfig(const std::string& configFilePath)
 		if (key == "END_ROUTE")
 		{
 			inRoute = false;
+			finishRoute();
 			continue ;
 		}
 		if (iss >> value)
@@ -189,7 +190,6 @@ bool Config::isInPorts(int port)
 
 void Config::finishServer(void)
 {
-	finishRoute();
 	if (servers.empty())
 	{
 		if (currentServer.port < 0)
