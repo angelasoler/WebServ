@@ -99,5 +99,6 @@ class Config
 };
 
 void	printConfig(void);
+void	printServerConfig(ServerConfig& serverConfig, std::ofstream &fd);
 
 #endif //CONFIG_HPP

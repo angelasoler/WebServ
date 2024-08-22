@@ -1,29 +1,43 @@
 #include "PrintRequestInfo.hpp"
+#include "Config.hpp"
+#include <iostream>
+#include <string>
+#include <vector>
+#include <map>
+#include <fstream>
+#include "TimeNow.hpp"
 
-void PrintRequestInfo::printRequestInfo(RequestInfo& request) {
-	std::cout << "Requested Route: " << request.requestedRoute << std::endl;
-	std::cout << "Full Path: " << request.fullPath << std::endl;
-	std::cout << "Path Type: " << pathTypeToString(request.pathType) << std::endl;
-	std::cout << "Action: " << httpMethodActionToString(request.action) << std::endl;
+void PrintRequestInfo::printRequestInfo(RequestInfo& request)
+{
+	std::ofstream	logFd("logs/requestInfo.log", std::ios_base::app);
 
-	std::cout << "Permissions: " << std::endl;
-	std::cout << "  Read: " << (request.permissions.read ? "true" : "false") << std::endl;
-	std::cout << "  Write: " << (request.permissions.write ? "true" : "false") << std::endl;
-	std::cout << "  Execute: " << (request.permissions.execute ? "true" : "false") << std::endl;
-	std::cout << "  Not Found: " << (request.permissions.notFound ? "true" : "false") << std::endl;
+	logFd << "\n" << TimeNow();
+	logFd << "REQUEST INFO\n";
+	logFd << "\tRequested Route: " << request.requestedRoute << std::endl;
+	logFd << "\tFull Path: " << request.fullPath << std::endl;
+	logFd << "\tPath Type: " << pathTypeToString(request.pathType) << std::endl;
+	logFd << "\tAction: " << httpMethodActionToString(request.action) << std::endl;
 
-	std::cout << "Auto Index: " << (request.auto_index ? "true" : "false") << std::endl;
+	logFd << "\tPermissions: " << std::endl;
+	logFd << "\t  Read: " << (request.permissions.read ? "true" : "false") << std::endl;
+	logFd << "\t  Write: " << (request.permissions.write ? "true" : "false") << std::endl;
+	logFd << "\t  Execute: " << (request.permissions.execute ? "true" : "false") << std::endl;
+	logFd << "\t  Not Found: " << (request.permissions.notFound ? "true" : "false") << std::endl;
 
-	std::cout << "Boundary: " << request.boundary << std::endl;
-	std::cout << "Body: " << request.body << std::endl;
-	std::cout << "Content Type: " << request.contentType << std::endl;
+	logFd << "\tAuto Index: " << (request.auto_index ? "true" : "false") << std::endl;
 
-	std::cout << "Body Values:" << std::endl;
+	logFd << "\tBoundary: " << request.boundary << std::endl;
+	logFd << "\tBody: " << request.body << std::endl;
+	logFd << "\tContent Type: " << request.contentType << std::endl;
+
+	logFd << "\tBody Values:" << std::endl;
 	for (std::map<std::string, std::string>::iterator it = request.bodyValues.begin(); it != request.bodyValues.end(); ++it) {
-		std::cout << "  " << it->first << ": " << it->second << std::endl;
+		logFd << "\t  " << it->first << ": " << it->second << std::endl;
 	}
 
-	printServerConfig(request.serverRef);
+	logFd << "\tserverRef:" << std::endl;
+
+	// printServerConfig(request.serverRef, logFd);
 }
 
 const char* PrintRequestInfo::pathTypeToString(e_pathType pathType) {
@@ -46,49 +60,4 @@ const char* PrintRequestInfo::httpMethodActionToString(e_httpMethodActions actio
 		case CLOSE: return "CLOSE";
 		default: return "UNKNOWN";
 	}
-}
-
-void PrintRequestInfo::printServerConfig(ServerConfig& serverConfig) {
-	std::cout << "Host: " << serverConfig.host << std::endl;
-	std::cout << "Port: " << serverConfig.port << std::endl;
-
-	std::cout << "Server Names: ";
-	std::vector<std::string>::iterator severNameIt;
-	for (severNameIt = serverConfig.server_names.begin();
-		 severNameIt != serverConfig.server_names.end(); ++severNameIt) {
-		std::cout << *severNameIt << " ";
-	}
-	std::cout << std::endl;
-
-	std::cout << "Default Error Page: " 
-		<< serverConfig.default_error_page << std::endl;
-	std::cout << "Client Body Limit: " 
-		<< serverConfig.client_body_limit << std::endl;
-
-	std::cout << "Routes: " << std::endl;
-	std::map<std::string, RouteConfig>::iterator routeIt;
-	for (routeIt = serverConfig.routes.begin();
-		 routeIt != serverConfig.routes.end(); ++routeIt) {
-		std::cout << "Route Key: " << routeIt->first << std::endl;
-		printRouteConfig(routeIt->second);
-	}
-}
-
-void PrintRequestInfo::printRouteConfig(RouteConfig& routeConfig) {
-	std::cout << "Path: " << routeConfig.route << std::endl;
-
-	std::cout << "Accepted Methods: ";
-	for (std::vector<std::string>::iterator it = routeConfig.accepted_methods.begin();
-		 it != routeConfig.accepted_methods.end(); ++it) {
-		std::cout << *it << " ";
-	}
-	std::cout << std::endl;
-
-	std::cout << "Redirection: " << routeConfig.redirection << std::endl;
-	std::cout << "Root Directory: " << routeConfig.root_directory << std::endl;
-	std::cout << "Directory Listing: " << (routeConfig.directory_listing ? "Yes" : "No") << std::endl;
-	std::cout << "Default File: " << routeConfig.default_file << std::endl;
-	std::cout << "CGI Extension: " << routeConfig.cgi_extension << std::endl;
-	std::cout << "Upload Directory: " << routeConfig.upload_directory << std::endl;
-	std::cout << std::endl;
 }
