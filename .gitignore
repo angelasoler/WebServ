@@ -9,4 +9,6 @@ txt
 webserv
 txt2
 notes/
-logs/
+logs/*
+test/venv/*
+!test/venv/requirements.txt

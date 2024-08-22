@@ -16,11 +16,12 @@ void	ParsePathInfo::parsePathInfo(RequestInfo &info)
 e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serverConfig, RequestInfo &info)
 {
 	// iterar pelas rotas configuradas
-	std::map<std::string, RouteConfig>::const_iterator it;
+	RouteConfig routeConfig;
+
+	std::map<std::string, RouteConfig>::iterator it;
 	for (it = serverConfig.routes.begin(); it != serverConfig.routes.end(); ++it)
 	{
-		const RouteConfig& routeConfig = it->second;
-
+		routeConfig = it->second;
 		info.auto_index = routeConfig.directory_listing;
 
 		// Se o caminho corresponde à rota configurada
@@ -35,36 +36,37 @@ e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serve
 		{
 			std::string requestSuffix = requestedRoute.substr(routeConfig.route.size());
 			info.fullPath = composeFullPath(routeConfig.root_directory, requestSuffix);
+			break ;
 		}
 		else
 			info.fullPath = composeFullPath(routeConfig.root_directory, info.requestedRoute);
-
-		// Verificar se o caminho está associado a um CGI
-		if (endsWith(info.fullPath, DEFAULT_CGI_EXTENSION))
-			return CGI;
-
-		// Verificar se é um diretório
-		else if (isDirectory(info.fullPath)) {
-			// Se for um diretório, tentar encontrar o arquivo index dele
-			info.fullPath = composeFullPath(info.fullPath, routeConfig.default_file);
-			struct stat buffer;
-			if (!(stat(info.fullPath.c_str(), &buffer) == 0 && S_ISREG(buffer.st_mode)) || routeConfig.default_file.empty())
-				info.fullPath.clear();
-
-			// Recolher auto-index
-			return Directory;
-		}
-
-		// Verificar se é um arquivo
-		else if (isFile(info.fullPath)) {
-			return File;
-		}
-
-		// Verificar se há uma redireção configurada
-		else if (!routeConfig.redirection.empty())
-			return Redirection;
 	}
-	// Se não encontrar nenhuma correspondência específica, tratar como UNKNOWN requests 
+	if (serverConfig.routes.empty())
+		info.fullPath = composeFullPath(routeConfig.root_directory, info.requestedRoute);
+	// Verificar se o cam"inho está associado a um CGI
+	if (endsWith(info.fullPath, DEFAULT_CGI_EXTENSION))
+		return CGI;
+
+	// Verificar se é um diretório
+	else if (isDirectory(info.fullPath)) {
+		// Se for um diretório, tentar encontrar o arquivo index dele
+		info.fullPath = composeFullPath(info.fullPath, routeConfig.default_file);
+		struct stat buffer;
+		if (!(stat(info.fullPath.c_str(), &buffer) == 0 && S_ISREG(buffer.st_mode)) || routeConfig.default_file.empty())
+			info.fullPath.clear();
+
+		// Recolher auto-index
+		return Directory;
+	}
+
+	// Verificar se é um arquivo
+	else if (isFile(info.fullPath)) {
+		return File;
+	}
+
+	// Verificar se há uma redireção configurada
+	else if (!routeConfig.redirection.empty())
+		return Redirection;// Se não encontrar nenhuma correspondência específica, tratar como UNKNOWN requests
 	info.fullPath.clear();
 	return UNKNOWN;
 }
@@ -99,7 +101,7 @@ bool isFile(const std::string& path) {
 			
 			case ENOENT:
 				std::cout << "not found" << std::endl;
-				return true;
+				return false;
 		}
 	}
 	return (stat(path.c_str(), &buffer) == 0 && S_ISREG(buffer.st_mode));
