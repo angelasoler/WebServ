@@ -61,6 +61,7 @@ class Response
 		Response(RequestInfo info, int fd);
 		~Response(void);
 
+		int			getClientFd(void);
 		void		treatActionAndResponse(void);
 		void		setBody(const std::string& body);
 		void		setHeader(const std::string& key, const std::string& value);

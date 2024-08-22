@@ -110,7 +110,7 @@ TEST(RequestInfoTest, HandlesPostRequestWithMultipartFormData) {
 	std::string postRequest = 
 		"POST " + std::string(DEFAULT_ROUTE_PATH) + " HTTP/1.1\r\n"
 		"Host: localhost\r\n"
-		"Content-Type: multipart/form-data; boundary=boundary\r\n"
+		"Content-Type: multipart/form-data; boundary=" + boundary + "\r\n"
 		"Content-Length: 144\r\n\r\n" +
 		boundary + "\r\n" +
 		"Content-Disposition: form-data; name=\"field1\"\r\n\r\n" +
@@ -131,4 +131,5 @@ TEST(RequestInfoTest, HandlesPostRequestWithMultipartFormData) {
 	EXPECT_EQ(requestInfo.permissions.execute, false);
 	EXPECT_TRUE(requestInfo.body.find("value1") != std::string::npos);
 	EXPECT_TRUE(requestInfo.body.find("file content here") != std::string::npos);
+	EXPECT_EQ(requestInfo.boundary, boundary);
 }

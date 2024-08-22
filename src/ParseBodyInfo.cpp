@@ -2,6 +2,8 @@
 #include <sys/stat.h>
 #include <string.h>
 
+std::string extractBoundary(const std::string& requestText);
+
 void ParseBodyInfo::parseBodyInfo(std::string requestText, RequestInfo &info)
 {	
 	if (info.action != UPLOAD)
@@ -9,6 +11,33 @@ void ParseBodyInfo::parseBodyInfo(std::string requestText, RequestInfo &info)
 	extractBody(requestText, info);
 	if (info.contentType.find("application/x-www-form-urlencoded") != std::string::npos)
 		parseBodyValues(info);
+	// return ;
+	if (info.contentType.find("multipart/form-data") != std::string::npos) {
+		info.boundary = extractBoundary(requestText);
+		// std::cout << info.boundary << "\n";
+	}
+}
+
+std::string extractBoundary(const std::string& requestText)
+{
+	std::string boundary;
+	const std::string contentTypeHeader = "Content-Type: ";
+	const std::string boundaryKey = "boundary=";
+	
+	// Encontrar o início do header Content-Type
+	std::size_t contentTypePos = requestText.find(contentTypeHeader);
+	if (contentTypePos != std::string::npos) {
+		// Encontrar o início da chave boundary
+		std::size_t boundaryPos = requestText.find(boundaryKey, contentTypePos);
+		if (boundaryPos != std::string::npos) {
+			// Extrair o boundary
+			boundaryPos += boundaryKey.length();
+			std::size_t boundaryEndPos = requestText.find("\r\0", boundaryPos);
+			boundary = requestText.substr(boundaryPos, boundaryEndPos - boundaryPos);
+		}
+	}
+
+	return boundary;
 }
 
 void extractBody(std::string requestText, RequestInfo &info)

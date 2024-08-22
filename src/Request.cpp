@@ -126,6 +126,12 @@ void	Request::parseRequestInfo(ServerConfig &serverConfig)
 
 void Request::parseRequest(ServerConfig &serverConfig)
 {
+
+	static int ref;
+
+	ref++;
+	// std::cout << requestsText << " " << ref << "\n";
+	// std::cout << response.getClientFd() << "\n";
 	parseRequestHeader();
 	parseRequestInfo(serverConfig);
 	ParsePathInfo::parsePathInfo(info);

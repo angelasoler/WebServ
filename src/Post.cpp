@@ -7,6 +7,8 @@ Post::~Post(void) {}
 
 int	Post::handleRequest(void)
 {
+	// std::cout << response.requestInfo.body << "\n";
+	// std::cout << response.getClientFd() << "\n";
 	return (404);
 }
 

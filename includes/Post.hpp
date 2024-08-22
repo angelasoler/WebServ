@@ -16,8 +16,9 @@ class Post : public IHttpMethod
 	private:
 		Response &response;
 
-		void	upload(void);
-		void	buildBody(void);
+		void		upload(void);
+		void		buildBody(void);
+		// std::string
 };
 
 #endif // POST_HPP
