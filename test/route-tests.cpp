@@ -88,7 +88,7 @@ TEST(routesTesting, twoRoutesroot) {
 	//ARRANGE
 	HttpResponse response;
 	CURL* curl;
-	start_server("test/routes_test/TwoRouteAndRoot.conf");
+	start_server("test/routes_test/TwoRoutesAndRoot.conf");
 	curl = curl_easy_init();
 	ASSERT_NE(curl, nullptr);
 
@@ -115,7 +115,7 @@ TEST(routesTesting, twoRoutesroot1) {
 	//ARRANGE
 	HttpResponse response;
 	CURL* curl;
-	start_server("test/routes_test/TwoRouteAndRoot.conf");
+	start_server("test/routes_test/TwoRoutesAndRoot.conf");
 	curl = curl_easy_init();
 	ASSERT_NE(curl, nullptr);
 
@@ -142,7 +142,7 @@ TEST(routesTesting, twoRoutesroot2) {
 	//ARRANGE
 	HttpResponse response;
 	CURL* curl;
-	start_server("test/routes_test/TwoRouteAndRoot.conf");
+	start_server("test/routes_test/TwoRoutesAndRoot.conf");
 	curl = curl_easy_init();
 	ASSERT_NE(curl, nullptr);
 
@@ -164,4 +164,3 @@ TEST(routesTesting, twoRoutesroot2) {
 	curl_easy_cleanup(curl);
 	stop_server();
 }
-

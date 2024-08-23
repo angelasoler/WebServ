@@ -28,21 +28,22 @@ e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serve
 		if ((requestedRoute == routeConfig.route))
 		{
 			info.fullPath = composeFullPath(routeConfig.root_directory, routeConfig.default_file);
-			return URL;
+			// return URL;
+			break;
 		}
 
 		// Verifica se inicia buscando uma rota
-		if (startsWith(requestedRoute, routeConfig.route))
-		{
-			std::string requestSuffix = requestedRoute.substr(routeConfig.route.size());
-			info.fullPath = composeFullPath(routeConfig.root_directory, requestSuffix);
-			break ;
-		}
-		else
-			info.fullPath = composeFullPath(routeConfig.root_directory, info.requestedRoute);
+		// if (startsWith(requestedRoute, routeConfig.route))
+		// {
+		// 	std::string requestSuffix = requestedRoute.substr(routeConfig.route.size());
+		// 	info.fullPath = composeFullPath(routeConfig.root_directory, requestSuffix);
+		// 	break ;
+		// }
+		// else
+		// 	info.fullPath = composeFullPath(routeConfig.root_directory, info.requestedRoute);
 	}
-	if (serverConfig.routes.empty())
-		info.fullPath = composeFullPath(routeConfig.root_directory, info.requestedRoute);
+	// if (serverConfig.routes.empty())
+	// info.fullPath = composeFullPath(routeConfig.root_directory, info.requestedRoute);
 	// Verificar se o cam"inho está associado a um CGI
 	if (endsWith(info.fullPath, DEFAULT_CGI_EXTENSION))
 		return CGI;
