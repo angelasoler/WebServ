@@ -10,7 +10,7 @@ void printRouteConfig(RouteConfig& routeConfig, std::ofstream &fd)
 {
 	fd << "Path: " << routeConfig.route << std::endl;
 
-	fd << "Accepted Methods: ";
+	fd << "\tAccepted Methods: ";
 	for (std::vector<std::string>::iterator it = routeConfig.accepted_methods.begin();
 		 it != routeConfig.accepted_methods.end(); ++it)
 	{
@@ -18,12 +18,12 @@ void printRouteConfig(RouteConfig& routeConfig, std::ofstream &fd)
 	}
 	fd << std::endl;
 
-	fd << "Redirection: " << routeConfig.redirection << std::endl;
-	fd << "Root Directory: " << routeConfig.root_directory << std::endl;
-	fd << "Directory Listing: " << (routeConfig.directory_listing ? "Yes" : "No") << std::endl;
-	fd << "Default File: " << routeConfig.default_file << std::endl;
-	fd << "CGI Extension: " << routeConfig.cgi_extension << std::endl;
-	fd << "Upload Directory: " << routeConfig.upload_directory << std::endl;
+	fd << "\tRedirection: " << routeConfig.redirection << std::endl;
+	fd << "\tRoot Directory: " << routeConfig.root_directory << std::endl;
+	fd << "\tDirectory Listing: " << (routeConfig.directory_listing ? "Yes" : "No") << std::endl;
+	fd << "\tDefault File: " << routeConfig.default_file << std::endl;
+	fd << "\tCGI Extension: " << routeConfig.cgi_extension << std::endl;
+	fd << "\tUpload Directory: " << routeConfig.upload_directory << std::endl;
 	fd << std::endl;
 }
 

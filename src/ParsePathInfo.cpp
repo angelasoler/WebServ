@@ -6,11 +6,8 @@
 
 void	ParsePathInfo::parsePathInfo(RequestInfo &info)
 {
-	// std::cout << "requestedRoute: " << info.requestedRoute << "\n";
 	info.pathType = identifyFullPathType(info.requestedRoute, info.serverRef, info);
-
 	info.permissions = getPermissions(info.fullPath);
-	// std::cout << "fullpath: " << info.fullPath << "\n";
 }
 
 e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serverConfig, RequestInfo &info)
@@ -30,20 +27,22 @@ e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serve
 			info.fullPath = composeFullPath(routeConfig.root_directory, routeConfig.default_file);
 			return URL;
 		}
-
 		// Verifica se inicia buscando uma rota
 		if (startsWith(requestedRoute, routeConfig.route))
 		{
 			std::string requestSuffix = requestedRoute.substr(routeConfig.route.size());
 			info.fullPath = composeFullPath(routeConfig.root_directory, requestSuffix);
-			break ;
 		}
 		else
 			info.fullPath = composeFullPath(routeConfig.root_directory, info.requestedRoute);
+		if (!routeConfig.redirection.empty())
+			return Redirection;
 	}
-	if (serverConfig.routes.empty())
-		info.fullPath = composeFullPath(routeConfig.root_directory, info.requestedRoute);
-	// Verificar se o cam"inho está associado a um CGI
+	if (info.requestedRoute == "/" && serverConfig.routes.find("/") == serverConfig.routes.end()) {
+		info.fullPath.clear();
+		return UNKNOWN;
+	}
+	// Verificar se o caminho está associado a um CGI
 	if (endsWith(info.fullPath, DEFAULT_CGI_EXTENSION))
 		return CGI;
 
@@ -65,8 +64,6 @@ e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serve
 	}
 
 	// Verificar se há uma redireção configurada
-	else if (!routeConfig.redirection.empty())
-		return Redirection;// Se não encontrar nenhuma correspondência específica, tratar como UNKNOWN requests
 	info.fullPath.clear();
 	return UNKNOWN;
 }
@@ -96,11 +93,9 @@ bool isFile(const std::string& path) {
 		switch (errno)
 		{
 			case EACCES:
-				std::cout << "no permission" << std::endl;
 				return true;
 			
 			case ENOENT:
-				std::cout << "not found" << std::endl;
 				return false;
 		}
 	}
