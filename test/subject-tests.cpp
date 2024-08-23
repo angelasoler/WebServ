@@ -165,9 +165,10 @@ TEST(SubjectTests, MethodNotAllowed) {
 //////
 
 //////
-// - se uma pasta está definida ela será a root onde serão procurados os querys,
-//  senão, procura na root default
-// ****Já está sendo testado por exetensão nos outros
+// route
+// Define a directory or a file from where the file should be searched (for example,
+// if url /kapouet is rooted to /tmp/www, url /kapouet/pouic/toto/pouet is
+// /tmp/www/pouic/toto/pouet).
 //////
 
 //////
