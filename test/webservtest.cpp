@@ -5,9 +5,10 @@ void start_server(std::string configFile) {
 	std::string	binaryName = "./webserv";
 	std::string	logFileRedirection = " > logs/server-outputs.log";
 	std::string	ampersandOp = "&";
-	std::string	finalExec = binaryName + configFile + logFileRedirection + ampersandOp;
+	std::string	finalExec = binaryName + " " + configFile + logFileRedirection + ampersandOp;
 
-	std::system(finalExec.c_str());
+	if (std::system(finalExec.c_str()))
+		std::cerr << "Erro: " << finalExec << std::endl;
 	std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 

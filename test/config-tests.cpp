@@ -63,7 +63,6 @@ TEST(ConfigTest, NoServers) {
 	EXPECT_EQ(route1.upload_directory, DEFAULT_UPLOAD_DIRECTORY);
 }
 
-
 TEST(ConfigTest, OneServer) {
 	Config  *config = Config::getInstance();
 
