@@ -19,7 +19,7 @@ TEST(ConfigTest, NoServersFile) {
 	// Verificação da rota do primeiro servidor
 	ASSERT_EQ(server1.routes.empty(), false);
 
-	return ;
+	// return ;
 	const RouteConfig& route1 = server1.routes.at(DEFAULT_ROUTE_PATH);
 	EXPECT_EQ(route1.route, DEFAULT_ROUTE_PATH);
 	EXPECT_EQ(route1.redirection, DEFAULT_REDIRECTION);
@@ -50,7 +50,7 @@ TEST(ConfigTest, NoServers) {
 	ASSERT_EQ(server1.routes.empty(), false);
 
 	
-	return ;
+	// return ;
 	const RouteConfig& route1 = server1.routes.at(DEFAULT_ROUTE_PATH);
 	EXPECT_EQ(route1.route, DEFAULT_ROUTE_PATH);
 	EXPECT_EQ(route1.redirection, DEFAULT_REDIRECTION);
