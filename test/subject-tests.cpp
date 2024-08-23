@@ -171,6 +171,33 @@ TEST(SubjectTests, MethodNotAllowed) {
 // /tmp/www/pouic/toto/pouet).
 //////
 
+TEST(SubjectTests, routeTest) {
+	//ARRANGE
+	HttpResponse response;
+	CURL* curl;
+	start_server("test/routes_test/subjectRouteCase.conf");
+	curl = curl_easy_init();
+	ASSERT_NE(curl, nullptr);
+
+	// ACT
+	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080/kapouet/pouic/toto/pouet");
+	curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+	curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, HeaderCallback);
+	curl_easy_setopt(curl, CURLOPT_HEADERDATA, &response);
+	CURLcode res = curl_easy_perform(curl);
+	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response.status_code);
+
+	// ASSERT: Verificar os resultados
+	EXPECT_EQ(res, CURLE_OK);
+	EXPECT_EQ(response.status_code, 200);
+	EXPECT_TRUE(response.body.find("rubber duck") != std::string::npos);
+
+	curl_easy_cleanup(curl);
+	stop_server();
+}
+
 //////
 // - se directory listing está on: renderizar html com links para os conteudo
 //                  - se está off: retornar default file (e se não tiver default file usa default file do webserver)

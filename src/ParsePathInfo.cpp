@@ -6,11 +6,8 @@
 
 void	ParsePathInfo::parsePathInfo(RequestInfo &info)
 {
-	// std::cout << "requestedRoute: " << info.requestedRoute << "\n";
 	info.pathType = identifyFullPathType(info.requestedRoute, info.serverRef, info);
-
 	info.permissions = getPermissions(info.fullPath);
-	// std::cout << "fullpath: " << info.fullPath << "\n";
 }
 
 e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serverConfig, RequestInfo &info)
@@ -96,11 +93,9 @@ bool isFile(const std::string& path) {
 		switch (errno)
 		{
 			case EACCES:
-				std::cout << "no permission" << std::endl;
 				return true;
 			
 			case ENOENT:
-				std::cout << "not found" << std::endl;
 				return false;
 		}
 	}
