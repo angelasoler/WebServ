@@ -74,11 +74,17 @@ class Config
 		bool 				isInPorts(int port);
 		void	finishServer(void);
 		void	finishRoute(void);
+		void	processConfigLine(const std::string &line);
 		void	processServerConfig(const std::string& key, const std::string& value);
 		void	processRouteConfig(const std::string& key, const std::string& value, std::istringstream &iss);
 		void	processCGIConfig(const std::string& key, const std::string& value);
 		void	addServer(const ServerConfig& server);
 		void	configReset();
+		void	finalizeConfigParsing();
+		void	handleEndRoute();
+		void	handleStartRoute();
+		void	handleEndServer();
+		void	handleStartServer();
 
 		// Construtor privado para impedir a criação de instâncias fora da classe
 		Config() {}

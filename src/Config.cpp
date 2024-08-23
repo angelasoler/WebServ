@@ -4,7 +4,7 @@
 #include <sstream>
 #include <cstdlib>
 
-// Definição e inicialização do ponteiro estático
+// Static pointer initialization
 Config* Config::instance = NULL;
 
 Config* Config::getInstance()
@@ -15,31 +15,31 @@ Config* Config::getInstance()
 	return instance;
 }
 
-// Construtores das Structs
+// Struct Constructors
 RouteConfig::RouteConfig()
 	: route(DEFAULT_ROUTE_PATH),
-		redirection(DEFAULT_REDIRECTION),
-		root_directory(DEFAULT_ROOT_DIRECTORY),
-		directory_listing(DEFAULT_DIRECTORY_LISTING),
-		default_file(DEFAULT_FILE),
-		cgi_extension(DEFAULT_CGI_EXTENSION),
-		upload_directory(DEFAULT_UPLOAD_DIRECTORY)
+	  redirection(DEFAULT_REDIRECTION),
+	  root_directory(DEFAULT_ROOT_DIRECTORY),
+	  directory_listing(DEFAULT_DIRECTORY_LISTING),
+	  default_file(DEFAULT_FILE),
+	  cgi_extension(DEFAULT_CGI_EXTENSION),
+	  upload_directory(DEFAULT_UPLOAD_DIRECTORY)
 {}
 
 CGIConfig::CGIConfig()
 	: path_info(DEFAULT_PATH_INFO),
-		script_path(DEFAULT_SCRIPT_PATH)
+	  script_path(DEFAULT_SCRIPT_PATH)
 {}
 
 ServerConfig::ServerConfig()
 	: host(DEFAULT_HOST),
-		port(DEFAULT_SERVER_PORT),
-		default_error_page(DEFAULT_ERROR_PAGE),
-		client_body_limit(DEFAULT_CLIENT_BODY_LIMIT),
-		cgi()
+	  port(DEFAULT_SERVER_PORT),
+	  default_error_page(DEFAULT_ERROR_PAGE),
+	  client_body_limit(DEFAULT_CLIENT_BODY_LIMIT),
+	  cgi()
 {}
 
-// Methods
+// Public Methods
 void Config::addServer(const ServerConfig& server)
 {
 	servers.push_back(server);
@@ -55,9 +55,10 @@ void Config::configReset()
 	servers.clear();
 }
 
-void Config::loadDefaultConfig(void)
+void Config::loadDefaultConfig()
 {
 	configReset();
+	finishRoute();
 	finishServer();
 }
 
@@ -67,55 +68,87 @@ void Config::loadConfig(const std::string& configFilePath)
 	std::string line;
 
 	configReset();
+
 	while (std::getline(configFile, line))
 	{
-		std::istringstream iss(line);
-		std::string key;
-		std::string value;
-
-		if (line.empty() || line[0] == '#') // skip empty lines and comments
-			continue;
-		if (!(iss >> key))
-			continue;
-		if (!inServer)
-		{
-			if (key == "START_SERVER")
-				inServer = 1;
-			continue;
-		}
-		if (key == "END_SERVER")
-		{
-			inServer = false;
-			inRoute = false;
-			finishServer();
-			continue ;
-		}
-		if (!inRoute)
-		{
-			if (key == "START_ROUTE")
-			{
-				inRoute = true;
-				continue ;
-			}
-		}
-		if (key == "END_ROUTE")
-		{
-			inRoute = false;
-			finishRoute();
-			continue ;
-		}
-		if (iss >> value)
-		{
-			processServerConfig(key, value);
-			processRouteConfig(key, value, iss);
-			processCGIConfig(key, value);
-		}
+		processConfigLine(line);
 	}
-	if (inServer)
-		finishServer();
-	if (servers.empty())
-		finishServer();
+
+	finalizeConfigParsing();
 	configFile.close();
+}
+
+// Private Methods
+void Config::processConfigLine(const std::string& line)
+{
+	std::istringstream iss(line);
+	std::string key;
+	std::string value;
+
+	if (line.empty() || line[0] == '#') // Skip empty lines and comments
+		return;
+	if (!(iss >> key))
+		return;
+
+	if (key == "START_SERVER")
+		handleStartServer();
+	else if (key == "END_SERVER")
+		handleEndServer();
+	else if (key == "START_ROUTE")
+		handleStartRoute();
+	else if (key == "END_ROUTE")
+		handleEndRoute();
+	else if (inServer && (iss >> value))
+	{
+		processServerConfig(key, value);
+		processRouteConfig(key, value, iss);
+		processCGIConfig(key, value);
+	}
+}
+
+void Config::handleStartServer()
+{
+	if (!inServer) {
+		inServer = true;
+	}
+}
+
+void Config::handleEndServer()
+{
+	if (inServer) {
+		if (inRoute) {
+			finishRoute();
+			inRoute = false; // Finalize any open route before ending the server
+		}
+		finishServer();
+		inServer = false;
+	}
+}
+
+void Config::handleStartRoute()
+{
+	if (!inRoute) {
+		inRoute = true;
+	}
+}
+
+void Config::handleEndRoute()
+{
+	if (inRoute) {
+		finishRoute();
+		inRoute = false;
+	}
+}
+
+void Config::finalizeConfigParsing()
+{
+	if (inServer) {
+		if (inRoute)
+			finishRoute();
+		finishServer();
+	} else if (servers.empty()) {
+		finishServer();
+	}
 }
 
 void Config::processServerConfig(const std::string& key, const std::string& value)
@@ -134,6 +167,8 @@ void Config::processServerConfig(const std::string& key, const std::string& valu
 
 void Config::processRouteConfig(const std::string& key, const std::string& value, std::istringstream &iss)
 {
+	if (!inRoute)
+		return ;
 	if (key == "route_path")
 		currentRoute.route = value;
 	else if (key == "accepted_methods")
@@ -167,7 +202,7 @@ void Config::processCGIConfig(const std::string& key, const std::string& value)
 		currentServer.cgi.script_path = value;
 }
 
-void Config::finishRoute(void)
+void Config::finishRoute()
 {
 	if (currentRoute.accepted_methods.empty())
 	{
@@ -182,34 +217,29 @@ void Config::finishRoute(void)
 	currentRoute = RouteConfig();
 }
 
-bool Config::isInPorts(int port)
+void Config::finishServer()
 {
-	std::vector<int>::const_iterator it = std::find(usedPorts.begin(), usedPorts.end(), port);
-	return it != usedPorts.end();
-}
-
-void Config::finishServer(void)
-{
-	if (servers.empty())
-	{
-		if (currentServer.port < 0)
-			currentServer.port = DEFAULT_PORT;
-	}
 	if (currentServer.port < 0)
 	{
-		currentServer = ServerConfig();
-		return ;
+		currentServer.port = DEFAULT_PORT;
 	}
 	if (isInPorts(currentServer.port))
 	{
 		currentServer = ServerConfig();
-		return ;
+		return;
 	}
 	usedPorts.push_back(currentServer.port);
 	if (currentServer.server_names.empty())
 		currentServer.server_names.push_back(DEFAULT_SERVER_NAME);
+	if (currentServer.routes.empty())
+		finishRoute();
 	this->addServer(currentServer);
 	currentServer = ServerConfig();
+	inRoute = false;
+	inServer = false;
 }
 
-
+bool Config::isInPorts(int port)
+{
+	return std::find(usedPorts.begin(), usedPorts.end(), port) != usedPorts.end();
+}
