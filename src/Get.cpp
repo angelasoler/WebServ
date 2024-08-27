@@ -60,7 +60,7 @@ int	Get::responseToFile(void)
 int	Get::responseToDirectory(void)
 {
 	if (!endsWith(response.requestInfo.requestedRoute, "/"))
-		return (301);
+		return (307);
 	else if (!response.requestInfo.fullPath.empty())
 		return (200);
 	else if (response.requestInfo.auto_index) {
