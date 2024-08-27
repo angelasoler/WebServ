@@ -45,7 +45,6 @@ class Response
 
 		// PARSING
 		std::string	buildResponse(void);
-		void		setHeader(const std::string& key, const std::string& value);
 		void		setStatusLine(void);
 		void		setResponseMsg(IHttpMethod *method);
 
@@ -63,6 +62,7 @@ class Response
 		~Response(void);
 
 		void		treatActionAndResponse(void);
+		void		setHeader(const std::string& key, const std::string& value);
 		void		setBody(const std::string& body);
 		std::string	getDefaultPage(void);
 };
