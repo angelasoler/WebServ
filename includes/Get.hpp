@@ -16,6 +16,7 @@ class Get : public IHttpMethod
 	private:
 		Response &response;
 
+		int			responseToRedirection(void);
 		int			responseToFile(void);
 		int			responseToDirectory(void);
 		int			responseToInvalid(void);

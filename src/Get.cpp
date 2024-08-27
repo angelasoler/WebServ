@@ -16,6 +16,8 @@ int Get::handleRequest(void)
 		case URL:
 		case File:
 			return responseToFile();
+		case Redirection:
+			return responseToRedirection();
 		default:
 			return responseToInvalid();
 	}
@@ -44,6 +46,15 @@ void	Get::buildBody(void)
 	if (body == NO_DEFAULT_ERROR)
 		body = getBodyFromFile(response.requestInfo.fullPath);
 	response.setBody(body);
+}
+
+int	Get::responseToRedirection(void)
+{
+	std::stringstream port;
+
+	port << response.requestInfo.serverRef.port;
+	response.setHeader("Location", (std::string)"http://localhost:" + port.str() + (response.requestInfo.fullPath.at(0) == '.' ? response.requestInfo.fullPath.substr(1) : response.requestInfo.fullPath) );
+	return (307);
 }
 
 int	Get::responseToFile(void)
