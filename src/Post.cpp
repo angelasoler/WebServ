@@ -12,6 +12,7 @@ int	Post::handleRequest(void)
 
 void	Post::upload(void)
 {
+	(void) response;
 	// Handle file upload logic here
 }
 
