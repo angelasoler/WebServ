@@ -181,7 +181,15 @@ void Config::processRouteConfig(const std::string& key, const std::string& value
 		}
 	}
 	else if (key == "redirection")
-		currentRoute.redirection = value;
+	{
+		std::string newLocation; // TO-DO: quit the program when it is bad written
+		
+		while (iss >> newLocation)
+		{
+			currentRoute.redirection[value] = newLocation;
+			iss >> const_cast<std::string &>(value);
+		}
+	}
 	else if (key == "root_directory")
 		currentRoute.root_directory = value;
 	else if (key == "directory_listing")
