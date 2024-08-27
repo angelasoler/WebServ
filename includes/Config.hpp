@@ -9,7 +9,6 @@
 
 // Definições de macros para RouteConfig
 #define DEFAULT_ROUTE_PATH "/"
-#define DEFAULT_REDIRECTION ""
 #define DEFAULT_ROOT_DIRECTORY "./serverRoot"
 #define DEFAULT_DIRECTORY_LISTING false
 #define DEFAULT_FILE "index.html"

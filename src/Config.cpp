@@ -18,12 +18,12 @@ Config* Config::getInstance()
 // Struct Constructors
 RouteConfig::RouteConfig()
 	: route(DEFAULT_ROUTE_PATH),
-	  redirection(DEFAULT_REDIRECTION),
-	  root_directory(DEFAULT_ROOT_DIRECTORY),
-	  directory_listing(DEFAULT_DIRECTORY_LISTING),
-	  default_file(DEFAULT_FILE),
-	  cgi_extension(DEFAULT_CGI_EXTENSION),
-	  upload_directory(DEFAULT_UPLOAD_DIRECTORY)
+		redirection(),
+		root_directory(DEFAULT_ROOT_DIRECTORY),
+		directory_listing(DEFAULT_DIRECTORY_LISTING),
+		default_file(DEFAULT_FILE),
+		cgi_extension(DEFAULT_CGI_EXTENSION),
+		upload_directory(DEFAULT_UPLOAD_DIRECTORY)
 {}
 
 CGIConfig::CGIConfig()
