@@ -57,6 +57,8 @@ void	Connection::readClientRequest(int client_fd)
 {
 	if (request.readRequest(client_fd))
 		request.info.action = CLOSE;
+	else
+		request.info.action = RESPONSE;
 }
 
 void	Connection::responseToClient(int client_fd)
