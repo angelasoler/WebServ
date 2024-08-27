@@ -35,7 +35,7 @@ e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serve
 
 			for (;redirIt != routeConfig.redirection.end(); redirIt++)
 			{
-				if (endsWith(redirIt->first, "/") || !startsWith(redirIt->first, "/"))
+				if (endsWith(redirIt->first, "/"))
 				{
 					continue;
 				}
