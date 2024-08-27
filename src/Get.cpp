@@ -78,11 +78,11 @@ int	Get::responseToInvalid(void)
 }
 
 int	Get::responseCGI(void) {
-	std::string	htmlResponse;
-	CGIServer	cgi(response.requestInfo.requestedRoute);
+	htmlResponse	htmlResponse;
+	CGIServer		cgi(response.requestInfo.requestedRoute);
 
 	cgi.setEnv(response.requestInfo);
 	htmlResponse = cgi.executeScript(response.requestInfo.body);
-	response.setBody(htmlResponse);
-	return(200);
+	response.setBody(htmlResponse.body);
+	return(htmlResponse.code);
 }
