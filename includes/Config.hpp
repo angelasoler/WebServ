@@ -29,14 +29,14 @@
 
 struct RouteConfig
 {
-	std::string					route;
-	std::vector<std::string>	accepted_methods;
-	std::string					redirection;
-	std::string					root_directory;
-	bool 						directory_listing;
-	std::string 				default_file;
-	std::string 				cgi_extension;
-	std::string					upload_directory;
+	std::string							route;
+	std::vector<std::string>			accepted_methods;
+	std::map<std::string,std::string>	redirection;
+	std::string							root_directory;
+	bool 								directory_listing;
+	std::string 						default_file;
+	std::string 						cgi_extension;
+	std::string							upload_directory;
 
 	RouteConfig();
 };
