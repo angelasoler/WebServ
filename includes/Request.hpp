@@ -63,6 +63,7 @@ struct RequestInfo
 	bool					auto_index;
 	// Reference
 	ServerConfig			serverRef;
+	RouteConfig				configRef;
 
 	// About Body
 	std::string							boundary;

@@ -21,11 +21,11 @@ e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serve
 		routeConfig = it->second;
 		info.auto_index = routeConfig.directory_listing;
 
-		// Se o caminho corresponde à rota configurada
+		// Se o caminho corresponde extamente à rota configurada
 		if ((requestedRoute == routeConfig.route))
 		{
 			info.fullPath = composeFullPath(routeConfig.root_directory, routeConfig.default_file);
-			return URL;
+			break ;
 		}
 
 		// Verifica redirection
@@ -48,40 +48,41 @@ e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serve
 		}
 
 		// Verifica se inicia buscando uma rota
+		// se o caminho é composto por uma rota
 		if (startsWith(requestedRoute, routeConfig.route))
 		{
 			std::string requestSuffix = requestedRoute.substr(routeConfig.route.size());
 			info.fullPath = composeFullPath(routeConfig.root_directory, requestSuffix);
+			info.fullPath = composeFullPath(info.fullPath, "index.html");
+			break ;
 		}
 		else
 			info.fullPath = composeFullPath(routeConfig.root_directory, info.requestedRoute);
 	}
+	// isso aqui é necessario nos casos em que a rota / não foi configurada
+	// mas podemos adicionar ela por default, quando não esteja
 	if (info.requestedRoute == "/" && serverConfig.routes.find("/") == serverConfig.routes.end()) {
 		info.fullPath.clear();
 		return UNKNOWN;
 	}
+	if (isFile(info.fullPath)) {
+		return File;
+	}
 	// Verificar se o caminho está associado a um CGI
 	if (endsWith(info.fullPath, DEFAULT_CGI_EXTENSION))
 		return CGI;
-
-	// Verificar se é um diretório
-	else if (isDirectory(info.fullPath)) {
-		// Se for um diretório, tentar encontrar o arquivo index dele
-		info.fullPath = composeFullPath(info.fullPath, routeConfig.default_file);
+	info.configRef = routeConfig;
+	if (isDirectory(composeFullPath(routeConfig.root_directory, info.requestedRoute))) {
+		// Se for um diretório, tentar encontrar o arquivo default dele
+		// if (info.fullPath.empty())
+		// 	info.fullPath = composeFullPath(routeConfig.root_directory, routeConfig.default_file);
+		// else
+			info.fullPath = composeFullPath(info.fullPath, routeConfig.default_file);
 		struct stat buffer;
 		if (!(stat(info.fullPath.c_str(), &buffer) == 0 && S_ISREG(buffer.st_mode)) || routeConfig.default_file.empty())
 			info.fullPath.clear();
-
-		// Recolher auto-index
 		return Directory;
 	}
-
-	// Verificar se é um arquivo
-	else if (isFile(info.fullPath)) {
-		return File;
-	}
-
-	// Verificar se há uma redireção configurada
 	info.fullPath.clear();
 	return UNKNOWN;
 }
@@ -136,6 +137,8 @@ bool endsWith(const std::string& str, const std::string& suffix) {
 }
 
 bool startsWith(const std::string& str, const std::string& prefix) {
+	if (prefix == "/")
+		return false;
 	if (prefix.size() > str.size()) {
 		return false;
 	}
