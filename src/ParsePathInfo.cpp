@@ -27,6 +27,26 @@ e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serve
 			info.fullPath = composeFullPath(routeConfig.root_directory, routeConfig.default_file);
 			return URL;
 		}
+
+		// Verifica redirection
+		if (!routeConfig.redirection.empty())
+		{
+			std::map<std::string, std::string>::iterator redirIt = routeConfig.redirection.begin();
+
+			for (;redirIt != routeConfig.redirection.end(); redirIt++)
+			{
+				if (endsWith(redirIt->first, "/") || !startsWith(redirIt->first, "/"))
+				{
+					continue;
+				}
+				if (routeConfig.route + redirIt->first == requestedRoute)
+				{
+					info.fullPath = composeFullPath("", redirIt->second);
+					return Redirection;
+				}
+			}
+		}
+
 		// Verifica se inicia buscando uma rota
 		if (startsWith(requestedRoute, routeConfig.route))
 		{
@@ -35,8 +55,6 @@ e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serve
 		}
 		else
 			info.fullPath = composeFullPath(routeConfig.root_directory, info.requestedRoute);
-		if (!routeConfig.redirection.empty())
-			return Redirection;
 	}
 	if (info.requestedRoute == "/" && serverConfig.routes.find("/") == serverConfig.routes.end()) {
 		info.fullPath.clear();
