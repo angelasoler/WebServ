@@ -18,7 +18,7 @@ void printRouteConfig(RouteConfig& routeConfig, std::ofstream &fd)
 	}
 	fd << std::endl;
 
-	fd << "\tRedirection: " << routeConfig.redirection << std::endl;
+	// fd << "\tRedirection: " << routeConfig.redirection << std::endl;
 	fd << "\tRoot Directory: " << routeConfig.root_directory << std::endl;
 	fd << "\tDirectory Listing: " << (routeConfig.directory_listing ? "Yes" : "No") << std::endl;
 	fd << "\tDefault File: " << routeConfig.default_file << std::endl;
