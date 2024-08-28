@@ -1,22 +1,24 @@
-# include "RequestParser.hpp"
+# include "RequestReader.hpp"
 # include <sstream>
 
-RequestParser::RequestParser(RequestInfo &info) : _headers(), _method(""), _httpVersion(""), _errorRead(false), _info(info) { }
+RequestReader::RequestReader(RequestInfo &info) : _headers(), _method(""), _httpVersion(""), _errorRead(false), _info(info) { }
 
-RequestParser::~RequestParser(void) {}
+RequestReader::~RequestReader(void) {}
 
-bool    RequestParser::parserHttpRequest(int &fdConection)
+bool    RequestReader::readHttpRequest(int &fdConection)
 {
 	this->_fdClient = fdConection;
 	// _info = info;
 	// (void)info;
-	parseRequestStartLine();
-	parseRequestHeader();
-	parseRequestBody();
-	return _errorRead;
+	readRequestStartLine();
+	readRequestHeader();
+	readRequestBody();
+	if (_errorRead)
+		return false;
+	return true;
 }
 
-void parseMultipartFormDataBody(const std::string& boundary, std::string &tempLine)
+void readMultipartFormDataBody(const std::string& boundary, std::string &tempLine)
 {
 	size_t boundaryPos = tempLine.find(boundary);
 	if (boundaryPos == std::string::npos)
@@ -46,7 +48,7 @@ void parseMultipartFormDataBody(const std::string& boundary, std::string &tempLi
 	tempLine = tempLine.substr(contentStart, contentEnd - contentStart);
 }
 
-size_t  RequestParser::convertChunkSize(void)
+size_t  RequestReader::convertChunkSize(void)
 {
 	std::string line;
 	std::string chunkSizeLine;
@@ -64,7 +66,7 @@ size_t  RequestParser::convertChunkSize(void)
 	return chunkSize;
 }
 
-void RequestParser::parseRequestBodyChunked()
+void RequestReader::readRequestBodyChunked()
 {
 	std::size_t		length = 0;
 	std::string        tempLine;
@@ -84,7 +86,7 @@ void RequestParser::parseRequestBodyChunked()
 	this->_headers["Content-Length"] = intToString(length);
 }
 
-void RequestParser::parseRequestBodyContentType(void)
+void RequestReader::readRequestBodyContentType(void)
 {
 	std::string tempLine;
 	size_t pos;
@@ -95,21 +97,21 @@ void RequestParser::parseRequestBodyContentType(void)
 	if (pos != std::string::npos)
 	{
 		std::string boundary = getHeader("Content-Type").substr(pos + 9);
-		parseMultipartFormDataBody(boundary, tempLine);
+		readMultipartFormDataBody(boundary, tempLine);
 	}
 	_info.body += tempLine;
 	this->_request += tempLine + "\n";
 
 }
-void RequestParser::parseRequestBody(void)
+void RequestReader::readRequestBody(void)
 {
 	if (getHeader("Transfer-Encoding") == "chunked")
 	{
-		parseRequestBodyChunked();
+		readRequestBodyChunked();
 	}
 	else if (!getHeader("Content-Type").empty() && getHeader("Content-Type").find("multipart/form-data") != std::string::npos)
 	{
-		parseRequestBodyContentType();
+		readRequestBodyContentType();
 	}
 	else if (!getHeader("Content-Length").empty())
 	{
@@ -121,7 +123,7 @@ void RequestParser::parseRequestBody(void)
 	}
 }
 
-void 	RequestParser::parseRequestHeader(void)
+void 	RequestReader::readRequestHeader(void)
 {
 	std::string line;
 
@@ -152,7 +154,7 @@ void 	RequestParser::parseRequestHeader(void)
 	}
 }
 
-void	RequestParser::parseRequestStartLine(void)
+void	RequestReader::readRequestStartLine(void)
 {
 	std::string line;
 
@@ -165,22 +167,22 @@ void	RequestParser::parseRequestStartLine(void)
 	}
 }
 
-std::string RequestParser::getMethod(void) const
+std::string RequestReader::getMethod(void) const
 {
 	return this->_method;
 }
 
-std::string RequestParser::getHttpVersion(void) const
+std::string RequestReader::getHttpVersion(void) const
 {
 	return this->_httpVersion;
 }
 
-std::string RequestParser::getBody(void) const
+std::string RequestReader::getBody(void) const
 {
 	return _info.body;
 }
 
-std::string RequestParser::getHeader(std::string headerName) const
+std::string RequestReader::getHeader(std::string headerName) const
 {
 	std::map<std::string, std::string>::const_iterator it = this->_headers.find(headerName);
 
@@ -194,33 +196,33 @@ std::string RequestParser::getHeader(std::string headerName) const
 	}
 }
 
-std::string RequestParser::getFileName(void) const
+std::string RequestReader::getFileName(void) const
 {
 	return this->_fileName;
 }
 
 
-std::string RequestParser::getRequest(void) const
+std::string RequestReader::getRequest(void) const
 {
 	return this->_request;
 }
 
-void RequestParser::setBody(std::string newBody)
+void RequestReader::setBody(std::string newBody)
 {
 	_info.body = newBody;
 }
 
-std::string RequestParser::getFileExec(void) const
+std::string RequestReader::getFileExec(void) const
 {
 	return this->_fileExec;
 }
 
-void RequestParser::setFileExec(std::string fileExec)
+void RequestReader::setFileExec(std::string fileExec)
 {
 	this->_fileExec = fileExec;
 }
 
-void RequestParser::setFileName(std::string line)
+void RequestReader::setFileName(std::string line)
 {
 
 	if (line.find("filename=\"") != std::string::npos)
@@ -234,7 +236,7 @@ void RequestParser::setFileName(std::string line)
 
 }
 
-int RequestParser::getContentLength() const
+int RequestReader::getContentLength() const
 {
 	std::string contentLengthStr = getHeader("Content-Length");
 
@@ -245,20 +247,20 @@ int RequestParser::getContentLength() const
 	return 0;
 }
 
-void RequestParser::setMethod(std::string method)
+void RequestReader::setMethod(std::string method)
 {
 	this->_method = method;
 }
 
 
-bool  RequestParser::isDelimiter(std::string line, std::string delimiter)
+bool  RequestReader::isDelimiter(std::string line, std::string delimiter)
 {
 	return (line.rfind(delimiter) != std::string::npos);
 }
 
 
 
-void	 RequestParser::readLine(int fd, std::string &line, std::string delimiter, bool &error)
+void	 RequestReader::readLine(int fd, std::string &line, std::string delimiter, bool &error)
 {
 	char		buffer[2] = {0};
 	ssize_t		numberBytes;
@@ -270,13 +272,13 @@ void	 RequestParser::readLine(int fd, std::string &line, std::string delimiter, 
 		if (numberBytes == -1)
 		{
 			error = true;
-			std::cerr << "requestParser readLine: " << "number bytes = -1 " << std::endl;
+			// std::cerr << "requestReader readLine: " << "number bytes = -1 " << std::endl;
 			break;
 		}
 		if (numberBytes == 0)
 		{
 			error = true;
-			std::cerr << "requestParser readLine: " << "number bytes = 0 " << std::endl;
+			// std::cerr << "requestReader readLine: " << "number bytes = 0 " << std::endl;
 			break ;
 		}
 		tempLine += buffer;
@@ -288,7 +290,7 @@ void	 RequestParser::readLine(int fd, std::string &line, std::string delimiter, 
 		line.resize(line.rfind(delimiter));
 }
 
-void	 RequestParser::readLineBody(int fd, std::string &line, int contentLength, bool &error)
+void	 RequestReader::readLineBody(int fd, std::string &line, int contentLength, bool &error)
 {
 	ssize_t		numberBytes;
 	char		buffer[20] = {0};
@@ -301,13 +303,13 @@ void	 RequestParser::readLineBody(int fd, std::string &line, int contentLength, 
 		if (numberBytes == -1)
 		{
 			error = true;
-			std::cerr << "readLineBody: " << "std::strerror(errno) " << std::endl;
+			// std::cerr << "readLineBody: " << "number bytes = -1 " << std::endl;
 			break;
 		}
 		if (numberBytes == 0)
 		{
 			error = true;
-			std::cerr << "readLineBody: " << "std::strerror(errno) " << std::endl;
+			// std::cerr << "readLineBody: " << "number bytes = 0 " << std::endl;
 			break ;
 		}
 		contentLength -= numberBytes;
@@ -316,7 +318,7 @@ void	 RequestParser::readLineBody(int fd, std::string &line, int contentLength, 
 	}
 }
 
-std::string RequestParser::intToString(int value)
+std::string RequestReader::intToString(int value)
 {
 	std::stringstream ss;
 	ss << value;

@@ -61,6 +61,7 @@ struct RequestInfo
 	e_httpMethodActions		action;
 	Permission				permissions;
 	bool					auto_index;
+
 	// Reference
 	ServerConfig			serverRef;
 	RouteConfig				configRef;

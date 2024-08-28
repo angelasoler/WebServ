@@ -1,7 +1,6 @@
 
 #include "Request.hpp"
 #include "ParsePathInfo.hpp"
-#include "ParseBodyInfo.hpp"
 #include "RequestParser.hpp"
 #include "PrintRequestInfo.hpp"
 #include "TimeNow.hpp"
@@ -27,7 +26,7 @@ bool	Request::readRequest(int client_fd)
 {
 	RequestParser requestParser(info);
 
-	if (requestParser.parserHttpRequest(client_fd))
+	if (!requestParser.readHttpRequest(client_fd))
 		return (true);
 	requestsText = requestParser.getRequest();
 	printRequest();
@@ -125,16 +124,9 @@ void	Request::parseRequestInfo(ServerConfig &serverConfig)
 
 void Request::parseRequest(ServerConfig &serverConfig)
 {
-
-	static int ref;
-
-	ref++;
-	// std::cout << requestsText << " " << ref << "\n";
-	// std::cout << response.getClientFd() << "\n";
 	parseRequestHeader();
 	parseRequestInfo(serverConfig);
 	ParsePathInfo::parsePathInfo(info);
-	ParseBodyInfo::parseBodyInfo(requestsText, info);
 	PrintRequestInfo::printRequestInfo(info);
 }
 

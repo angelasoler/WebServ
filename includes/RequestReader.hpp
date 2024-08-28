@@ -1,5 +1,5 @@
-#ifndef REQUESTPARSER_HPP
-# define REQUESTPARSER_HPP
+#ifndef REQUESTREADER_HPP
+# define REQUESTREADER_HPP
 
 # include <string>
 # include <iostream>
@@ -13,14 +13,14 @@
 # include "Request.hpp"
 #define CRLF			"\r\n"
 
-class RequestParser
+class RequestReader
 {
 
 	public:
-		RequestParser (RequestInfo &info);
-		~RequestParser();
+		RequestReader (RequestInfo &info);
+		~RequestReader();
 
-		bool								parserHttpRequest(int &fdConection);
+		bool								readHttpRequest(int &fdConection);
 		std::string							getMethod(void) const;
 		std::string							getHttpVersion(void) const;
 		std::string							getBody(void) const;
@@ -38,13 +38,13 @@ class RequestParser
 		void								readLineBody(int fd, std::string &line, int contentLength, bool &error);
 		std::string							intToString(int value);
 	private:
-		void								parseRequestStartLine(void);
-		void								parseRequestHeader(void);
-		void								parseRequestBody(void);
+		void								readRequestStartLine(void);
+		void								readRequestHeader(void);
+		void								readRequestBody(void);
 		void								setFileName(std::string file);
 		size_t								convertChunkSize();
-		void								parseRequestBodyChunked(void);
-		void								parseRequestBodyContentType(void);
+		void								readRequestBodyChunked(void);
+		void								readRequestBodyContentType(void);
 
 
 
