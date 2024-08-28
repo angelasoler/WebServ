@@ -22,16 +22,60 @@ void	Request::printRequest(void)
 	requestLog.close();
 }
 
-bool	Request::readRequest(int client_fd)
+bool Request::readRequest(int client_fd)
 {
-	char	buffer[BUFFER_SIZE + 1];
+	char buffer[BUFFER_SIZE + 1];
 
+	requestCompleted = false;
 	memset(buffer, 0, BUFFER_SIZE + 1);
 	ssize_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE, 0);
-	if (bytes_read < 0 || !bytes_read)
+
+	std::cout << "Chamada read request\n";
+	if (bytes_read <= 0 || bytes_read == 0) {
+		// requestCompleted = true;
 		return true;
-	requestsText += buffer;
-	printRequest();
+	}
+
+	// Adicionar os dados lidos ao vetor de requests
+	requestsVector.insert(requestsVector.end(), buffer, buffer + bytes_read);
+
+	// Verificar se os headers completos foram recebidos
+	std::vector<char>::iterator it = std::search(requestsVector.begin(), requestsVector.end(),
+												 "\r\n\r\n", "\r\n\r\n" + 4);
+
+	if (it != requestsVector.end()) {
+		std::size_t headerEnd = std::distance(requestsVector.begin(), it);
+
+		// Procurar pelo "Content-Length: "
+		std::vector<char>::iterator itContentLength = std::search(requestsVector.begin(), requestsVector.end(),
+																  "Content-Length: ", "Content-Length: " + 16);
+
+		if (itContentLength != requestsVector.end()) {
+			std::size_t contentStart = headerEnd + 4;
+			int contentLength = std::atoi(std::string(itContentLength + 16, requestsVector.end()).c_str());
+
+			// Verificar se o vetor contém o corpo completo
+			if (requestsVector.size() >= contentStart + contentLength) {
+				// Requisição completa (headers + corpo)
+				requestCompleted = true;
+				std::cout << "Headers recebidos, com Content-Length\n";
+				requestsText.append(requestsVector.begin(), requestsVector.end());
+				printRequest();
+				requestsVector.clear();
+				return false;
+			}
+		} else {
+			// Não há Content-Length, então os headers são suficientes
+			requestCompleted = true;
+			std::cout << "Headers recebidos, sem Content-Length\n";
+			requestsText.append(requestsVector.begin(), requestsVector.end());
+			printRequest();
+			requestsVector.clear();
+			return false;
+		}
+	}
+
+	// A requisição ainda não está completa
 	return false;
 }
 

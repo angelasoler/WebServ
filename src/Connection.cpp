@@ -125,7 +125,7 @@ void	Connection::requestResponse(void)
 			readClientRequest(poll_fds[clientIdx].fd);
 			cleanClient(clientIdx);
 		}
-		if (poll_fds[clientIdx].revents & POLLOUT) {
+		if ((request.requestCompleted) && poll_fds[clientIdx].revents & POLLOUT) {
 			treatRequest(poll_fds[clientIdx].fd);
 			cleanClient(clientIdx);
 		}
