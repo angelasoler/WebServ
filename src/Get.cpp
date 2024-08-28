@@ -58,16 +58,13 @@ int	Get::responseToFile(void)
 
 int	Get::responseToDirectory(void)
 {
-	if (response.requestInfo.fullPath.empty()) {
-		if (!response.requestInfo.configRef.directory_listing)
-			return 404;
-		else {
-			response.requestInfo.fullPath = \
-			response.requestInfo.configRef.root_directory + \
-			"/dirListingPlaceHolder.html";
-			// makeBodyForDirListing
-			return (200);
-		}
+	if (!response.requestInfo.configRef.directory_listing)
+		return 404;
+	else {
+		response.requestInfo.fullPath = \
+		response.requestInfo.configRef.root_directory + \
+		"/dirListingPlaceHolder.html";
+		return (200);
 	}
 	return (200);
 }
