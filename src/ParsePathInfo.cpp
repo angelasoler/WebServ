@@ -17,13 +17,13 @@ std::string	identifyFullPath(RequestInfo &info)
 	std::string	fullPath;
 
 	std::map<std::string, RouteConfig>::iterator it;
+	if (info.requestedRoute.empty())
+		info.requestedRoute = "/";
 	for (it = info.serverRef.routes.begin(); it != info.serverRef.routes.end(); ++it)
 	{
 		routeConfig = it->second;
-		info.auto_index = routeConfig.directory_listing;
-
 		// Se o caminho corresponde exatamente à rota configurada
-		if ((info.requestedRoute == routeConfig.route))
+		if (info.requestedRoute == routeConfig.route)
 		{
 			//DAQUI SAÍ UM FILE
 			fullPath = composeFullPath(routeConfig.root_directory, routeConfig.default_file);
@@ -35,36 +35,28 @@ std::string	identifyFullPath(RequestInfo &info)
 			//DAQUI SAI O ROOT DIRECTORY, CONCATENANDO COM O QUE SOBRAR DO requestRoute sem a rota
 			std::string requestSuffix = info.requestedRoute.substr(routeConfig.route.size());
 			fullPath = composeFullPath(routeConfig.root_directory, requestSuffix);
-			info.fullPath = composeFullPath(info.fullPath, "index.html");
+			fullPath = composeFullPath(fullPath, "index.html");
 			break ;
 		}
 		else
 			// Quando é a rota / + <arquivo>, ou não achou a rota
 			fullPath = composeFullPath(routeConfig.root_directory, info.requestedRoute);
 	}
-	// if (isDirectory(info.fullPath))
 	info.configRef = routeConfig;
 	return fullPath;
 }
 
 e_pathType identifyType(RequestInfo &info)
 {
-	if (info.requestedRoute == "/" && \
-		info.serverRef.routes.find("/") == info.serverRef.routes.end())
-		return UNKNOWN;
 	if (!info.configRef.redirection.empty())
 		return Redirection;
 	if (endsWith(info.fullPath, DEFAULT_CGI_EXTENSION))
 		return CGI;
 	if (isFile(info.fullPath))
 		return File;
-	if (isDirectory(info.fullPath)) {
-		info.fullPath = composeFullPath(info.fullPath, info.configRef.default_file);
-		struct stat buffer;
-		if (!(stat(info.fullPath.c_str(), &buffer) == 0 && S_ISREG(buffer.st_mode)) || info.configRef.default_file.empty())
-			info.fullPath.clear();
+	if (isDirectory(info.fullPath))
 		return Directory;
-	}
+	info.fullPath.clear();
 	return UNKNOWN;
 }
 
