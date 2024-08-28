@@ -17,14 +17,14 @@ typedef struct {
 
 class CGIServer {
 	public:
-		CGIServer(const std::string scriptPath);
+		CGIServer(std::string scriptPath);
 
 		void			setEnv(RequestInfo &requestInfo);
 		htmlResponse	executeScript(std::string requestData);
 
 	private:
 		htmlResponse						GBIReturn;
-		const std::string					scriptPath;
+		std::string						scriptPath;
 		std::map<std::string, std::string>	envVars;
 
 		void	getEnvp(char *envp[]);

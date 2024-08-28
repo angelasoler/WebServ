@@ -21,7 +21,7 @@ e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serve
 		routeConfig = it->second;
 		info.auto_index = routeConfig.directory_listing;
 
-		// Se o caminho corresponde extamente à rota configurada
+		// Se o caminho corresponde exatamente à rota configurada
 		if ((requestedRoute == routeConfig.route))
 		{
 			info.fullPath = composeFullPath(routeConfig.root_directory, routeConfig.default_file);
@@ -46,19 +46,16 @@ e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serve
 		info.fullPath.clear();
 		return UNKNOWN;
 	}
+	// Verificar se o caminho está associado a um CGI
+	if (endsWith(info.fullPath, DEFAULT_CGI_EXTENSION)) {
+		return CGI;
+	}
 	if (isFile(info.fullPath)) {
 		return File;
 	}
-	// Verificar se o caminho está associado a um CGI
-	if (endsWith(info.fullPath, DEFAULT_CGI_EXTENSION))
-		return CGI;
 	info.configRef = routeConfig;
 	if (isDirectory(composeFullPath(routeConfig.root_directory, info.requestedRoute))) {
-		// Se for um diretório, tentar encontrar o arquivo default dele
-		// if (info.fullPath.empty())
-		// 	info.fullPath = composeFullPath(routeConfig.root_directory, routeConfig.default_file);
-		// else
-			info.fullPath = composeFullPath(info.fullPath, routeConfig.default_file);
+		info.fullPath = composeFullPath(info.fullPath, routeConfig.default_file);
 		struct stat buffer;
 		if (!(stat(info.fullPath.c_str(), &buffer) == 0 && S_ISREG(buffer.st_mode)) || routeConfig.default_file.empty())
 			info.fullPath.clear();

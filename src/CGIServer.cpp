@@ -94,9 +94,8 @@ htmlResponse	CGIServer::executeScript(std::string requestData) {
 		redirChildPipes(pipefd, pipefderror);
 		getEnvp(envp);
 		std::string pyBin = "/usr/bin/python3";
-		std::string stacticScriptPath = std::string(getcwd(NULL, 0)) + "/cgi-bin" + scriptPath;
 		//TO-DO: fazer cd para stacticScriptPath
-		char* const argv[] = {const_cast<char*>(pyBin.c_str()), const_cast<char*>(stacticScriptPath.c_str()), NULL};
+		char* const argv[] = {const_cast<char*>(pyBin.c_str()), const_cast<char*>(scriptPath.c_str()), NULL};
 		execve(argv[0], argv, envp);
 	} else {
 		if (!requestData.empty())
