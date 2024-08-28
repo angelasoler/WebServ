@@ -150,6 +150,7 @@ void 	RequestReader::readRequestHeader(void)
         }
         this->_request += line + "\n";
     }
+    printHeaderDataStructure();
 }
 
 void	RequestReader::readRequestStartLine(void)
@@ -328,3 +329,19 @@ std::string RequestReader::intToString(int value)
     ss << value;
     return ss.str();
 }
+
+
+void	RequestReader::printHeaderDataStructure(void)
+{
+	std::map< std::string, std::string>::iterator	headerIt;
+	std::ofstream		parsedRequest("logs/parsedHeader.log");
+
+	parsedRequest << "\t\t === parsed header ==="  << std::endl;
+	for (headerIt = _headers.begin(); headerIt != _headers.end(); headerIt++) {
+		parsedRequest << headerIt->first << std::endl;
+        parsedRequest << "\t" << headerIt->second << std::endl;
+	}
+	parsedRequest << "\t\t === \t\t ==="  << std::endl;
+	parsedRequest.close();
+}
+

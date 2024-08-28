@@ -59,7 +59,6 @@ struct RequestInfo
 	std::string							requestedRoute;
 	std::string							fullPath;
 	e_pathType							pathType;
-	e_httpMethodActions					action;
 	Permission							permissions;
 	bool								auto_index;
 
@@ -69,6 +68,7 @@ struct RequestInfo
 
 	// About Body
 	std::string							boundary;
+	e_httpMethodActions					action;
 	std::string							body;
 	std::map< std::string, std::string>	bodyValues;
 };
@@ -83,15 +83,10 @@ class Request
 		void	printRequest(void);
 
 		// Parsing
-		void	parseTheOthers(std::vector<std::string> &lines);
-		void	breakResquesLine(std::string &line);
 		void	parseRequestInfo(ServerConfig &serverConfig);
-		void	parseRequestHeader(void);
-		void	breakIntoLines(std::vector<std::string> &lines);
 
 		// Aux Parsing
 		e_httpMethodActions									getMethodAction(void);
-		std::map< std::string, std::vector<std::string> >	&getHeader(void);
 	public:
 		std::string			requestsText;
 		RequestReader		requestReader;

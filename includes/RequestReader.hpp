@@ -10,6 +10,7 @@
 # include <string>
 # include <typeinfo>
 # include <vector>
+# include <fstream>
 #define CRLF			"\r\n"
 
 class RequestReader
@@ -44,7 +45,7 @@ class RequestReader
 		size_t								convertChunkSize();
 		void								readRequestBodyChunked(void);
 		void								readRequestBodyContentType(void);
-
+		void								printHeaderDataStructure(void);
 
 
 		std::map<std::string, std::string> 	_headers;
