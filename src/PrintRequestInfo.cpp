@@ -28,7 +28,6 @@ void PrintRequestInfo::printRequestInfo(RequestInfo& request)
 
 	logFd << "\tBoundary: " << request.boundary << std::endl;
 	logFd << "\tBody: " << request.body << std::endl;
-	logFd << "\tContent Type: " << request.contentType << std::endl;
 
 	logFd << "\tBody Values:" << std::endl;
 	for (std::map<std::string, std::string>::iterator it = request.bodyValues.begin(); it != request.bodyValues.end(); ++it) {

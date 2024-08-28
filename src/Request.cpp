@@ -24,8 +24,7 @@ void	Request::printRequest(void)
 
 bool	Request::readRequest(int client_fd)
 {
-	RequestReader requestReader(info);
-
+	requestReader = RequestReader();
 	if (!requestReader.readHttpRequest(client_fd))
 		return (true);
 	requestsText = requestReader.getRequest();
@@ -115,10 +114,10 @@ void	Request::parseRequestInfo(ServerConfig &serverConfig)
 	if (info.action == CLOSE)
 		return ;
 	info.requestedRoute = header["request"][ROUTE];
-	if (header.find("Content-Type") != header.end() && !header["Content-Type"].empty())
-	{
-		info.contentType = header["Content-Type"][0];
-	}
+	// if (header.find("Content-Type") != header.end() && !header["Content-Type"].empty())
+	// {
+	// 	info.contentType = header["Content-Type"][0];
+	// }
 	info.serverRef = serverConfig;
 }
 

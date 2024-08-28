@@ -10,14 +10,13 @@
 # include <string>
 # include <typeinfo>
 # include <vector>
-# include "Request.hpp"
 #define CRLF			"\r\n"
 
 class RequestReader
 {
 
 	public:
-		RequestReader (RequestInfo &info);
+		RequestReader();
 		~RequestReader();
 
 		bool								readHttpRequest(int &fdConection);
@@ -32,7 +31,7 @@ class RequestReader
 		void								setFileExec(std::string newFileExec);
 		void								setMethod(std::string method);
 		int									getContentLength(void) const;
-
+		std::string							getRequestedRoute(void) const;
 		bool								isDelimiter(std::string line, std::string delimiter);
 		void								readLine(int fd, std::string &line, std::string delimiter, bool &error);
 		void								readLineBody(int fd, std::string &line, int contentLength, bool &error);
@@ -50,13 +49,14 @@ class RequestReader
 
 		std::map<std::string, std::string> 	_headers;
 		std::string							_method;
+		std::string							_requestedRoute;
 		std::string							_httpVersion;
 		std::string							_fileExec;
 		std::string							_fileName;
+		std::string							_requestBody;
 		int									_fdClient;
 		std::string							_request;
 		bool								_errorRead;
-		RequestInfo							&_info;
 };
 
 #endif

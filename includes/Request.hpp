@@ -19,6 +19,7 @@
 # include <string.h>
 # include <string>
 # include "Config.hpp"
+# include "RequestReader.hpp"
 
 typedef enum
 {
@@ -55,12 +56,12 @@ struct Permission
 
 struct RequestInfo
 {
-	std::string				requestedRoute;
-	std::string				fullPath;
-	e_pathType				pathType;
-	e_httpMethodActions		action;
-	Permission				permissions;
-	bool					auto_index;
+	std::string							requestedRoute;
+	std::string							fullPath;
+	e_pathType							pathType;
+	e_httpMethodActions					action;
+	Permission							permissions;
+	bool								auto_index;
 
 	// Reference
 	ServerConfig			serverRef;
@@ -69,7 +70,6 @@ struct RequestInfo
 	// About Body
 	std::string							boundary;
 	std::string							body;
-	std::string							contentType;
 	std::map< std::string, std::string>	bodyValues;
 };
 
@@ -94,6 +94,7 @@ class Request
 		std::map< std::string, std::vector<std::string> >	&getHeader(void);
 	public:
 		std::string			requestsText;
+		RequestReader		requestReader;
 		RequestInfo			info;
 
 		Request(void);
