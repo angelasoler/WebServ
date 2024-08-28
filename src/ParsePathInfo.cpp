@@ -6,43 +6,52 @@
 
 void	ParsePathInfo::parsePathInfo(RequestInfo &info)
 {
-	info.pathType = identifyFullPathType(info.requestedRoute, info.serverRef, info);
+	info.fullPath = identifyFullPath(info);
+	info.pathType = identifyType(info);
 	info.permissions = getPermissions(info.fullPath);
 }
 
-e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serverConfig, RequestInfo &info)
+std::string	identifyFullPath(RequestInfo &info)
 {
-	// iterar pelas rotas configuradas
 	RouteConfig routeConfig;
+	std::string	fullPath;
 
 	std::map<std::string, RouteConfig>::iterator it;
-	for (it = serverConfig.routes.begin(); it != serverConfig.routes.end(); ++it)
+	for (it = info.serverRef.routes.begin(); it != info.serverRef.routes.end(); ++it)
 	{
 		routeConfig = it->second;
 		info.auto_index = routeConfig.directory_listing;
 
 		// Se o caminho corresponde exatamente à rota configurada
-		if ((requestedRoute == routeConfig.route))
+		if ((info.requestedRoute == routeConfig.route))
 		{
-			info.fullPath = composeFullPath(routeConfig.root_directory, routeConfig.default_file);
+			//DAQUI SAÍ UM FILE
+			fullPath = composeFullPath(routeConfig.root_directory, routeConfig.default_file);
 			break ;
 		}
 		// se o caminho é composto por uma rota
-		if (startsWith(requestedRoute, routeConfig.route))
+		if (startsWith(info.requestedRoute, routeConfig.route))
 		{
-			std::string requestSuffix = requestedRoute.substr(routeConfig.route.size());
-			info.fullPath = composeFullPath(routeConfig.root_directory, requestSuffix);
-			info.fullPath = composeFullPath(info.fullPath, "index.html");
+			//DAQUI SAI O ROOT DIRECTORY, CONCATENADO COM O QUE SOBRAR DO requestRoute sem a rota
+			std::string requestSuffix = info.requestedRoute.substr(routeConfig.route.size());
+			fullPath = composeFullPath(routeConfig.root_directory, requestSuffix);
 			break ;
 		}
 		else
-			info.fullPath = composeFullPath(routeConfig.root_directory, info.requestedRoute);
-		if (!routeConfig.redirection.empty())
-			return Redirection;
+			// aqui é diretamente o root concatenado com o requestedRoute(o que nunca deveria acontecer pois tudo é rota incluido '/')
+			fullPath = composeFullPath(routeConfig.root_directory, info.requestedRoute);
 	}
+	info.configRef = routeConfig;
+	return fullPath;
+}
+
+e_pathType identifyType(RequestInfo &info)
+{
+	if (!info.configRef .redirection.empty())
+		return Redirection;
 	// isso aqui é necessario nos casos em que a rota / não foi configurada
 	// mas podemos adicionar ela por default, quando não esteja
-	if (info.requestedRoute == "/" && serverConfig.routes.find("/") == serverConfig.routes.end()) {
+	if (info.requestedRoute == "/" && info.serverRef.routes.find("/") == info.serverRef.routes.end()) {
 		info.fullPath.clear();
 		return UNKNOWN;
 	}
@@ -53,12 +62,8 @@ e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serve
 	if (isFile(info.fullPath)) {
 		return File;
 	}
-	info.configRef = routeConfig;
-	if (isDirectory(composeFullPath(routeConfig.root_directory, info.requestedRoute))) {
-		info.fullPath = composeFullPath(info.fullPath, routeConfig.default_file);
-		struct stat buffer;
-		if (!(stat(info.fullPath.c_str(), &buffer) == 0 && S_ISREG(buffer.st_mode)) || routeConfig.default_file.empty())
-			info.fullPath.clear();
+	
+	if (isDirectory(composeFullPath(info.configRef .root_directory, info.requestedRoute))) {
 		return Directory;
 	}
 	info.fullPath.clear();
