@@ -23,30 +23,8 @@ void	Request::printRequest(void)
 	requestLog.close();
 }
 
-
-bool	 read_fd(int fd, std::string &requestText)
-{
-	char		buffer[2] = {0};
-	ssize_t		numberBytes;
-
-	while (true)
-	{
-		numberBytes = recv(fd, buffer, 1, 0);
-		if (numberBytes == -1)
-		{
-			return true;
-		}
-		else if (!numberBytes)
-			return false;
-		requestText += buffer;
-	}
-	return true;
-}
-
 bool	Request::readRequest(int client_fd)
 {
-	// if (!read_fd(client_fd, requestsText))
-	// 	return true;
 	RequestParser requestParser(info);
 
 	if (requestParser.parserHttpRequest(client_fd))
@@ -55,31 +33,6 @@ bool	Request::readRequest(int client_fd)
 	printRequest();
 	return false;
 }
-
-// bool	 read_fd(int fd, std::vector<char> &requestText)
-// {
-// 	char		buffer[2] = {0};
-// 	ssize_t		numberBytes;
-
-// 	while (true)
-// 	{
-// 		numberBytes = recv(fd, buffer, 1, 0);
-// 		if (numberBytes == -1 || numberBytes == 0)
-// 		{
-// 			return true;
-// 		}
-// 		requestText.push_back(buffer[0]);
-// 	}
-// 	return true;
-// }
-
-// bool	Request::readRequest(int client_fd)
-// {
-// 	read_fd(client_fd, requestsVector);
-// 	requestsText.append(requestsVector.begin(), requestsVector.end());
-// 	printRequest();
-// 	return false;
-// }
 
 void	Request::breakIntoLines(std::vector<std::string> &lines) {
 	char	*tokenLine;

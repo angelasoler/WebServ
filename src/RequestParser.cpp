@@ -270,13 +270,13 @@ void	 RequestParser::readLine(int fd, std::string &line, std::string delimiter, 
 		if (numberBytes == -1)
 		{
 			error = true;
-			std::cerr << "readLine: " << "std::strerror(errno) " << std::endl;
+			std::cerr << "requestParser readLine: " << "number bytes = -1 " << std::endl;
 			break;
 		}
 		if (numberBytes == 0)
 		{
 			error = true;
-			std::cerr << "readLine: " << "std::strerror(errno) " << std::endl;
+			std::cerr << "requestParser readLine: " << "number bytes = 0 " << std::endl;
 			break ;
 		}
 		tempLine += buffer;

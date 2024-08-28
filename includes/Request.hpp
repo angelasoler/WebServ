@@ -92,11 +92,9 @@ class Request
 		e_httpMethodActions									getMethodAction(void);
 		std::map< std::string, std::vector<std::string> >	&getHeader(void);
 	public:
-		std::vector<char>	requestsVector;
 		std::string			requestsText;
 		RequestInfo			info;
 
-		bool		requestCompleted;
 		Request(void);
 		~Request(void);
 		void	parseRequest(ServerConfig &serverConfig);
