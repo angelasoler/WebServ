@@ -2,6 +2,7 @@
 #include "Request.hpp"
 #include "ParsePathInfo.hpp"
 #include "ParseBodyInfo.hpp"
+#include "RequestParser.hpp"
 #include "PrintRequestInfo.hpp"
 #include "TimeNow.hpp"
 #include <fstream>
@@ -22,62 +23,63 @@ void	Request::printRequest(void)
 	requestLog.close();
 }
 
-bool Request::readRequest(int client_fd)
+
+bool	 read_fd(int fd, std::string &requestText)
 {
-	char buffer[BUFFER_SIZE + 1];
+	char		buffer[2] = {0};
+	ssize_t		numberBytes;
 
-	requestCompleted = false;
-	memset(buffer, 0, BUFFER_SIZE + 1);
-	ssize_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE, 0);
-
-	std::cout << "Chamada read request\n";
-	if (bytes_read <= 0 || bytes_read == 0) {
-		// requestCompleted = true;
-		return true;
-	}
-
-	// Adicionar os dados lidos ao vetor de requests
-	requestsVector.insert(requestsVector.end(), buffer, buffer + bytes_read);
-
-	// Verificar se os headers completos foram recebidos
-	std::vector<char>::iterator it = std::search(requestsVector.begin(), requestsVector.end(),
-												 "\r\n\r\n", "\r\n\r\n" + 4);
-
-	if (it != requestsVector.end()) {
-		std::size_t headerEnd = std::distance(requestsVector.begin(), it);
-
-		// Procurar pelo "Content-Length: "
-		std::vector<char>::iterator itContentLength = std::search(requestsVector.begin(), requestsVector.end(),
-																  "Content-Length: ", "Content-Length: " + 16);
-
-		if (itContentLength != requestsVector.end()) {
-			std::size_t contentStart = headerEnd + 4;
-			int contentLength = std::atoi(std::string(itContentLength + 16, requestsVector.end()).c_str());
-
-			// Verificar se o vetor contém o corpo completo
-			if (requestsVector.size() >= contentStart + contentLength) {
-				// Requisição completa (headers + corpo)
-				requestCompleted = true;
-				std::cout << "Headers recebidos, com Content-Length\n";
-				requestsText.append(requestsVector.begin(), requestsVector.end());
-				printRequest();
-				requestsVector.clear();
-				return false;
-			}
-		} else {
-			// Não há Content-Length, então os headers são suficientes
-			requestCompleted = true;
-			std::cout << "Headers recebidos, sem Content-Length\n";
-			requestsText.append(requestsVector.begin(), requestsVector.end());
-			printRequest();
-			requestsVector.clear();
-			return false;
+	while (true)
+	{
+		numberBytes = recv(fd, buffer, 1, 0);
+		if (numberBytes == -1)
+		{
+			return true;
 		}
+		else if (!numberBytes)
+			return false;
+		requestText += buffer;
 	}
+	return true;
+}
 
-	// A requisição ainda não está completa
+bool	Request::readRequest(int client_fd)
+{
+	// if (!read_fd(client_fd, requestsText))
+	// 	return true;
+	RequestParser requestParser(info);
+
+	if (requestParser.parserHttpRequest(client_fd))
+		return (true);
+	requestsText = requestParser.getRequest();
+	printRequest();
 	return false;
 }
+
+// bool	 read_fd(int fd, std::vector<char> &requestText)
+// {
+// 	char		buffer[2] = {0};
+// 	ssize_t		numberBytes;
+
+// 	while (true)
+// 	{
+// 		numberBytes = recv(fd, buffer, 1, 0);
+// 		if (numberBytes == -1 || numberBytes == 0)
+// 		{
+// 			return true;
+// 		}
+// 		requestText.push_back(buffer[0]);
+// 	}
+// 	return true;
+// }
+
+// bool	Request::readRequest(int client_fd)
+// {
+// 	read_fd(client_fd, requestsVector);
+// 	requestsText.append(requestsVector.begin(), requestsVector.end());
+// 	printRequest();
+// 	return false;
+// }
 
 void	Request::breakIntoLines(std::vector<std::string> &lines) {
 	char	*tokenLine;

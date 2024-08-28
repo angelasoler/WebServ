@@ -93,8 +93,8 @@ class Request
 		std::map< std::string, std::vector<std::string> >	&getHeader(void);
 	public:
 		std::vector<char>	requestsVector;
-		std::string	requestsText;
-		RequestInfo	info;
+		std::string			requestsText;
+		RequestInfo			info;
 
 		bool		requestCompleted;
 		Request(void);
