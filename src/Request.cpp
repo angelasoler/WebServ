@@ -1,6 +1,7 @@
 
 #include "Request.hpp"
 #include "ParsePathInfo.hpp"
+#include "ParseBodyInfo.hpp"
 #include "RequestReader.hpp"
 #include "PrintRequestInfo.hpp"
 #include "TimeNow.hpp"
@@ -49,6 +50,7 @@ void Request::parseRequest(ServerConfig &serverConfig)
 {
 	parseRequestInfo(serverConfig);
 	ParsePathInfo::parsePathInfo(info);
+	ParseBodyInfo::parseBodyInfo(info);
 	PrintRequestInfo::printRequestInfo(info);
 }
 

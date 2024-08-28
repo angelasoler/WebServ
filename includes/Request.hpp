@@ -67,6 +67,7 @@ struct RequestInfo
 	RouteConfig				configRef;
 
 	// About Body
+	std::string							contentType;
 	std::string							boundary;
 	e_httpMethodActions					action;
 	std::string							body;
@@ -79,7 +80,6 @@ class Request
 		std::map< std::string, std::vector<std::string> >	header;
 
 		// debug
-		void	printHeaderDataStructure(void);
 		void	printRequest(void);
 
 		// Parsing
@@ -96,7 +96,6 @@ class Request
 		~Request(void);
 		void	parseRequest(ServerConfig &serverConfig);
 		bool	readRequest(int client_fd);
-		void	cleanHeader(void);
 };
 
 #endif /* REQUEST_HPP */
