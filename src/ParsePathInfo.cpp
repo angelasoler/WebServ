@@ -32,41 +32,39 @@ std::string	identifyFullPath(RequestInfo &info)
 		// se o caminho é composto por uma rota
 		if (startsWith(info.requestedRoute, routeConfig.route))
 		{
-			//DAQUI SAI O ROOT DIRECTORY, CONCATENADO COM O QUE SOBRAR DO requestRoute sem a rota
+			//DAQUI SAI O ROOT DIRECTORY, CONCATENANDO COM O QUE SOBRAR DO requestRoute sem a rota
 			std::string requestSuffix = info.requestedRoute.substr(routeConfig.route.size());
 			fullPath = composeFullPath(routeConfig.root_directory, requestSuffix);
+			info.fullPath = composeFullPath(info.fullPath, "index.html");
 			break ;
 		}
 		else
-			// aqui é diretamente o root concatenado com o requestedRoute(o que nunca deveria acontecer pois tudo é rota incluido '/')
+			// Quando é a rota / + <arquivo>, ou não achou a rota
 			fullPath = composeFullPath(routeConfig.root_directory, info.requestedRoute);
 	}
+	// if (isDirectory(info.fullPath))
 	info.configRef = routeConfig;
 	return fullPath;
 }
 
 e_pathType identifyType(RequestInfo &info)
 {
-	if (!info.configRef .redirection.empty())
-		return Redirection;
-	// isso aqui é necessario nos casos em que a rota / não foi configurada
-	// mas podemos adicionar ela por default, quando não esteja
-	if (info.requestedRoute == "/" && info.serverRef.routes.find("/") == info.serverRef.routes.end()) {
-		info.fullPath.clear();
+	if (info.requestedRoute == "/" && \
+		info.serverRef.routes.find("/") == info.serverRef.routes.end())
 		return UNKNOWN;
-	}
-	// Verificar se o caminho está associado a um CGI
-	if (endsWith(info.fullPath, DEFAULT_CGI_EXTENSION)) {
+	if (!info.configRef.redirection.empty())
+		return Redirection;
+	if (endsWith(info.fullPath, DEFAULT_CGI_EXTENSION))
 		return CGI;
-	}
-	if (isFile(info.fullPath)) {
+	if (isFile(info.fullPath))
 		return File;
-	}
-	
-	if (isDirectory(composeFullPath(info.configRef .root_directory, info.requestedRoute))) {
+	if (isDirectory(info.fullPath)) {
+		info.fullPath = composeFullPath(info.fullPath, info.configRef.default_file);
+		struct stat buffer;
+		if (!(stat(info.fullPath.c_str(), &buffer) == 0 && S_ISREG(buffer.st_mode)) || info.configRef.default_file.empty())
+			info.fullPath.clear();
 		return Directory;
 	}
-	info.fullPath.clear();
 	return UNKNOWN;
 }
 

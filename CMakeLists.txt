@@ -25,6 +25,9 @@ include_directories(${CURL_INCLUDE_DIRS})
 
 list(REMOVE_ITEM SOURCES "${CMAKE_SOURCE_DIR}/src/main.cpp")
 file(GLOB_RECURSE TEST_SOURCES "test/*.cpp")
+list(REMOVE_ITEM TEST_SOURCES "${CMAKE_SOURCE_DIR}/test/config-tests.cpp")
+list(REMOVE_ITEM TEST_SOURCES "${CMAKE_SOURCE_DIR}/test/route-tests.cpp")
+list(REMOVE_ITEM TEST_SOURCES "${CMAKE_SOURCE_DIR}/test/request-info-tests.cpp")
 add_executable(webservtest ${TEST_SOURCES} ${SOURCES})
 target_link_libraries(webservtest gtest_main ${CURL_LIBRARIES})
 

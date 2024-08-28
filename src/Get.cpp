@@ -64,7 +64,6 @@ int	Get::responseToDirectory(void)
 		response.requestInfo.fullPath = \
 		response.requestInfo.configRef.root_directory + \
 		"/dirListingPlaceHolder.html";
-		// makeBodyForDirListing
 		return (200);
 	}
 	return (200);
