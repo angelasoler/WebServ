@@ -79,7 +79,7 @@ int	Get::responseToInvalid(void)
 
 int	Get::responseCGI(void) {
 	htmlResponse	htmlResponse;
-	CGIServer		cgi(response.requestInfo.requestedRoute);
+	CGIServer		cgi(response.requestInfo.fullPath);
 
 	cgi.setEnv(response.requestInfo);
 	htmlResponse = cgi.executeScript(response.requestInfo.body);

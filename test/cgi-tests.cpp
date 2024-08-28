@@ -4,7 +4,7 @@ TEST(CGITests, GetUploadPy) {
 	//ARRANGE
 	HttpResponse response;
 	CURL* curl;
-	start_server("test/cgi_tests/cgi-config.conf");
+	start_server("test/cgi-tests/cgi-config.conf");
 	curl = curl_easy_init();
 	ASSERT_NE(curl, nullptr);
 
