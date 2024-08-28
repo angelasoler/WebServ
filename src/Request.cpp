@@ -1,7 +1,7 @@
 
 #include "Request.hpp"
 #include "ParsePathInfo.hpp"
-#include "RequestParser.hpp"
+#include "RequestReader.hpp"
 #include "PrintRequestInfo.hpp"
 #include "TimeNow.hpp"
 #include <fstream>
@@ -24,11 +24,11 @@ void	Request::printRequest(void)
 
 bool	Request::readRequest(int client_fd)
 {
-	RequestParser requestParser(info);
+	RequestReader requestReader(info);
 
-	if (!requestParser.readHttpRequest(client_fd))
+	if (!requestReader.readHttpRequest(client_fd))
 		return (true);
-	requestsText = requestParser.getRequest();
+	requestsText = requestReader.getRequest();
 	printRequest();
 	return false;
 }
