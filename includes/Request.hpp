@@ -71,6 +71,8 @@ struct RequestInfo
 	std::string							boundary;
 	e_httpMethodActions					action;
 	std::string							body;
+	std::vector<std::string>			multipartBodyHeaders;
+	std::vector<std::string>			multipartBodyParts;
 	std::map< std::string, std::string>	bodyValues;
 };
 

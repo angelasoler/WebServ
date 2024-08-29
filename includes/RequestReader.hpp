@@ -33,6 +33,8 @@ class RequestReader
 		void								setMethod(std::string method);
 		int									getContentLength(void) const;
 		std::string							getRequestedRoute(void) const;
+		std::vector<std::string>			getMultipartBodyHeaders(void) const;
+		std::vector<std::string>			getMultipartBodyParts(void) const;
 		bool								isDelimiter(std::string line, std::string delimiter);
 		void								readLine(int fd, std::string &line, std::string delimiter, bool &error);
 		void								readLineBody(int fd, std::string &line, int contentLength, bool &error);
@@ -46,18 +48,20 @@ class RequestReader
 		void								readRequestBodyChunked(void);
 		void								readRequestBodyContentType(void);
 		void								printHeaderDataStructure(void);
+		void								readMultipartFormDataBody(const std::string& boundary, std::string &tempLine);
 
-
-		std::map<std::string, std::string> 	_headers;
-		std::string							_method;
-		std::string							_requestedRoute;
-		std::string							_httpVersion;
-		std::string							_fileExec;
-		std::string							_fileName;
-		std::string							_requestBody;
-		int									_fdClient;
-		std::string							_request;
-		bool								_errorRead;
+		std::map<std::string, std::string> 		_headers;
+		std::vector<std::string>				_multipartBodyHeaders;
+		std::vector<std::string>				_multipartBodyParts;
+		std::string								_method;
+		std::string								_requestedRoute;
+		std::string								_httpVersion;
+		std::string								_fileExec;
+		std::string								_fileName;
+		std::string								_requestBody;
+		int										_fdClient;
+		std::string								_request;
+		bool									_errorRead;
 };
 
 #endif

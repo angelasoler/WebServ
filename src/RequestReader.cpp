@@ -16,34 +16,52 @@ bool    							RequestReader::readHttpRequest(int &fdConection)
 	return true;
 }
 
-void readMultipartFormDataBody(const std::string& boundary, std::string &tempLine)
+void RequestReader::readMultipartFormDataBody(const std::string& boundary, std::string &tempLine)
 {
-	size_t boundaryPos = tempLine.find(boundary);
-	if (boundaryPos == std::string::npos)
+	size_t boundaryPos = 0;
+	size_t contentStart = 0;
+	std::string multipartHeader;
+
+	while ((boundaryPos = tempLine.find(boundary, boundaryPos)) != std::string::npos)
 	{
-		return ;
+		contentStart = tempLine.find("\r\n\r\n", boundaryPos);
+		if (contentStart == std::string::npos)
+		{
+			return;
+		}
+
+		multipartHeader = tempLine.substr(boundaryPos + boundary.size(), contentStart - (boundaryPos + boundary.size()));
+		// std::cerr << "Multipart header:\n\t" << multipartHeader << std::endl;
+		_multipartBodyHeaders.push_back(multipartHeader);
+
+		contentStart += 4; // Pular "\r\n\r\n"
+		if (contentStart >= tempLine.size())
+		{
+			return;
+		}
+
+		size_t contentEnd = tempLine.find(boundary, contentStart);
+		if (contentEnd == std::string::npos)
+		{
+			contentEnd = tempLine.size();
+		}
+
+		// Remover possíveis '\r', '\n' e '-' do final do conteúdo
+		while (contentEnd > contentStart && (tempLine[contentEnd - 1] == '\r' || tempLine[contentEnd - 1] == '\n' || tempLine[contentEnd - 1] == '-'))
+		{
+			--contentEnd;
+		}
+
+		std::string multipartBodyPart = tempLine.substr(contentStart, contentEnd - contentStart);
+		// std::cerr << "Multipart body:\n\t" << multipartBodyPart << std::endl;
+		_multipartBodyParts.push_back(multipartBodyPart);
+
+		// Atualizar tempLine para o conteúdo restante após o bodypart
+		tempLine = tempLine.substr(contentEnd);
+
+		// Ajustar boundaryPos para a próxima ocorrência do boundary
+		boundaryPos = 0;
 	}
-	size_t contentStart = tempLine.find("\r\n\r\n", boundaryPos);
-	if (contentStart == std::string::npos)
-	{
-		return ;
-	}
-	contentStart += 4;
-	if (tempLine[contentStart] == '\r')
-	{
-		++contentStart;
-	}
-	size_t contentEnd = tempLine.find(boundary, contentStart);
-	if (contentEnd == std::string::npos)
-	{
-		tempLine =  tempLine.substr(contentStart, contentEnd - contentStart);
-		return ;
-	}
-	while (contentEnd > contentStart && (tempLine[contentEnd - 1] == '\r' || tempLine[contentEnd - 1] == '\n' || tempLine[contentEnd - 1] == '-'))
-	{
-		--contentEnd;
-	}
-	tempLine = tempLine.substr(contentStart, contentEnd - contentStart);
 }
 
 size_t  RequestReader::convertChunkSize(void)
@@ -101,6 +119,7 @@ void RequestReader::readRequestBodyContentType(void)
 	this->_request += tempLine + "\n";
 
 }
+
 void RequestReader::readRequestBody(void)
 {
 	if (getHeader("Transfer-Encoding") == "chunked")
@@ -252,13 +271,23 @@ int RequestReader::getContentLength() const
 	return 0;
 }
 
-void RequestReader::setMethod(std::string method)
+std::vector<std::string>	RequestReader::getMultipartBodyHeaders(void) const
+{
+	return _multipartBodyHeaders;
+}
+
+std::vector<std::string>	RequestReader::getMultipartBodyParts(void) const
+{
+	return _multipartBodyParts;
+}
+
+void	RequestReader::setMethod(std::string method)
 {
 	this->_method = method;
 }
 
 
-bool  RequestReader::isDelimiter(std::string line, std::string delimiter)
+bool	RequestReader::isDelimiter(std::string line, std::string delimiter)
 {
 	return (line.rfind(delimiter) != std::string::npos);
 }

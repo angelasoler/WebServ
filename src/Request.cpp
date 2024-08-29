@@ -50,6 +50,10 @@ void	Request::parseRequestInfo(ServerConfig &serverConfig)
 		info.contentType = contentTypeLine;
     }
 
+	if (info.contentType.find("multipart/form-data") != std::string::npos) {
+		info.multipartBodyHeaders = requestReader.getMultipartBodyHeaders();
+		info.multipartBodyParts = requestReader.getMultipartBodyParts();
+	}
 	info.requestedRoute = requestReader.getRequestedRoute();
 	info.serverRef = serverConfig;
 }
