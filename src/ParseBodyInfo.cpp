@@ -2,6 +2,16 @@
 #include <sys/stat.h>
 #include <string.h>
 
+// void writeFile(const std::string& content, const std::string& fileName) {
+// 	std::ofstream file(fileName.c_str());
+// 	if (file.is_open()) {
+// 		file << content;
+// 		file.close();
+// 		std::cout << "[ParseBodyInfo.cpp - writefile] File Writed!" << std::endl;
+// 	} else {
+// 		std::cerr << "[ParseBodyInfo.cpp - writefile] Error at open file!" << std::endl;
+// 	}
+// }
 
 void ParseBodyInfo::parseBodyInfo(RequestInfo &info)
 {	
@@ -9,6 +19,11 @@ void ParseBodyInfo::parseBodyInfo(RequestInfo &info)
 		return;
 	if (info.contentType.find("application/x-www-form-urlencoded") != std::string::npos)
 		parseBodyValues(info);
+	if (info.contentType.find("multipart/form-data") != std::string::npos)
+	{
+		// writeFile(info.body, "img.jpg");
+	}
+	
 }
 
 void parseBodyValues(RequestInfo &info)

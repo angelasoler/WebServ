@@ -114,7 +114,6 @@ TEST(RequestInfoTest, HandlesPostRequestWithHtmlBody) {
 
 	EXPECT_EQ(requestInfo.requestedRoute, DEFAULT_ROUTE_PATH);
 	EXPECT_EQ(requestInfo.action, UPLOAD);
-	// EXPECT_EQ(requestInfo.pathType, URL);
 	EXPECT_EQ(requestInfo.permissions.read, true);
 	EXPECT_EQ(requestInfo.permissions.write, true);
 	EXPECT_EQ(requestInfo.permissions.execute, false);
@@ -141,7 +140,6 @@ TEST(RequestInfoTest, HandlesPostRequestWithMultipartFormData) {
 
 	EXPECT_EQ(requestInfo.requestedRoute, DEFAULT_ROUTE_PATH);
 	EXPECT_EQ(requestInfo.action, UPLOAD);
-	// EXPECT_EQ(requestInfo.pathType, URL);
 	EXPECT_EQ(requestInfo.permissions.read, true);
 	EXPECT_EQ(requestInfo.permissions.write, true);
 	EXPECT_EQ(requestInfo.permissions.execute, false);

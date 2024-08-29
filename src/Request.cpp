@@ -26,6 +26,7 @@ void	Request::printRequest(void)
 bool	Request::readRequest(int client_fd)
 {
 	requestReader = RequestReader();
+
 	if (!requestReader.readHttpRequest(client_fd))
 		return (true);
 	requestsText = requestReader.getRequest();
