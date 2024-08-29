@@ -23,10 +23,17 @@ add_executable(webserv ${SOURCES})
 find_package(CURL REQUIRED)
 include_directories(${CURL_INCLUDE_DIRS})
 
+# tudos os tests, unitarios e de funcionalidade
 list(REMOVE_ITEM SOURCES "${CMAKE_SOURCE_DIR}/src/main.cpp")
 file(GLOB_RECURSE TEST_SOURCES "test/*.cpp")
 add_executable(webservtest ${TEST_SOURCES} ${SOURCES})
 target_link_libraries(webservtest gtest_main ${CURL_LIBRARIES})
+
+# só testes de funcionalidade
+list(REMOVE_ITEM TEST_SOURCES "${CMAKE_SOURCE_DIR}/test/config-tests.cpp")
+list(REMOVE_ITEM TEST_SOURCES "${CMAKE_SOURCE_DIR}/test/request-info-tests.cpp")
+add_executable(webservtest-slim ${TEST_SOURCES} ${SOURCES})
+target_link_libraries(webservtest-slim gtest_main ${CURL_LIBRARIES})
 
 include(GoogleTest)
 gtest_discover_tests(webservtest)

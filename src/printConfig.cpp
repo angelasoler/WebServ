@@ -8,7 +8,7 @@
 
 void printRouteConfig(RouteConfig& routeConfig, std::ofstream &fd)
 {
-	fd << "Path: " << routeConfig.route << std::endl;
+	fd << "Route: " << routeConfig.route << std::endl;
 
 	fd << "\tAccepted Methods: ";
 	for (std::vector<std::string>::iterator it = routeConfig.accepted_methods.begin();

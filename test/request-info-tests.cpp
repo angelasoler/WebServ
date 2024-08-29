@@ -24,7 +24,6 @@ TEST(RequestInfoTest, HandlesGetRequest) {
 	RequestInfo requestInfo = parseHttpRequest(getRequest);
 
 	EXPECT_EQ(requestInfo.requestedRoute, "/index.html");
-	EXPECT_EQ(requestInfo.auto_index, DEFAULT_DIRECTORY_LISTING);
 	EXPECT_EQ(requestInfo.action, RESPONSE);
 	EXPECT_EQ(requestInfo.pathType, File);
 	EXPECT_EQ(requestInfo.permissions.read, true);
@@ -45,7 +44,6 @@ TEST(RequestInfoTest, HandlesPostRequest) {
 	EXPECT_EQ(requestInfo.requestedRoute, DEFAULT_ROUTE_PATH);
 	EXPECT_EQ(requestInfo.action, UPLOAD);
 	// EXPECT_EQ(requestInfo.pathType, URL);
-	EXPECT_EQ(requestInfo.auto_index, DEFAULT_DIRECTORY_LISTING);
 	EXPECT_EQ(requestInfo.body, "name=John&age=30&city=NYC");
 	EXPECT_EQ(requestInfo.bodyValues["name"], "John");
 	EXPECT_EQ(requestInfo.bodyValues["age"], "30");
@@ -65,7 +63,6 @@ TEST(RequestInfoTest, HandlesPostRequestWithFormUrlEncoded) {
 	EXPECT_EQ(requestInfo.requestedRoute, DEFAULT_ROUTE_PATH);
 	EXPECT_EQ(requestInfo.action, UPLOAD);
 	// EXPECT_EQ(requestInfo.pathType, URL);
-	EXPECT_EQ(requestInfo.auto_index, DEFAULT_DIRECTORY_LISTING);
 	EXPECT_EQ(requestInfo.body, "username=testuser&age=34");
 	EXPECT_EQ(requestInfo.bodyValues["username"], "testuser");
 	EXPECT_EQ(requestInfo.bodyValues["age"], "34");
@@ -85,7 +82,6 @@ TEST(RequestInfoTest, HandlesDeleteRequest) {
 	EXPECT_EQ(requestInfo.pathType, File);
 	EXPECT_EQ(requestInfo.permissions.read, true);
 	EXPECT_EQ(requestInfo.permissions.write, true);
-	EXPECT_EQ(requestInfo.auto_index, DEFAULT_DIRECTORY_LISTING);
 	ASSERT_TRUE(requestInfo.body.empty());
 	ASSERT_TRUE(requestInfo.bodyValues.empty());
 }
@@ -106,7 +102,6 @@ TEST(RequestInfoTest, HandlesPostRequestWithHtmlBody) {
 	EXPECT_EQ(requestInfo.permissions.read, true);
 	EXPECT_EQ(requestInfo.permissions.write, true);
 	EXPECT_EQ(requestInfo.permissions.execute, false);
-	EXPECT_EQ(requestInfo.auto_index, DEFAULT_DIRECTORY_LISTING);
 	EXPECT_EQ(requestInfo.body, "<html><body><p>This is a test</p></body></html>");
 }
 
@@ -134,7 +129,6 @@ TEST(RequestInfoTest, HandlesPostRequestWithMultipartFormData) {
 	EXPECT_EQ(requestInfo.permissions.read, true);
 	EXPECT_EQ(requestInfo.permissions.write, true);
 	EXPECT_EQ(requestInfo.permissions.execute, false);
-	EXPECT_EQ(requestInfo.auto_index, DEFAULT_DIRECTORY_LISTING);
 	EXPECT_TRUE(requestInfo.body.find("value1") != std::string::npos);
 	EXPECT_TRUE(requestInfo.body.find("file content here") != std::string::npos);
 }

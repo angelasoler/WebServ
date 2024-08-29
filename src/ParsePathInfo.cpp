@@ -6,64 +6,54 @@
 
 void	ParsePathInfo::parsePathInfo(RequestInfo &info)
 {
-	info.pathType = identifyFullPathType(info.requestedRoute, info.serverRef, info);
+	info.fullPath = identifyFullPath(info);
+	addFileToDirectoryPath(info);
+	info.pathType = identifyType(info);
 	info.permissions = getPermissions(info.fullPath);
 }
 
-e_pathType identifyFullPathType(std::string& requestedRoute, ServerConfig& serverConfig, RequestInfo &info)
+std::string	identifyFullPath(RequestInfo &info)
 {
-	// iterar pelas rotas configuradas
 	RouteConfig routeConfig;
+	std::string	fullPath;
 
 	std::map<std::string, RouteConfig>::iterator it;
-	for (it = serverConfig.routes.begin(); it != serverConfig.routes.end(); ++it)
+	if (info.requestedRoute.empty())
+		info.requestedRoute = "/";
+	for (it = info.serverRef.routes.begin(); it != info.serverRef.routes.end(); ++it)
 	{
 		routeConfig = it->second;
-		info.auto_index = routeConfig.directory_listing;
-
-		// Se o caminho corresponde extamente à rota configurada
-		if ((requestedRoute == routeConfig.route))
+		if (info.requestedRoute == routeConfig.route)
 		{
-			info.fullPath = composeFullPath(routeConfig.root_directory, routeConfig.default_file);
+			fullPath = composeFullPath(routeConfig.root_directory, routeConfig.default_file);
 			break ;
 		}
-		// se o caminho é composto por uma rota
-		if (startsWith(requestedRoute, routeConfig.route))
+		if (startsWith(info.requestedRoute, routeConfig.route))
 		{
-			std::string requestSuffix = requestedRoute.substr(routeConfig.route.size());
-			info.fullPath = composeFullPath(routeConfig.root_directory, requestSuffix);
-			info.fullPath = composeFullPath(info.fullPath, "index.html");
+			std::string requestSuffix = info.requestedRoute.substr(routeConfig.route.size());
+			fullPath = composeFullPath(routeConfig.root_directory, requestSuffix);
 			break ;
 		}
 		else
-			info.fullPath = composeFullPath(routeConfig.root_directory, info.requestedRoute);
-		if (!routeConfig.redirection.empty())
-			return Redirection;
+			fullPath = composeFullPath(routeConfig.root_directory, info.requestedRoute);
 	}
-	// isso aqui é necessario nos casos em que a rota / não foi configurada
-	// mas podemos adicionar ela por default, quando não esteja
-	if (info.requestedRoute == "/" && serverConfig.routes.find("/") == serverConfig.routes.end()) {
-		info.fullPath.clear();
+	info.configRef = routeConfig;
+	return fullPath;
+}
+
+e_pathType identifyType(RequestInfo &info)
+{
+	if (info.requestedRoute == "/" && \
+		info.serverRef.routes.find("/") == info.serverRef.routes.end())
 		return UNKNOWN;
-	}
-	if (isFile(info.fullPath)) {
-		return File;
-	}
-	// Verificar se o caminho está associado a um CGI
+	if (!info.configRef.redirection.empty())
+		return Redirection;
 	if (endsWith(info.fullPath, DEFAULT_CGI_EXTENSION))
 		return CGI;
-	info.configRef = routeConfig;
-	if (isDirectory(composeFullPath(routeConfig.root_directory, info.requestedRoute))) {
-		// Se for um diretório, tentar encontrar o arquivo default dele
-		// if (info.fullPath.empty())
-		// 	info.fullPath = composeFullPath(routeConfig.root_directory, routeConfig.default_file);
-		// else
-			info.fullPath = composeFullPath(info.fullPath, routeConfig.default_file);
-		struct stat buffer;
-		if (!(stat(info.fullPath.c_str(), &buffer) == 0 && S_ISREG(buffer.st_mode)) || routeConfig.default_file.empty())
-			info.fullPath.clear();
+	if (isFile(info.fullPath))
+		return File;
+	if (isDirectory(info.fullPath))
 		return Directory;
-	}
 	info.fullPath.clear();
 	return UNKNOWN;
 }
@@ -141,4 +131,14 @@ Permission getPermissions(std::string path)
 	permissions.execute = (access(path.c_str(), X_OK) == 0);
 	permissions.notFound = false;
 	return permissions;
+}
+
+void	addFileToDirectoryPath(RequestInfo &info)
+{
+	if (isDirectory(info.fullPath)) {
+		if (isFile(composeFullPath(info.fullPath, DEFAULT_FILE)))
+			info.fullPath = composeFullPath(info.fullPath, DEFAULT_FILE);
+		else if (isFile(composeFullPath(info.fullPath, info.configRef.default_file)))
+			info.fullPath = composeFullPath(info.fullPath, info.configRef.default_file);
+	}
 }

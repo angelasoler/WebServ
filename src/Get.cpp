@@ -15,6 +15,8 @@ int Get::handleRequest(void)
 			return responseCGI();
 		case File:
 			return responseToFile();
+		case Redirection:
+			return responseToRedirection();
 		default:
 			return responseToInvalid();
 	}
@@ -58,18 +60,14 @@ int	Get::responseToFile(void)
 
 int	Get::responseToDirectory(void)
 {
-	if (response.requestInfo.fullPath.empty()) {
-		if (!response.requestInfo.configRef.directory_listing)
-			return 404;
-		else {
-			response.requestInfo.fullPath = \
-			response.requestInfo.configRef.root_directory + \
-			"/dirListingPlaceHolder.html";
-			// makeBodyForDirListing
-			return (200);
-		}
+	if (response.requestInfo.configRef.directory_listing)
+	{
+		response.requestInfo.fullPath = \
+		response.requestInfo.configRef.root_directory + \
+		"/dirListingPlaceHolder.html";
+		return 200;
 	}
-	return (200);
+	return 404;
 }
 
 int	Get::responseToInvalid(void)
@@ -77,12 +75,18 @@ int	Get::responseToInvalid(void)
 	return(400);
 }
 
+int	Get::responseToRedirection(void)
+{
+	response.setHeader("Location", response.requestInfo.configRef.redirection);
+	return(307);
+}
+
 int	Get::responseCGI(void) {
-	std::string	htmlResponse;
-	CGIServer	cgi(response.requestInfo.requestedRoute);
+	htmlResponse	htmlResponse;
+	CGIServer		cgi(response.requestInfo.fullPath);
 
 	cgi.setEnv(response.requestInfo);
 	htmlResponse = cgi.executeScript(response.requestInfo.body);
-	response.setBody(htmlResponse);
-	return(200);
+	response.setBody(htmlResponse.body);
+	return(htmlResponse.code);
 }
