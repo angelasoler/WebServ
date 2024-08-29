@@ -38,7 +38,7 @@ TEST(HttpTest, FirefoxGetRequest) {
 	// ARRANGE
 	start_server("");
 	// ACT
-	int result = std::system("test/test-firefox");
+	int result = std::system("test/scripts/test-firefox.py");
 
 	// ASSERT
 	EXPECT_EQ(result, 0);
@@ -47,7 +47,7 @@ TEST(HttpTest, FirefoxGetRequest) {
 
 TEST(HttpTest, TelnetGetRequest) {
 	start_server("");
-	std::string response = exec("test/test-telnet");
+	std::string response = exec("test/scripts/test-telnet.sh");
 
 	EXPECT_NE(response.find("Hello"), std::string::npos);
 	stop_server();
