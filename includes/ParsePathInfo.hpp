@@ -29,4 +29,5 @@ bool 		isDirectory(const std::string& path);
 e_pathType	identifyType(RequestInfo &info);
 std::string	identifyFullPath(RequestInfo &info);
 Permission	getPermissions(std::string path);
+void		addFileToDirectoryPath(RequestInfo &info);
 #endif // PARSEPATHINFO_HPP

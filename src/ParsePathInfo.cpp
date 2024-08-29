@@ -7,6 +7,7 @@
 void	ParsePathInfo::parsePathInfo(RequestInfo &info)
 {
 	info.fullPath = identifyFullPath(info);
+	addFileToDirectoryPath(info);
 	info.pathType = identifyType(info);
 	info.permissions = getPermissions(info.fullPath);
 }
@@ -25,23 +26,16 @@ std::string	identifyFullPath(RequestInfo &info)
 		// Se o caminho corresponde exatamente à rota configurada
 		if (info.requestedRoute == routeConfig.route)
 		{
-			//DAQUI SAÍ UM FILE
 			fullPath = composeFullPath(routeConfig.root_directory, routeConfig.default_file);
-			//add file to path
 			break ;
 		}
-		// se o caminho é composto por uma rota
 		if (startsWith(info.requestedRoute, routeConfig.route))
 		{
-			//DAQUI SAI O ROOT DIRECTORY, CONCATENANDO COM O QUE SOBRAR DO requestRoute sem a rota
 			std::string requestSuffix = info.requestedRoute.substr(routeConfig.route.size());
 			fullPath = composeFullPath(routeConfig.root_directory, requestSuffix);
-			//add file to path
-			// fullPath = composeFullPath(fullPath, DEFAULT_FILE);
 			break ;
 		}
 		else
-			// Quando é a rota / + <arquivo>, ou não achou a rota
 			fullPath = composeFullPath(routeConfig.root_directory, info.requestedRoute);
 	}
 	info.configRef = routeConfig;
@@ -138,4 +132,14 @@ Permission getPermissions(std::string path)
 	permissions.execute = (access(path.c_str(), X_OK) == 0);
 	permissions.notFound = false;
 	return permissions;
+}
+
+void	addFileToDirectoryPath(RequestInfo &info)
+{
+	if (isDirectory(info.fullPath)) {
+		if (isFile(composeFullPath(info.fullPath, DEFAULT_FILE)))
+			info.fullPath = composeFullPath(info.fullPath, DEFAULT_FILE);
+		else if (isFile(composeFullPath(info.fullPath, info.configRef.default_file)))
+			info.fullPath = composeFullPath(info.fullPath, info.configRef.default_file);
+	}
 }
