@@ -23,7 +23,6 @@ std::string	identifyFullPath(RequestInfo &info)
 	for (it = info.serverRef.routes.begin(); it != info.serverRef.routes.end(); ++it)
 	{
 		routeConfig = it->second;
-		// Se o caminho corresponde exatamente à rota configurada
 		if (info.requestedRoute == routeConfig.route)
 		{
 			fullPath = composeFullPath(routeConfig.root_directory, routeConfig.default_file);
