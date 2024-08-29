@@ -9,8 +9,8 @@ import signal
 import os
 
 #init relevant path
-os.environ["PATH"] = os.path.join(os.getcwd(), "venv/bin") + ":" + os.environ["PATH"]
-geckodriver_path = os.path.join(os.getcwd(), "venv/bin/geckodriver")
+os.environ["PATH"] = os.path.join(os.getcwd(), "test/venv/bin") + ":" + os.environ["PATH"]
+geckodriver_path = os.path.join(os.getcwd(), "test/venv/bin/geckodriver")
 firefox_profile_path = "/home/angela/.mozilla/firefox/u84ow2ps.default" #converter isso em var de .env ou env var
 
 #set options
@@ -18,7 +18,7 @@ options = FirefoxOptions()
 options.add_argument("--headless")
 options.profile = firefox_profile_path
 
-#run service on driver firefox
+#run service on driver firefox 
 service = Service(geckodriver_path)
 
 try:
