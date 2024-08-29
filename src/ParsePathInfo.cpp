@@ -48,6 +48,9 @@ std::string	identifyFullPath(RequestInfo &info)
 
 e_pathType identifyType(RequestInfo &info)
 {
+	if (info.requestedRoute == "/" && \
+		info.serverRef.routes.find("/") == info.serverRef.routes.end())
+		return UNKNOWN;
 	if (!info.configRef.redirection.empty())
 		return Redirection;
 	if (endsWith(info.fullPath, DEFAULT_CGI_EXTENSION))
