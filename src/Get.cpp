@@ -15,6 +15,8 @@ int Get::handleRequest(void)
 			return responseCGI();
 		case File:
 			return responseToFile();
+		case Redirection:
+			return responseToRedirection();
 		default:
 			return responseToInvalid();
 	}
@@ -71,6 +73,12 @@ int	Get::responseToDirectory(void)
 int	Get::responseToInvalid(void)
 {
 	return(400);
+}
+
+int	Get::responseToRedirection(void)
+{
+	response.setHeader("Location", response.requestInfo.configRef.redirection);
+	return(307);
 }
 
 int	Get::responseCGI(void) {
