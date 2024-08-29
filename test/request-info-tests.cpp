@@ -4,16 +4,31 @@
 
 RequestInfo parseHttpRequest(const std::string& httpRequest)
 {
+	int 			sockfd[2];
 	Request			request;
 	Config  		*config = Config::getInstance();
 
 	config->loadDefaultConfig();
 	ServerConfig server = config->servers[0];
 
-	request.requestsText = httpRequest;
+    // Cria um par de sockets conectados
+    if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockfd) == -1) {
+        perror("[request-info-tests.cpp - parseHttpRequest] socketpair");
+    }
+
+    // Envia a string de teste para o socket
+    if (send(sockfd[0], httpRequest.c_str(), strlen(httpRequest.c_str()), 0) == -1) {
+        perror("[request-info-tests.cpp - parseHttpRequest] send");
+    }
+
+	close(sockfd[0]);
+	request.readRequest(sockfd[1]);
+    close(sockfd[1]);
+
 	request.parseRequest(server);
 	return request.info;
 }
+
 
 TEST(RequestInfoTest, HandlesGetRequest) {
 	std::string getRequest = 
@@ -58,6 +73,7 @@ TEST(RequestInfoTest, HandlesPostRequestWithFormUrlEncoded) {
 		"Content-Length: 29\r\n\r\n"
 		"username=testuser&age=34";
 
+	
 	RequestInfo requestInfo = parseHttpRequest(postRequest);
 
 	EXPECT_EQ(requestInfo.requestedRoute, DEFAULT_ROUTE_PATH);

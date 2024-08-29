@@ -39,9 +39,16 @@ void	Request::parseRequestInfo(ServerConfig &serverConfig)
 	if (info.action == CLOSE)
 		return ;
 	info.body = requestReader.getBody();
-	size_t pos = requestReader.getHeader("Content-Type").find("boundary=", 0);
-	if (pos != std::string::npos)
-		info.boundary = requestReader.getHeader("Content-Type").substr(pos + 9);
+
+	// Extract Content Type and Boundary
+	std::string	 contentTypeLine = requestReader.getHeader("Content-Type");
+	if (!contentTypeLine.empty()) {
+		size_t pos = contentTypeLine.find("boundary=", 0);
+		if (pos != std::string::npos)
+			info.boundary = contentTypeLine.substr(pos + 9);
+		info.contentType = contentTypeLine;
+    }
+
 	info.requestedRoute = requestReader.getRequestedRoute();
 	info.serverRef = serverConfig;
 }
