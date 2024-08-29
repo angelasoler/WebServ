@@ -58,15 +58,14 @@ int	Get::responseToFile(void)
 
 int	Get::responseToDirectory(void)
 {
-	if (!response.requestInfo.configRef.directory_listing)
-		return 404;
-	else {
+	if (response.requestInfo.configRef.directory_listing)
+	{
 		response.requestInfo.fullPath = \
 		response.requestInfo.configRef.root_directory + \
 		"/dirListingPlaceHolder.html";
-		return (200);
+		return 200;
 	}
-	return (200);
+	return 404;
 }
 
 int	Get::responseToInvalid(void)

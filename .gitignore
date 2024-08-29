@@ -5,6 +5,7 @@ webServer
 obj/
 build/
 webservtest
+webservtest-slim
 txt
 webserv
 txt2

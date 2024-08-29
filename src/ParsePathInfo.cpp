@@ -27,6 +27,7 @@ std::string	identifyFullPath(RequestInfo &info)
 		{
 			//DAQUI SAÍ UM FILE
 			fullPath = composeFullPath(routeConfig.root_directory, routeConfig.default_file);
+			//add file to path
 			break ;
 		}
 		// se o caminho é composto por uma rota
@@ -35,7 +36,8 @@ std::string	identifyFullPath(RequestInfo &info)
 			//DAQUI SAI O ROOT DIRECTORY, CONCATENANDO COM O QUE SOBRAR DO requestRoute sem a rota
 			std::string requestSuffix = info.requestedRoute.substr(routeConfig.route.size());
 			fullPath = composeFullPath(routeConfig.root_directory, requestSuffix);
-			fullPath = composeFullPath(fullPath, "index.html");
+			//add file to path
+			// fullPath = composeFullPath(fullPath, DEFAULT_FILE);
 			break ;
 		}
 		else
