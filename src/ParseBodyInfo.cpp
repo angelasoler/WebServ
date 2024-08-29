@@ -21,7 +21,16 @@ void ParseBodyInfo::parseBodyInfo(RequestInfo &info)
 		parseBodyValues(info);
 	if (info.contentType.find("multipart/form-data") != std::string::npos)
 	{
-		// writeFile(info.body, "img.jpg");
+		if (info.multipartBodyHeaders.size() < 1 || info.multipartBodyParts.size() < 1)
+			return;
+		// std::string header = info.multipartBodyHeaders[0];
+		// size_t pos = header.find("name=");
+		// if (pos != std::string::npos) {
+		// 	size_t start = header.find("\"", pos + 5) + 1;
+		// 	size_t end = header.find("\"", start);
+		// 	std::string filename = header.substr(start, end - start);
+		// 	writeFile(info.multipartBodyParts[0], filename + ".jpg");
+		// }
 	}
 	
 }

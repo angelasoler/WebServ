@@ -34,6 +34,17 @@ void PrintRequestInfo::printRequestInfo(RequestInfo& request)
 		logFd << "\t  " << it->first << ": " << it->second << std::endl;
 	}
 
+	if (request.multipartBodyHeaders.size() > 0 && request.multipartBodyParts.size() > 0)
+	{
+		logFd << "\tMultipartBody Headers:" << std::endl;
+		for (std::vector<std::string>::iterator it = request.multipartBodyHeaders.begin(); it != request.multipartBodyHeaders.end(); ++it) {
+			logFd << "\t  " << *it << std::endl;
+		}
+		logFd << "\tMultipartBody Parts:" << std::endl;
+		for (std::vector<std::string>::iterator it = request.multipartBodyParts.begin(); it != request.multipartBodyParts.end(); ++it) {
+			logFd << "\t  " << *it << std::endl;
+		}
+	}
 	logFd << "\tserverRef:" << std::endl;
 
 	// printServerConfig(request.serverRef, logFd);
