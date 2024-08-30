@@ -60,7 +60,6 @@ struct RequestInfo
 	std::string							fullPath;
 	e_pathType							pathType;
 	Permission							permissions;
-	bool								auto_index;
 
 	// Reference
 	ServerConfig			serverRef;
@@ -68,12 +67,11 @@ struct RequestInfo
 
 	// About Body
 	std::string							contentType;
-	std::string							boundary;
 	e_httpMethodActions					action;
 	std::string							body;
 	std::vector<std::string>			multipartHeaders;
 	std::vector<std::string>			multipartValues;
-	std::map< std::string, std::string>	bodyValues;
+	std::map< std::string, std::string>	urlencodedValues;
 
 	RequestInfo();
 };

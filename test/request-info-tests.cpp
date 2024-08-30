@@ -43,7 +43,7 @@ TEST(RequestInfoTest, HandlesGetRequest) {
 	EXPECT_EQ(requestInfo.pathType, File);
 	EXPECT_EQ(requestInfo.permissions.read, true);
 	ASSERT_TRUE(requestInfo.body.empty());
-	ASSERT_TRUE(requestInfo.bodyValues.empty());
+	ASSERT_TRUE(requestInfo.urlencodedValues.empty());
 }
 
 TEST(RequestInfoTest, HandlesPostRequest) {
@@ -60,9 +60,9 @@ TEST(RequestInfoTest, HandlesPostRequest) {
 	EXPECT_EQ(requestInfo.action, UPLOAD);
 	// EXPECT_EQ(requestInfo.pathType, URL);
 	EXPECT_EQ(requestInfo.body, "name=John&age=30&city=NYC");
-	EXPECT_EQ(requestInfo.bodyValues["name"], "John");
-	EXPECT_EQ(requestInfo.bodyValues["age"], "30");
-	EXPECT_EQ(requestInfo.bodyValues["city"], "NYC");
+	EXPECT_EQ(requestInfo.urlencodedValues["name"], "John");
+	EXPECT_EQ(requestInfo.urlencodedValues["age"], "30");
+	EXPECT_EQ(requestInfo.urlencodedValues["city"], "NYC");
 }
 
 TEST(RequestInfoTest, HandlesPostRequestWithFormUrlEncoded) {
@@ -80,8 +80,8 @@ TEST(RequestInfoTest, HandlesPostRequestWithFormUrlEncoded) {
 	EXPECT_EQ(requestInfo.action, UPLOAD);
 	// EXPECT_EQ(requestInfo.pathType, URL);
 	EXPECT_EQ(requestInfo.body, "username=testuser&age=34");
-	EXPECT_EQ(requestInfo.bodyValues["username"], "testuser");
-	EXPECT_EQ(requestInfo.bodyValues["age"], "34");
+	EXPECT_EQ(requestInfo.urlencodedValues["username"], "testuser");
+	EXPECT_EQ(requestInfo.urlencodedValues["age"], "34");
 }
 
 TEST(RequestInfoTest, HandlesDeleteRequest) {
@@ -99,7 +99,7 @@ TEST(RequestInfoTest, HandlesDeleteRequest) {
 	EXPECT_EQ(requestInfo.permissions.read, true);
 	EXPECT_EQ(requestInfo.permissions.write, true);
 	ASSERT_TRUE(requestInfo.body.empty());
-	ASSERT_TRUE(requestInfo.bodyValues.empty());
+	ASSERT_TRUE(requestInfo.urlencodedValues.empty());
 }
 
 TEST(RequestInfoTest, HandlesPostRequestWithHtmlBody) {
@@ -143,12 +143,10 @@ TEST(RequestInfoTest, HandlesPostRequestWithMultipartFormData) {
 	EXPECT_EQ(requestInfo.permissions.read, true);
 	EXPECT_EQ(requestInfo.permissions.write, true);
 	EXPECT_EQ(requestInfo.permissions.execute, false);
-	EXPECT_EQ(requestInfo.auto_index, DEFAULT_DIRECTORY_LISTING);
 	ASSERT_EQ(requestInfo.multipartHeaders.size(), 2);
 	ASSERT_EQ(requestInfo.multipartValues.size(), 2);
 	EXPECT_TRUE(requestInfo.multipartValues[0].find("value1") != std::string::npos);
 	EXPECT_TRUE(requestInfo.multipartValues[1].find("file content here") != std::string::npos);
 	EXPECT_TRUE(requestInfo.multipartHeaders[0].find("name=\"field1\"") != std::string::npos);
 	EXPECT_TRUE(requestInfo.multipartHeaders[1].find("filename=\"test.txt\"") != std::string::npos);
-	EXPECT_EQ(requestInfo.boundary, boundary);
 }

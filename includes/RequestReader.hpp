@@ -25,11 +25,8 @@ class RequestReader
 		std::string							getHttpVersion(void) const;
 		std::string							getBody(void) const;
 		std::string							getHeader(std::string headerName) const;
-		std::string							getFileExec(void) const;
-		std::string							getFileName(void) const;
 		std::string							getRequest(void) const;
 		void								setBody(std::string newBody);
-		void								setFileExec(std::string newFileExec);
 		void								setMethod(std::string method);
 		int									getContentLength(void) const;
 		std::string							getRequestedRoute(void) const;
@@ -43,7 +40,6 @@ class RequestReader
 		void								readRequestStartLine(void);
 		void								readRequestHeader(void);
 		void								readRequestBody(void);
-		void								setFileName(std::string file);
 		size_t								convertChunkSize();
 		void								readRequestBodyChunked(void);
 		void								readRequestBodyContentType(void);
@@ -57,8 +53,6 @@ class RequestReader
 		std::string								_method;
 		std::string								_requestedRoute;
 		std::string								_httpVersion;
-		std::string								_fileExec;
-		std::string								_fileName;
 		std::string								_requestBody;
 		int										_fdClient;
 		std::string								_request;

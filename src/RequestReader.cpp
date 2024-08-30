@@ -238,12 +238,6 @@ std::string RequestReader::getHeader(std::string headerName) const
 	}
 }
 
-std::string RequestReader::getFileName(void) const
-{
-	return this->_fileName;
-}
-
-
 std::string RequestReader::getRequest(void) const
 {
 	return this->_request;
@@ -253,17 +247,6 @@ void RequestReader::setBody(std::string newBody)
 {
 	this->_requestBody = newBody;
 }
-
-std::string RequestReader::getFileExec(void) const
-{
-	return this->_fileExec;
-}
-
-void RequestReader::setFileExec(std::string fileExec)
-{
-	this->_fileExec = fileExec;
-}
-
 
 int RequestReader::getContentLength() const
 {

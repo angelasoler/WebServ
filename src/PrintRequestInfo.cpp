@@ -24,13 +24,10 @@ void PrintRequestInfo::printRequestInfo(RequestInfo& request)
 	logFd << "\t  Execute: " << (request.permissions.execute ? "true" : "false") << std::endl;
 	logFd << "\t  Not Found: " << (request.permissions.notFound ? "true" : "false") << std::endl;
 
-	logFd << "\tAuto Index: " << (request.auto_index ? "true" : "false") << std::endl;
-
-	logFd << "\tBoundary: " << request.boundary << std::endl;
 	logFd << "\tBody: " << request.body << std::endl;
 
 	logFd << "\tBody Values:" << std::endl;
-	for (std::map<std::string, std::string>::iterator it = request.bodyValues.begin(); it != request.bodyValues.end(); ++it) {
+	for (std::map<std::string, std::string>::iterator it = request.urlencodedValues.begin(); it != request.urlencodedValues.end(); ++it) {
 		logFd << "\t  " << it->first << ": " << it->second << std::endl;
 	}
 

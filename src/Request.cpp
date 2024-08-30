@@ -42,15 +42,7 @@ void	Request::parseRequestInfo(ServerConfig &serverConfig)
 	if (info.action == CLOSE)
 		return ;
 	info.body = requestReader.getBody();
-
-	// Extract Content Type and Boundary
-	std::string	 contentTypeLine = requestReader.getHeader("Content-Type");
-	if (!contentTypeLine.empty()) {
-		size_t pos = contentTypeLine.find("boundary=", 0);
-		if (pos != std::string::npos)
-			info.boundary = contentTypeLine.substr(pos + 9);
-		info.contentType = contentTypeLine;
-	}
+	info.contentType = requestReader.getHeader("Content-Type");
 
 	if (info.contentType.find("multipart/form-data") != std::string::npos) {
 		info.multipartHeaders = requestReader.getMultipartHeaders();
@@ -98,14 +90,12 @@ RequestInfo::RequestInfo() :
 	fullPath(""),
 	pathType(UNKNOWN),
 	permissions(),
-	auto_index(false),
 	serverRef(),
 	configRef(),
 	contentType(""),
-	boundary(""),
 	action(RESPONSE),
 	body(""),
 	multipartHeaders(),
 	multipartValues(),
-	bodyValues()
+	urlencodedValues()
 	{}

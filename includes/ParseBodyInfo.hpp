@@ -19,7 +19,7 @@ class ParseBodyInfo
 		ParseBodyInfo();
 };
 
-void 		parseBodyValues(RequestInfo &info);
+void 		parseUrlEncodedValues(RequestInfo &info);
 std::string trim(const std::string& str);
 
 #endif // PARSEBODYINFO_HPP

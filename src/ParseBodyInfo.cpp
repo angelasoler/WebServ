@@ -18,7 +18,7 @@ void ParseBodyInfo::parseBodyInfo(RequestInfo &info)
 	if (info.action != UPLOAD)
 		return;
 	if (info.contentType.find("application/x-www-form-urlencoded") != std::string::npos)
-		parseBodyValues(info);
+		parseUrlEncodedValues(info);
 	if (info.contentType.find("multipart/form-data") != std::string::npos)
 	{
 		if (info.multipartHeaders.size() < 1 || info.multipartValues.size() < 1)
@@ -35,7 +35,7 @@ void ParseBodyInfo::parseBodyInfo(RequestInfo &info)
 	
 }
 
-void parseBodyValues(RequestInfo &info)
+void parseUrlEncodedValues(RequestInfo &info)
 {
 	size_t start = 0;
 	size_t end = info.body.find('&');
@@ -53,7 +53,7 @@ void parseBodyValues(RequestInfo &info)
 			value = trim(value);
 
 			if (!key.empty()) {
-				info.bodyValues[key] = value;
+				info.urlencodedValues[key] = value;
 			}
 			else {
 				std::cerr << "Error: Encountered an empty key in the request body." << std::endl;
@@ -78,7 +78,7 @@ void parseBodyValues(RequestInfo &info)
 		value = trim(value);
 
 		if (!key.empty()) {
-			info.bodyValues[key] = value;
+			info.urlencodedValues[key] = value;
 		}
 		else {
 			std::cerr << "Error: Encountered an empty key in the request body." << std::endl;
