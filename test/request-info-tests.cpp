@@ -144,11 +144,11 @@ TEST(RequestInfoTest, HandlesPostRequestWithMultipartFormData) {
 	EXPECT_EQ(requestInfo.permissions.write, true);
 	EXPECT_EQ(requestInfo.permissions.execute, false);
 	EXPECT_EQ(requestInfo.auto_index, DEFAULT_DIRECTORY_LISTING);
-	ASSERT_EQ(requestInfo.multipartBodyHeaders.size(), 2);
-	ASSERT_EQ(requestInfo.multipartBodyParts.size(), 2);
-	EXPECT_TRUE(requestInfo.multipartBodyParts[0].find("value1") != std::string::npos);
-	EXPECT_TRUE(requestInfo.multipartBodyParts[1].find("file content here") != std::string::npos);
-	EXPECT_TRUE(requestInfo.multipartBodyHeaders[0].find("name=\"field1\"") != std::string::npos);
-	EXPECT_TRUE(requestInfo.multipartBodyHeaders[1].find("filename=\"test.txt\"") != std::string::npos);
+	ASSERT_EQ(requestInfo.multipartHeaders.size(), 2);
+	ASSERT_EQ(requestInfo.multipartValues.size(), 2);
+	EXPECT_TRUE(requestInfo.multipartValues[0].find("value1") != std::string::npos);
+	EXPECT_TRUE(requestInfo.multipartValues[1].find("file content here") != std::string::npos);
+	EXPECT_TRUE(requestInfo.multipartHeaders[0].find("name=\"field1\"") != std::string::npos);
+	EXPECT_TRUE(requestInfo.multipartHeaders[1].find("filename=\"test.txt\"") != std::string::npos);
 	EXPECT_EQ(requestInfo.boundary, boundary);
 }

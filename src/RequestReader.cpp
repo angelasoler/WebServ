@@ -38,7 +38,7 @@ void RequestReader::readMultipartFormDataBody(const std::string& boundary, std::
 
 		multipartHeader = tempLine.substr(boundaryPos + boundary.size(), contentStart - (boundaryPos + boundary.size()));
 		// std::cerr << "Multipart header:\n\t" << multipartHeader << std::endl;
-		_multipartBodyHeaders.push_back(multipartHeader);
+		_multipartHeaders.push_back(multipartHeader);
 
 		contentStart += 4; // Pular "\r\n\r\n"
 		if (contentStart >= tempLine.size())
@@ -58,9 +58,9 @@ void RequestReader::readMultipartFormDataBody(const std::string& boundary, std::
 			--contentEnd;
 		}
 
-		std::string multipartBodyPart = tempLine.substr(contentStart, contentEnd - contentStart);
-		// std::cerr << "Multipart body:\n\t" << multipartBodyPart << std::endl;
-		_multipartBodyParts.push_back(multipartBodyPart);
+		std::string multipartValue = tempLine.substr(contentStart, contentEnd - contentStart);
+		// std::cerr << "Multipart body:\n\t" << multipartValues << std::endl;
+		_multipartValues.push_back(multipartValue);
 
 		// Atualizar tempLine para o conteúdo restante após o bodypart
 		tempLine = tempLine.substr(contentEnd);
@@ -114,7 +114,6 @@ void RequestReader::readRequestBodyContentType(void)
 	size_t pos;
 
 	readLineBody(this->_fdClient, tempLine, getContentLength(), this->_errorRead);
-	setFileName(tempLine);
 	pos = getHeader("Content-Type").find("boundary=", 0);
 	if (pos != std::string::npos)
 	{
@@ -265,19 +264,6 @@ void RequestReader::setFileExec(std::string fileExec)
 	this->_fileExec = fileExec;
 }
 
-void RequestReader::setFileName(std::string line)
-{
-
-	if (line.find("filename=\"") != std::string::npos)
-	{
-		size_t filenameEndPos = line.find("\"", line.find("filename=\"") + 10);
-		if (filenameEndPos != std::string::npos)
-		{
-			_fileName = line.substr(line.find("filename=\"") + 10, filenameEndPos - (line.find("filename=\"") + 10));
-		}
-	}
-
-}
 
 int RequestReader::getContentLength() const
 {
@@ -290,14 +276,14 @@ int RequestReader::getContentLength() const
 	return 0;
 }
 
-std::vector<std::string>	RequestReader::getMultipartBodyHeaders(void) const
+std::vector<std::string>	RequestReader::getMultipartHeaders(void) const
 {
-	return _multipartBodyHeaders;
+	return _multipartHeaders;
 }
 
-std::vector<std::string>	RequestReader::getMultipartBodyParts(void) const
+std::vector<std::string>	RequestReader::getMultipartValues(void) const
 {
-	return _multipartBodyParts;
+	return _multipartValues;
 }
 
 void	RequestReader::setMethod(std::string method)

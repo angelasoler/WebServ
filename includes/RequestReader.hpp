@@ -33,8 +33,8 @@ class RequestReader
 		void								setMethod(std::string method);
 		int									getContentLength(void) const;
 		std::string							getRequestedRoute(void) const;
-		std::vector<std::string>			getMultipartBodyHeaders(void) const;
-		std::vector<std::string>			getMultipartBodyParts(void) const;
+		std::vector<std::string>			getMultipartHeaders(void) const;
+		std::vector<std::string>			getMultipartValues(void) const;
 		bool								isDelimiter(std::string line, std::string delimiter);
 		void								readLine(int fd, std::string &line, std::string delimiter, bool &error);
 		void								readLineBody(int fd, std::string &line, int contentLength, bool &error);
@@ -52,8 +52,8 @@ class RequestReader
 
 		bool									_incompleted;
 		std::map<std::string, std::string> 		_headers;
-		std::vector<std::string>				_multipartBodyHeaders;
-		std::vector<std::string>				_multipartBodyParts;
+		std::vector<std::string>				_multipartHeaders;
+		std::vector<std::string>				_multipartValues;
 		std::string								_method;
 		std::string								_requestedRoute;
 		std::string								_httpVersion;

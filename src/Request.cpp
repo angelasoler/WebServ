@@ -53,8 +53,8 @@ void	Request::parseRequestInfo(ServerConfig &serverConfig)
 	}
 
 	if (info.contentType.find("multipart/form-data") != std::string::npos) {
-		info.multipartBodyHeaders = requestReader.getMultipartBodyHeaders();
-		info.multipartBodyParts = requestReader.getMultipartBodyParts();
+		info.multipartHeaders = requestReader.getMultipartHeaders();
+		info.multipartValues = requestReader.getMultipartValues();
 	}
 	info.requestedRoute = requestReader.getRequestedRoute();
 	info.serverRef = serverConfig;
@@ -105,7 +105,7 @@ RequestInfo::RequestInfo() :
 	boundary(""),
 	action(RESPONSE),
 	body(""),
-	multipartBodyHeaders(),
-	multipartBodyParts(),
+	multipartHeaders(),
+	multipartValues(),
 	bodyValues()
 	{}
