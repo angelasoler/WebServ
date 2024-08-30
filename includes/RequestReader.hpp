@@ -27,7 +27,7 @@ class RequestReader
 		std::string							getHttpVersion(void) const;
 		std::string							getBody(void) const;
 		std::string							getHeader(std::string headerName) const;
-		std::string							getRequest(void) const;
+		std::string							getFullRequest(void) const;
 		int									getContentLength(void) const;
 		std::string							getRequestedRoute(void) const;
 		std::vector<std::string>			getMultipartHeaders(void) const;
@@ -42,10 +42,10 @@ class RequestReader
 
 		// READ REQUEST BODY
 		void								readRequestBody(void);
-		size_t								convertChunkSize();
 		void								readRequestBodyChunked(void);
-		void								readRequestBodyContentType(void);
-		void								readMultipartFormDataBody(const std::string& boundary, std::string &tempLine);
+		size_t								readChunkSize();
+		void								readRequestBodyMultipart(void);
+		void								readMultipartInfo(const std::string& boundary, std::string &tempLine);
 
 		// READLINE AND UTILS
 		void								readLine(int fd, std::string &line, std::string delimiter, bool &error);
@@ -69,7 +69,7 @@ class RequestReader
 		std::string								_httpVersion;
 		std::string								_requestBody;
 		int										_fdClient;
-		std::string								_request;
+		std::string								_fullRequest;
 };
 
 #endif

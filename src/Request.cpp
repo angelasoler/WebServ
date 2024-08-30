@@ -31,7 +31,7 @@ bool	Request::readRequest(int client_fd)
 
 	if (!requestReader.readHttpRequest(client_fd))
 		return (true);
-	requestsText = requestReader.getRequest();
+	requestsText = requestReader.getFullRequest();
 	printRequest();
 	return false;
 }

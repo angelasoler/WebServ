@@ -30,7 +30,7 @@ void RequestReader::readRequestStartLine(void)
 	readLine(_fdClient, line, CRLF, this->_errorRead);
 	if (!line.empty())
 	{
-		this->_request += line +  "\n";
+		this->_fullRequest += line +  "\n";
 		std::istringstream lineStream(line);
 		if (!(lineStream >> this->_method)) {
 			this->_incompleted = true;
@@ -77,7 +77,7 @@ void 	RequestReader::readRequestHeader(void)
 				}
 			}
 		}
-		this->_request += line + "\n";
+		this->_fullRequest += line + "\n";
 	}
 	printHeaderDataStructure();
 }
@@ -91,7 +91,7 @@ void RequestReader::readRequestBody(void)
 	}
 	else if (!getHeader("Content-Type").empty() && getHeader("Content-Type").find("multipart/form-data") != std::string::npos)
 	{
-		readRequestBodyContentType();
+		readRequestBodyMultipart();
 	}
 	else if (!getHeader("Content-Length").empty())
 	{
@@ -99,11 +99,65 @@ void RequestReader::readRequestBody(void)
 
 		readLineBody(this->_fdClient, tempLine, getContentLength(), this->_errorRead);
 		this->_requestBody += tempLine;
-		this->_request += tempLine + "\n";
+		this->_fullRequest += tempLine + "\n";
 	}
 }
 
-void RequestReader::readMultipartFormDataBody(const std::string& boundary, std::string &tempLine)
+void RequestReader::readRequestBodyChunked()
+{
+	std::size_t	length = 0;
+	std::string	tempLine;
+	std::size_t	chunkSize = readChunkSize();
+
+	while (chunkSize > 0)
+	{
+		readLine(this->_fdClient, tempLine, CRLF, this->_errorRead);
+		this->_requestBody += tempLine + "\n";
+		this->_fullRequest += tempLine + "\n";
+
+		length += chunkSize;
+		readLine(this->_fdClient, tempLine, CRLF, this->_errorRead);
+		chunkSize = readChunkSize();
+	}
+	this->_headers["Content-Length"] = intToString(length);
+}
+
+size_t  RequestReader::readChunkSize(void)
+{
+	std::string line;
+	std::string chunkSizeLine;
+
+	readLine(this->_fdClient, line, CRLF, this->_errorRead);
+	std::size_t chunkSize = 0;
+
+	if (line == "")
+		return 0;
+	chunkSizeLine = line.substr(0,  line.find(" "));
+
+	std::stringstream ss;
+	ss << std::hex << chunkSizeLine;
+	ss >> chunkSize;
+	return chunkSize;
+}
+
+void RequestReader::readRequestBodyMultipart(void)
+{
+	std::string tempLine;
+	size_t pos;
+
+	readLineBody(this->_fdClient, tempLine, getContentLength(), this->_errorRead);
+	pos = getHeader("Content-Type").find("boundary=", 0);
+	if (pos != std::string::npos)
+	{
+		std::string boundary = getHeader("Content-Type").substr(pos + 9);
+		readMultipartInfo(boundary, tempLine);
+	}
+	this->_requestBody += tempLine;
+	this->_fullRequest += tempLine + "\n";
+
+}
+
+void RequestReader::readMultipartInfo(const std::string& boundary, std::string &tempLine)
 {
 	size_t boundaryPos = 0;
 	size_t contentStart = 0;
@@ -151,61 +205,6 @@ void RequestReader::readMultipartFormDataBody(const std::string& boundary, std::
 	}
 }
 
-size_t  RequestReader::convertChunkSize(void)
-{
-	std::string line;
-	std::string chunkSizeLine;
-
-	readLine(this->_fdClient, line, CRLF, this->_errorRead);
-	std::size_t chunkSize = 0;
-
-	if (line == "")
-		return 0;
-	chunkSizeLine = line.substr(0,  line.find(" "));
-
-	std::stringstream ss;
-	ss << std::hex << chunkSizeLine;
-	ss >> chunkSize;
-	return chunkSize;
-}
-
-void RequestReader::readRequestBodyChunked()
-{
-	std::size_t		length = 0;
-	std::string        tempLine;
-
-	std::size_t     chunkSize = convertChunkSize();
-
-	while (chunkSize > 0)
-	{
-		readLine(this->_fdClient, tempLine, CRLF, this->_errorRead);
-		this->_requestBody += tempLine + "\n";
-		this->_request += tempLine + "\n";
-
-		length += chunkSize;
-		readLine(this->_fdClient, tempLine, CRLF, this->_errorRead);
-		chunkSize = convertChunkSize();
-	}
-	this->_headers["Content-Length"] = intToString(length);
-}
-
-void RequestReader::readRequestBodyContentType(void)
-{
-	std::string tempLine;
-	size_t pos;
-
-	readLineBody(this->_fdClient, tempLine, getContentLength(), this->_errorRead);
-	pos = getHeader("Content-Type").find("boundary=", 0);
-	if (pos != std::string::npos)
-	{
-		std::string boundary = getHeader("Content-Type").substr(pos + 9);
-		readMultipartFormDataBody(boundary, tempLine);
-	}
-	this->_requestBody += tempLine;
-	this->_request += tempLine + "\n";
-
-}
-
 
 // GETTERS
 std::string RequestReader::getMethod(void) const
@@ -242,9 +241,9 @@ std::string RequestReader::getHeader(std::string headerName) const
 	}
 }
 
-std::string RequestReader::getRequest(void) const
+std::string RequestReader::getFullRequest(void) const
 {
-	return this->_request;
+	return this->_fullRequest;
 }
 
 int RequestReader::getContentLength() const
