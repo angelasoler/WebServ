@@ -1,7 +1,7 @@
 #include "RequestReader.hpp"
 # include <sstream>
 
-RequestReader::RequestReader(void) : _incompleted(false), _headers(), _method(""), _requestedRoute(""), _httpVersion(""), _requestBody(""), _errorRead(false){ }
+RequestReader::RequestReader(void) : _errorRead(false), _incompleted(false), _headers(), _method(""), _requestedRoute(""), _httpVersion(""), _requestBody("") {}
 
 RequestReader::~RequestReader(void) {}
 
@@ -20,6 +20,87 @@ bool    RequestReader::readHttpRequest(int &fdConection)
 	if (_errorRead)
 		return false;
 	return true;
+}
+
+// READ START LINE
+void RequestReader::readRequestStartLine(void)
+{
+	std::string line;
+
+	readLine(_fdClient, line, CRLF, this->_errorRead);
+	if (!line.empty())
+	{
+		this->_request += line +  "\n";
+		std::istringstream lineStream(line);
+		if (!(lineStream >> this->_method)) {
+			this->_incompleted = true;
+			return;
+		}
+		if (!(lineStream >> this->_requestedRoute)) {
+			this->_incompleted = true;
+			return;
+		}
+		if (!(lineStream >> this->_httpVersion)) {
+			this->_incompleted = true;
+			return;
+		}
+	}
+}
+
+// READ REQUEST HEADER
+void 	RequestReader::readRequestHeader(void)
+{
+	std::string line;
+
+	while (true)
+	{
+		readLine(this->_fdClient, line, CRLF, this->_errorRead);
+		if (line == CRLF || line.empty() || _errorRead)
+		{
+			if (_errorRead)
+				this->_incompleted = true;
+			break;
+		}
+		else
+		{
+			size_t colonPos = line.find(':');
+			if (colonPos != std::string::npos)
+			{
+				size_t lastNonCRLF = line.find_last_not_of(CRLF);
+				if (lastNonCRLF != std::string::npos)
+				{
+					line = line.substr(0, lastNonCRLF + 1);
+					std::string headerName = line.substr(0, colonPos);
+					std::string headerValue = line.substr(colonPos + 2);
+					this->_headers[headerName] = headerValue;
+
+				}
+			}
+		}
+		this->_request += line + "\n";
+	}
+	printHeaderDataStructure();
+}
+
+// READ REQUEST BODY
+void RequestReader::readRequestBody(void)
+{
+	if (getHeader("Transfer-Encoding") == "chunked")
+	{
+		readRequestBodyChunked();
+	}
+	else if (!getHeader("Content-Type").empty() && getHeader("Content-Type").find("multipart/form-data") != std::string::npos)
+	{
+		readRequestBodyContentType();
+	}
+	else if (!getHeader("Content-Length").empty())
+	{
+			std::string tempLine;
+
+		readLineBody(this->_fdClient, tempLine, getContentLength(), this->_errorRead);
+		this->_requestBody += tempLine;
+		this->_request += tempLine + "\n";
+	}
 }
 
 void RequestReader::readMultipartFormDataBody(const std::string& boundary, std::string &tempLine)
@@ -125,84 +206,8 @@ void RequestReader::readRequestBodyContentType(void)
 
 }
 
-void RequestReader::readRequestBody(void)
-{
-	if (getHeader("Transfer-Encoding") == "chunked")
-	{
-		readRequestBodyChunked();
-	}
-	else if (!getHeader("Content-Type").empty() && getHeader("Content-Type").find("multipart/form-data") != std::string::npos)
-	{
-		readRequestBodyContentType();
-	}
-	else if (!getHeader("Content-Length").empty())
-	{
-			std::string tempLine;
 
-		readLineBody(this->_fdClient, tempLine, getContentLength(), this->_errorRead);
-		this->_requestBody += tempLine;
-		this->_request += tempLine + "\n";
-	}
-}
-
-void 	RequestReader::readRequestHeader(void)
-{
-	std::string line;
-
-	while (true)
-	{
-		readLine(this->_fdClient, line, CRLF, this->_errorRead);
-		if (line == CRLF || line.empty() || _errorRead)
-		{
-			if (_errorRead)
-				this->_incompleted = true;
-			break;
-		}
-		else
-		{
-			size_t colonPos = line.find(':');
-			if (colonPos != std::string::npos)
-			{
-				size_t lastNonCRLF = line.find_last_not_of(CRLF);
-				if (lastNonCRLF != std::string::npos)
-				{
-					line = line.substr(0, lastNonCRLF + 1);
-					std::string headerName = line.substr(0, colonPos);
-					std::string headerValue = line.substr(colonPos + 2);
-					this->_headers[headerName] = headerValue;
-
-				}
-			}
-		}
-		this->_request += line + "\n";
-	}
-	printHeaderDataStructure();
-}
-
-void RequestReader::readRequestStartLine(void)
-{
-	std::string line;
-
-	readLine(_fdClient, line, CRLF, this->_errorRead);
-	if (!line.empty())
-	{
-		this->_request += line +  "\n";
-		std::istringstream lineStream(line);
-		if (!(lineStream >> this->_method)) {
-			this->_incompleted = true;
-			return;
-		}
-		if (!(lineStream >> this->_requestedRoute)) {
-			this->_incompleted = true;
-			return;
-		}
-		if (!(lineStream >> this->_httpVersion)) {
-			this->_incompleted = true;
-			return;
-		}
-	}
-}
-
+// GETTERS
 std::string RequestReader::getMethod(void) const
 {
 	return this->_method;
@@ -223,7 +228,6 @@ std::string RequestReader::getBody(void) const
 	return this->_requestBody;
 }
 
-
 std::string RequestReader::getHeader(std::string headerName) const
 {
 	std::map<std::string, std::string>::const_iterator it = this->_headers.find(headerName);
@@ -241,11 +245,6 @@ std::string RequestReader::getHeader(std::string headerName) const
 std::string RequestReader::getRequest(void) const
 {
 	return this->_request;
-}
-
-void RequestReader::setBody(std::string newBody)
-{
-	this->_requestBody = newBody;
 }
 
 int RequestReader::getContentLength() const
@@ -269,19 +268,8 @@ std::vector<std::string>	RequestReader::getMultipartValues(void) const
 	return _multipartValues;
 }
 
-void	RequestReader::setMethod(std::string method)
-{
-	this->_method = method;
-}
 
-
-bool	RequestReader::isDelimiter(std::string line, std::string delimiter)
-{
-	return (line.rfind(delimiter) != std::string::npos);
-}
-
-
-
+// READ LINE UTILS
 void	 RequestReader::readLine(int fd, std::string &line, std::string delimiter, bool &error)
 {
 	char		buffer[2] = {0};
@@ -347,7 +335,13 @@ std::string RequestReader::intToString(int value)
 	return ss.str();
 }
 
+bool	RequestReader::isDelimiter(std::string line, std::string delimiter)
+{
+	return (line.rfind(delimiter) != std::string::npos);
+}
 
+
+// DEBUG
 void RequestReader::printHeaderDataStructure(void)
 {
 	std::map<std::string, std::string>::iterator headerIt;

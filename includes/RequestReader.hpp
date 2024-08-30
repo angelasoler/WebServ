@@ -21,32 +21,46 @@ class RequestReader
 		~RequestReader();
 
 		bool								readHttpRequest(int &fdConection);
+
+		// GETTERS
 		std::string							getMethod(void) const;
 		std::string							getHttpVersion(void) const;
 		std::string							getBody(void) const;
 		std::string							getHeader(std::string headerName) const;
 		std::string							getRequest(void) const;
-		void								setBody(std::string newBody);
-		void								setMethod(std::string method);
 		int									getContentLength(void) const;
 		std::string							getRequestedRoute(void) const;
 		std::vector<std::string>			getMultipartHeaders(void) const;
 		std::vector<std::string>			getMultipartValues(void) const;
-		bool								isDelimiter(std::string line, std::string delimiter);
-		void								readLine(int fd, std::string &line, std::string delimiter, bool &error);
-		void								readLineBody(int fd, std::string &line, int contentLength, bool &error);
-		std::string							intToString(int value);
 	private:
+
+		// READ START LINE
 		void								readRequestStartLine(void);
+
+		// READ REQUEST HEADER
 		void								readRequestHeader(void);
+
+		// READ REQUEST BODY
 		void								readRequestBody(void);
 		size_t								convertChunkSize();
 		void								readRequestBodyChunked(void);
 		void								readRequestBodyContentType(void);
-		void								printHeaderDataStructure(void);
 		void								readMultipartFormDataBody(const std::string& boundary, std::string &tempLine);
 
+		// READLINE AND UTILS
+		void								readLine(int fd, std::string &line, std::string delimiter, bool &error);
+		void								readLineBody(int fd, std::string &line, int contentLength, bool &error);
+		std::string							intToString(int value);
+		bool								isDelimiter(std::string line, std::string delimiter);
+
+		// DEBUG
+		void								printHeaderDataStructure(void);
+
+		// STATUS VARS
+		bool									_errorRead;
 		bool									_incompleted;
+
+		// REQUEST VARS
 		std::map<std::string, std::string> 		_headers;
 		std::vector<std::string>				_multipartHeaders;
 		std::vector<std::string>				_multipartValues;
@@ -56,7 +70,6 @@ class RequestReader
 		std::string								_requestBody;
 		int										_fdClient;
 		std::string								_request;
-		bool									_errorRead;
 };
 
 #endif
