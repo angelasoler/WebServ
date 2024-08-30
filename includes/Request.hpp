@@ -74,6 +74,8 @@ struct RequestInfo
 	std::vector<std::string>			multipartBodyHeaders;
 	std::vector<std::string>			multipartBodyParts;
 	std::map< std::string, std::string>	bodyValues;
+
+	RequestInfo();
 };
 
 class Request

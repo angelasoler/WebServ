@@ -25,6 +25,8 @@ void	Request::printRequest(void)
 
 bool	Request::readRequest(int client_fd)
 {
+	requestsText.clear();
+	info = RequestInfo();
 	requestReader = RequestReader();
 
 	if (!requestReader.readHttpRequest(client_fd))
@@ -48,7 +50,7 @@ void	Request::parseRequestInfo(ServerConfig &serverConfig)
 		if (pos != std::string::npos)
 			info.boundary = contentTypeLine.substr(pos + 9);
 		info.contentType = contentTypeLine;
-    }
+	}
 
 	if (info.contentType.find("multipart/form-data") != std::string::npos) {
 		info.multipartBodyHeaders = requestReader.getMultipartBodyHeaders();
@@ -90,3 +92,20 @@ e_httpMethodActions	Request::getMethodAction(void)
 		return(CLOSE);
 	}
 }
+
+RequestInfo::RequestInfo() :
+	requestedRoute("\\"),
+	fullPath(""),
+	pathType(UNKNOWN),
+	permissions(),
+	auto_index(false),
+	serverRef(),
+	configRef(),
+	contentType(""),
+	boundary(""),
+	action(RESPONSE),
+	body(""),
+	multipartBodyHeaders(),
+	multipartBodyParts(),
+	bodyValues()
+	{}

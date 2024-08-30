@@ -9,7 +9,11 @@ bool    							RequestReader::readHttpRequest(int &fdConection)
 {
 	this->_fdClient = fdConection;
 	readRequestStartLine();
+	if (_errorRead)
+		return false;
 	readRequestHeader();
+	if (_errorRead)
+		return false;
 	readRequestBody();
 	if (_errorRead)
 		return false;
@@ -147,7 +151,7 @@ void 	RequestReader::readRequestHeader(void)
 	while (true)
 	{
 		readLine(this->_fdClient, line, CRLF, this->_errorRead);
-		if (line == CRLF || line.empty())
+		if (line == CRLF || line.empty() || _errorRead)
 		{
 			break;
 		}
@@ -180,7 +184,14 @@ void	RequestReader::readRequestStartLine(void)
 	if (!line.empty())
 	{
 		std::istringstream lineStream(line);
-		lineStream >> this->_method >> this->_requestedRoute >> this->_httpVersion;
+		for (int i = 0; i < 3; i++) {
+			if (i == 0)
+				lineStream >> this->_method;
+			if (i == 1)
+				lineStream >> this->_requestedRoute;
+			if (i == 2)
+				lineStream >> this->_httpVersion;
+		}
 		this->_request += line +  "\n";
 	}
 }
