@@ -24,17 +24,25 @@ void PrintRequestInfo::printRequestInfo(RequestInfo& request)
 	logFd << "\t  Execute: " << (request.permissions.execute ? "true" : "false") << std::endl;
 	logFd << "\t  Not Found: " << (request.permissions.notFound ? "true" : "false") << std::endl;
 
-	logFd << "\tAuto Index: " << (request.auto_index ? "true" : "false") << std::endl;
-
-	logFd << "\tBoundary: " << request.boundary << std::endl;
 	logFd << "\tBody: " << request.body << std::endl;
-	logFd << "\tContent Type: " << request.contentType << std::endl;
 
 	logFd << "\tBody Values:" << std::endl;
-	for (std::map<std::string, std::string>::iterator it = request.bodyValues.begin(); it != request.bodyValues.end(); ++it) {
+	for (std::map<std::string, std::string>::iterator it = request.urlencodedValues.begin(); it != request.urlencodedValues.end(); ++it) {
 		logFd << "\t  " << it->first << ": " << it->second << std::endl;
 	}
 
+	if (request.multipartHeaders.size() > 0 && request.multipartValues.size() > 0)
+	{
+		logFd << "\tMultipartBody Headers:" << std::endl;
+		for (std::vector<std::string>::iterator it = request.multipartHeaders.begin(); it != request.multipartHeaders.end(); ++it) {
+			logFd << "\t  " << *it << std::endl;
+		}
+		logFd << "\tMultipartBody Values size: " << request.multipartValues.size() << std::endl;
+		// logFd << "\tMultipartBody Parts:" << std::endl;
+		// for (std::vector<std::string>::iterator it = request.multipartValues.begin(); it != request.multipartValues.end(); ++it) {
+		// 	logFd << "\t  " << *it << std::endl;
+		// }
+	}
 	logFd << "\tserverRef:" << std::endl;
 
 	// printServerConfig(request.serverRef, logFd);

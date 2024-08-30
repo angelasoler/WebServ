@@ -142,3 +142,8 @@ void Response::sendResponse(void)
 	if (ret == -1)
 		requestInfo.action = CLOSE;
 }
+
+int			Response::getClientFd(void)
+{
+	return this->client_fd;
+}

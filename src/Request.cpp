@@ -2,6 +2,7 @@
 #include "Request.hpp"
 #include "ParsePathInfo.hpp"
 #include "ParseBodyInfo.hpp"
+#include "RequestReader.hpp"
 #include "PrintRequestInfo.hpp"
 #include "TimeNow.hpp"
 #include <fstream>
@@ -24,91 +25,15 @@ void	Request::printRequest(void)
 
 bool	Request::readRequest(int client_fd)
 {
-	char	buffer[BUFFER_SIZE + 1];
+	requestsText.clear();
+	info = RequestInfo();
+	requestReader = RequestReader();
 
-	memset(buffer, 0, BUFFER_SIZE + 1);
-	ssize_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE, 0);
-	if (bytes_read < 0 || !bytes_read)
-		return true;
-	requestsText += buffer;
+	if (!requestReader.readHttpRequest(client_fd))
+		return (true);
+	requestsText = requestReader.getFullRequest();
 	printRequest();
 	return false;
-}
-
-void	Request::breakIntoLines(std::vector<std::string> &lines) {
-	char	*tokenLine;
-
-	tokenLine = std::strtok((char *)requestsText.c_str(), "\n");
-	do {
-		std::string	tmp(tokenLine);
-		lines.push_back(tmp);
-		tokenLine = std::strtok(NULL, "\n");
-	} while (tokenLine);
-}
-
-std::map< std::string, std::vector<std::string> >	&Request::getHeader(void)
-{
-	return (header);
-}
-
-void	Request::cleanHeader(void)
-{
-	std::map< std::string, std::vector<std::string> >::iterator	headerIt;
-
-	for (headerIt = header.begin(); headerIt != header.end(); headerIt++)
-		headerIt->second.clear();
-}
-
-void	Request::breakResquesLine(std::string &line) {
-	std::istringstream ss(line);
-
-	while (ss) {
-		std::string token;
-		ss >> token;
-		header["request"].push_back(token);
-	}
-}
-
-void	Request::parseTheOthers(std::vector<std::string> &lines)
-{
-	std::vector<std::string>::iterator	it1;
-
-	for (it1 = (lines.begin() + 1); it1 != lines.end(); it1++) {
-		std::string str = *it1;
-		size_t pos = str.find(":");
-		if (pos == std::string::npos)
-			break ;
-		std::string tokenKey = str.substr(0, pos);
-		std::string tokenValue = str.substr((pos + 1), str.size());
-		header[tokenKey].push_back(tokenValue); 
-	}
-}
-
-void	Request::parseRequestHeader(void)
-{
-	std::vector<std::string>	lines;
-
-	cleanHeader();
-	breakIntoLines(lines);
-	breakResquesLine(lines[0]);
-	parseTheOthers(lines);
-	printHeaderDataStructure();
-}
-
-void	Request::printHeaderDataStructure(void)
-{
-	std::map< std::string, std::vector<std::string> >::iterator	headerIt;
-	std::ofstream		parsedRequest("logs/parsedHeader.log");
-
-	parsedRequest << "\t\t === parsed header ==="  << std::endl;
-	for (headerIt = header.begin(); headerIt != header.end(); headerIt++) {
-		parsedRequest << headerIt->first << std::endl;
-		std::vector<std::string>::iterator it;
-		for (it = headerIt->second.begin(); it != headerIt->second.end(); it++)
-			parsedRequest << "\t" << *it << std::endl;
-	}
-	parsedRequest << "\t\t === \t\t ==="  << std::endl;
-	parsedRequest.close();
 }
 
 void	Request::parseRequestInfo(ServerConfig &serverConfig)
@@ -116,37 +41,39 @@ void	Request::parseRequestInfo(ServerConfig &serverConfig)
 	info.action = getMethodAction();
 	if (info.action == CLOSE)
 		return ;
-	info.requestedRoute = header["request"][ROUTE];
-	if (header.find("Content-Type") != header.end() && !header["Content-Type"].empty())
-	{
-		info.contentType = header["Content-Type"][0];
+	info.body = requestReader.getBody();
+	info.contentType = requestReader.getHeader("Content-Type");
+
+	if (info.contentType.find("multipart/form-data") != std::string::npos) {
+		info.multipartHeaders = requestReader.getMultipartHeaders();
+		info.multipartValues = requestReader.getMultipartValues();
 	}
+	info.requestedRoute = requestReader.getRequestedRoute();
 	info.serverRef = serverConfig;
 }
 
 void Request::parseRequest(ServerConfig &serverConfig)
 {
-	parseRequestHeader();
 	parseRequestInfo(serverConfig);
 	ParsePathInfo::parsePathInfo(info);
-	ParseBodyInfo::parseBodyInfo(requestsText, info);
+	ParseBodyInfo::parseBodyInfo(info);
 	PrintRequestInfo::printRequestInfo(info);
 }
 
 e_httpMethodActions	Request::getMethodAction(void)
 {
 	// printHeaderDataStructure();
-	if (header["request"][METHOD] == "GET")
+	if (requestReader.getMethod() == "GET")
 	{
 		std::cout << "\tRESPONSE\n" << std::endl;
 		return (RESPONSE);
 	}
-	else if (header["request"][METHOD] == "POST")
+	else if (requestReader.getMethod() == "POST")
 	{
 		std::cout << "\tPOST\n" << std::endl;
 		return (UPLOAD);
 	}
-	else if (header["request"][METHOD] == "DELETE")
+	else if (requestReader.getMethod() == "DELETE")
 	{
 		std::cout << "\tDELETE\n" << std::endl;
 		return (DELETE);
@@ -157,3 +84,18 @@ e_httpMethodActions	Request::getMethodAction(void)
 		return(CLOSE);
 	}
 }
+
+RequestInfo::RequestInfo() :
+	requestedRoute("\\"),
+	fullPath(""),
+	pathType(UNKNOWN),
+	permissions(),
+	serverRef(),
+	configRef(),
+	contentType(""),
+	action(RESPONSE),
+	body(""),
+	multipartHeaders(),
+	multipartValues(),
+	urlencodedValues()
+	{}

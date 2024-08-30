@@ -2,48 +2,40 @@
 #include <sys/stat.h>
 #include <string.h>
 
-void ParseBodyInfo::parseBodyInfo(std::string requestText, RequestInfo &info)
+// void writeFile(const std::string& content, const std::string& fileName) {
+// 	std::ofstream file(fileName.c_str());
+// 	if (file.is_open()) {
+// 		file << content;
+// 		file.close();
+// 		std::cout << "[ParseBodyInfo.cpp - writefile] File Writed!" << std::endl;
+// 	} else {
+// 		std::cerr << "[ParseBodyInfo.cpp - writefile] Error at open file!" << std::endl;
+// 	}
+// }
+
+void ParseBodyInfo::parseBodyInfo(RequestInfo &info)
 {	
 	if (info.action != UPLOAD)
 		return;
-	extractBody(requestText, info);
 	if (info.contentType.find("application/x-www-form-urlencoded") != std::string::npos)
-		parseBodyValues(info);
+		parseUrlEncodedValues(info);
+	if (info.contentType.find("multipart/form-data") != std::string::npos)
+	{
+		if (info.multipartHeaders.size() < 1 || info.multipartValues.size() < 1)
+			return;
+		// std::string header = info.multipartHeaders[0];
+		// size_t pos = header.find("filename=");
+		// if (pos != std::string::npos) {
+		// 	size_t start = header.find("\"", pos + 5) + 1;
+		// 	size_t end = header.find("\"", start);
+		// 	std::string filename = header.substr(start, end - start);
+		// 	writeFile(info.multipartValues[0], filename + ".jpg");
+		// }
+	}
+	
 }
 
-void extractBody(std::string requestText, RequestInfo &info)
-{
-	// Substitue todo \r\n por \n
-	std::string newDivisor = "\n";
-	info.body = stringWithNewDivisor(requestText, newDivisor);
-
-	// \r\n\r\n se é representada por \n\n
-	std::string finalDivisor = newDivisor + newDivisor;
-
-
-	// tenta encontrar o equivalente a \r\n\r\n no texto, ou seja tenta encontrar \n\n
-
-	// info.body = requestText;
-	// std::string finalDivisor = "\r\n\r\n";
-	std::size_t pos = info.body.find(finalDivisor);
-	if (pos != std::string::npos) {
-		// Verifica se há algo após "\r\n\r\n"
-		if (pos + finalDivisor.size() < info.body.size()) {
-			std::string posDivisor = info.body.substr(pos + finalDivisor.size());
-			info.body = posDivisor;
-
-			// std::cout << info.body << "\n";
-		}
-		else {
-			// "Não há nada após a sequência \\r\\n\\r\\n.
-		}
-	}
-	else {
-		// "A sequência \\r\\n\\r\\n não foi encontrada no texto
-	}
-}
-
-void parseBodyValues(RequestInfo &info)
+void parseUrlEncodedValues(RequestInfo &info)
 {
 	size_t start = 0;
 	size_t end = info.body.find('&');
@@ -61,7 +53,7 @@ void parseBodyValues(RequestInfo &info)
 			value = trim(value);
 
 			if (!key.empty()) {
-				info.bodyValues[key] = value;
+				info.urlencodedValues[key] = value;
 			}
 			else {
 				std::cerr << "Error: Encountered an empty key in the request body." << std::endl;
@@ -86,7 +78,7 @@ void parseBodyValues(RequestInfo &info)
 		value = trim(value);
 
 		if (!key.empty()) {
-			info.bodyValues[key] = value;
+			info.urlencodedValues[key] = value;
 		}
 		else {
 			std::cerr << "Error: Encountered an empty key in the request body." << std::endl;
@@ -104,21 +96,4 @@ std::string trim(const std::string& str)
 		return ""; // No content
 	size_t last = str.find_last_not_of(' ');
 	return str.substr(first, last - first + 1);
-}
-
-std::string stringWithNewDivisor(std::string text, std::string newDivisor)
-{
-	std::string result;
-
-	size_t pos = 0;
-	size_t oldDivisorPos;
-	
-	while ((oldDivisorPos = text.find("\r\0", pos)) != std::string::npos)
-	{
-		result.append(text, pos, oldDivisorPos - pos);
-		result.append(newDivisor);
-		pos = oldDivisorPos + 2;
-	}
-	result.append(text, pos);
-	return result;
 }

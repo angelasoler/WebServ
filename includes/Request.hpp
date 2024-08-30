@@ -19,6 +19,7 @@
 # include <string.h>
 # include <string>
 # include "Config.hpp"
+# include "RequestReader.hpp"
 
 typedef enum
 {
@@ -55,21 +56,24 @@ struct Permission
 
 struct RequestInfo
 {
-	std::string				requestedRoute;
-	std::string				fullPath;
-	e_pathType				pathType;
-	e_httpMethodActions		action;
-	Permission				permissions;
-	bool					auto_index;
+	std::string							requestedRoute;
+	std::string							fullPath;
+	e_pathType							pathType;
+	Permission							permissions;
+
 	// Reference
 	ServerConfig			serverRef;
 	RouteConfig				configRef;
 
 	// About Body
-	std::string							boundary;
-	std::string							body;
 	std::string							contentType;
-	std::map< std::string, std::string>	bodyValues;
+	e_httpMethodActions					action;
+	std::string							body;
+	std::vector<std::string>			multipartHeaders;
+	std::vector<std::string>			multipartValues;
+	std::map< std::string, std::string>	urlencodedValues;
+
+	RequestInfo();
 };
 
 class Request
@@ -78,28 +82,22 @@ class Request
 		std::map< std::string, std::vector<std::string> >	header;
 
 		// debug
-		void	printHeaderDataStructure(void);
 		void	printRequest(void);
 
 		// Parsing
-		void	parseTheOthers(std::vector<std::string> &lines);
-		void	breakResquesLine(std::string &line);
 		void	parseRequestInfo(ServerConfig &serverConfig);
-		void	parseRequestHeader(void);
-		void	breakIntoLines(std::vector<std::string> &lines);
 
 		// Aux Parsing
 		e_httpMethodActions									getMethodAction(void);
-		std::map< std::string, std::vector<std::string> >	&getHeader(void);
 	public:
-		std::string	requestsText;
-		RequestInfo	info;
+		std::string			requestsText;
+		RequestReader		requestReader;
+		RequestInfo			info;
 
 		Request(void);
 		~Request(void);
 		void	parseRequest(ServerConfig &serverConfig);
 		bool	readRequest(int client_fd);
-		void	cleanHeader(void);
 };
 
 #endif /* REQUEST_HPP */

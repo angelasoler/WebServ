@@ -12,16 +12,14 @@ class ParseBodyInfo
 {
 	public:
 
-		static void parseBodyInfo(std::string requestText, RequestInfo &info);
+		static void parseBodyInfo(RequestInfo &info);
 
 	private:
 		// construtor privado para impedir instânciação
 		ParseBodyInfo();
 };
 
-void 		parseBodyValues(RequestInfo &info);
-void 		extractBody(std::string requestText, RequestInfo &info);
-std::string stringWithNewDivisor(std::string text, std::string newDivisor);
+void 		parseUrlEncodedValues(RequestInfo &info);
 std::string trim(const std::string& str);
 
 #endif // PARSEBODYINFO_HPP
