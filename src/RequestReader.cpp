@@ -1,20 +1,22 @@
 #include "RequestReader.hpp"
 # include <sstream>
 
-RequestReader::RequestReader(void) : _headers(), _method(""), _requestedRoute(""), _httpVersion(""), _requestBody(""), _errorRead(false){ }
+RequestReader::RequestReader(void) : _incompleted(false), _headers(), _method(""), _requestedRoute(""), _httpVersion(""), _requestBody(""), _errorRead(false){ }
 
 RequestReader::~RequestReader(void) {}
 
-bool    							RequestReader::readHttpRequest(int &fdConection)
+bool    RequestReader::readHttpRequest(int &fdConection)
 {
 	this->_fdClient = fdConection;
 	readRequestStartLine();
-	if (_errorRead)
-		return false;
+	if (_incompleted)
+		return true;
 	readRequestHeader();
-	if (_errorRead)
-		return false;
+	if (_incompleted)
+		return true;
 	readRequestBody();
+	if (_incompleted)
+		return true;
 	if (_errorRead)
 		return false;
 	return true;
@@ -153,6 +155,8 @@ void 	RequestReader::readRequestHeader(void)
 		readLine(this->_fdClient, line, CRLF, this->_errorRead);
 		if (line == CRLF || line.empty() || _errorRead)
 		{
+			if (_errorRead)
+				this->_incompleted = true;
 			break;
 		}
 		else
@@ -176,23 +180,27 @@ void 	RequestReader::readRequestHeader(void)
 	printHeaderDataStructure();
 }
 
-void	RequestReader::readRequestStartLine(void)
+void RequestReader::readRequestStartLine(void)
 {
 	std::string line;
 
 	readLine(_fdClient, line, CRLF, this->_errorRead);
 	if (!line.empty())
 	{
-		std::istringstream lineStream(line);
-		for (int i = 0; i < 3; i++) {
-			if (i == 0)
-				lineStream >> this->_method;
-			if (i == 1)
-				lineStream >> this->_requestedRoute;
-			if (i == 2)
-				lineStream >> this->_httpVersion;
-		}
 		this->_request += line +  "\n";
+		std::istringstream lineStream(line);
+		if (!(lineStream >> this->_method)) {
+			this->_incompleted = true;
+			return;
+		}
+		if (!(lineStream >> this->_requestedRoute)) {
+			this->_incompleted = true;
+			return;
+		}
+		if (!(lineStream >> this->_httpVersion)) {
+			this->_incompleted = true;
+			return;
+		}
 	}
 }
 

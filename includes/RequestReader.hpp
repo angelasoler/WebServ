@@ -50,6 +50,7 @@ class RequestReader
 		void								printHeaderDataStructure(void);
 		void								readMultipartFormDataBody(const std::string& boundary, std::string &tempLine);
 
+		bool									_incompleted;
 		std::map<std::string, std::string> 		_headers;
 		std::vector<std::string>				_multipartBodyHeaders;
 		std::vector<std::string>				_multipartBodyParts;
