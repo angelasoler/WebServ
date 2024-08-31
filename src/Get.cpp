@@ -62,9 +62,17 @@ int	Get::responseToDirectory(void)
 {
 	if (response.requestInfo.configRef.directory_listing)
 	{
-		response.requestInfo.fullPath = \
-		response.requestInfo.configRef.root_directory + \
-		"/dirListingPlaceHolder.html";
+		if (*response.requestInfo.fullPath.rbegin() != '/')
+		{
+			std::stringstream	port;
+
+			port << response.requestInfo.serverRef.port;
+			response.setHeader("Location", "http://localhost:" + port.str() + response.requestInfo.requestedRoute + "/");
+			return 307;
+		}
+		response.setBody(makeBodyForDirListing());
+		if (response.getBody().empty())
+			return (500);
 		return 200;
 	}
 	return 404;
