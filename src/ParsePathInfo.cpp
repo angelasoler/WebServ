@@ -61,7 +61,15 @@ e_pathType identifyType(RequestInfo &info)
 		return CGI;
 	if (isFile(info.fullPath))
 		return File;
-	if (isDirectory(info.fullPath))
+	if (*info.requestedRoute.rbegin() == '/' && *info.fullPath.rbegin() != '/')
+	{
+		if (isDirectory(info.configRef.root_directory))
+		{
+			info.fullPath = info.configRef.root_directory + (endsWith(info.configRef.root_directory, "/") ? "" : "/");
+			return Directory;
+		}
+	}
+	else if (isDirectory(info.fullPath))
 		return Directory;
 	info.fullPath.clear();
 	return UNKNOWN;
@@ -148,6 +156,8 @@ Permission getPermissions(std::string path)
 void	addFileToDirectoryPath(RequestInfo &info)
 {
 	if (isDirectory(info.fullPath)) {
+		if (*info.fullPath.rbegin() == '/' && *info.requestedRoute.rbegin() == '/')
+			return ;
 		if (isFile(composeFullPath(info.fullPath, DEFAULT_FILE)))
 			info.fullPath = composeFullPath(info.fullPath, DEFAULT_FILE);
 		else if (isFile(composeFullPath(info.fullPath, info.configRef.default_file)))
