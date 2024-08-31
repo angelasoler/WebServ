@@ -9,6 +9,7 @@ int	Post::handleRequest(void)
 {
 	// std::cout << response.requestInfo.body << "\n";
 	// std::cout << response.getClientFd() << "\n";
+	(void)response;
 	return (404);
 }
 
