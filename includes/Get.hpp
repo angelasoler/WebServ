@@ -3,6 +3,9 @@
 
 # include "Request.hpp"
 # include "IHttpMethod.hpp"
+# include <ctime>
+# include <dirent.h>
+# include <sys/stat.h>
 
 class Response;
 
@@ -12,7 +15,8 @@ class Get : public IHttpMethod
 		Get(Response &objectRef);
 		~Get(void);
 
-		int handleRequest(void);
+		int 		handleRequest(void);
+		std::string	makeBodyForDirListing(void);
 	private:
 		Response &response;
 
