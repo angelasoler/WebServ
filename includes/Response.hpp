@@ -64,6 +64,7 @@ class Response
 		int			getClientFd(void);
 		void		treatActionAndResponse(void);
 		void		setBody(const std::string& body);
+		std::string	&getBody(void);
 		void		setHeader(const std::string& key, const std::string& value);
 		std::string	getDefaultPage(void);
 };
