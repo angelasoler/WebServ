@@ -18,8 +18,7 @@ std::string	identifyFullPath(RequestInfo &info)
 	std::string	fullPath;
 
 	std::map<std::string, RouteConfig>::iterator it;
-	if (info.requestedRoute.empty())
-		info.requestedRoute = "/";
+
 	for (it = info.serverRef.routes.begin(); it != info.serverRef.routes.end(); ++it)
 	{
 		routeConfig = it->second;
@@ -36,6 +35,16 @@ std::string	identifyFullPath(RequestInfo &info)
 		}
 		else
 			fullPath = composeFullPath(routeConfig.root_directory, info.requestedRoute);
+	}
+	// Buscar a rota "/" caso ela exista e não houve match com o loop acima
+	if (it == info.serverRef.routes.end())
+	{
+		it = info.serverRef.routes.find("/");
+		if (it != info.serverRef.routes.end())
+		{
+			routeConfig = it->second;
+			fullPath = composeFullPath(routeConfig.root_directory, info.requestedRoute);
+		}
 	}
 	info.configRef = routeConfig;
 	return fullPath;
