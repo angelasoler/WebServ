@@ -72,7 +72,7 @@ int	Get::responseToDirectory(void)
 
 int	Get::responseToInvalid(void)
 {
-	return(400);
+	return(404);
 }
 
 int	Get::responseToRedirection(void)
