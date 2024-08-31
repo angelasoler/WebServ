@@ -52,6 +52,11 @@ void Response::setBody(const std::string& body)
 	responseMsg.body = body;
 }
 
+std::string &Response::getBody(void)
+{
+	return responseMsg.body;
+}
+
 std::string Response::buildResponse(void)
 {
 	std::ostringstream responseStream;
