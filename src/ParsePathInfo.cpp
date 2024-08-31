@@ -71,7 +71,10 @@ std::string composeFullPath(const std::string& prefix, const std::string& suffix
 			fullPath += suffix;
 	}
 	else {
-		fullPath += "/" + suffix;
+		if (suffix[0] == '/')
+			fullPath += suffix;
+		else
+			fullPath += "/" + suffix;
 	}
 	return fullPath;
 }
