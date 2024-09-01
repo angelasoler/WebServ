@@ -112,8 +112,8 @@ void RequestReader::readRequestBodyChunked()
 	while (chunkSize > 0)
 	{
 		readLine(this->_fdClient, tempLine, CRLF, this->_errorRead);
-		this->_requestBody += tempLine + "\n";
-		this->_fullRequest += tempLine + "\n";
+		this->_requestBody += tempLine;
+		this->_fullRequest += tempLine;
 
 		length += chunkSize;
 		readLine(this->_fdClient, tempLine, CRLF, this->_errorRead);
