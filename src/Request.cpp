@@ -28,7 +28,6 @@ bool	Request::readRequest(int client_fd)
 	requestsText.clear();
 	info = RequestInfo();
 	requestReader = RequestReader();
-
 	if (!requestReader.readHttpRequest(client_fd))
 		return (true);
 	requestsText = requestReader.getFullRequest();
@@ -59,6 +58,17 @@ void	adjustRoute(std::string &route)
 		}
 	}
 	route = newRoute;
+}
+
+bool	Request::isInvalidMethod(void)
+{
+	std::vector<std::string>::iterator	requestedMethod;
+
+	requestedMethod = std::find(info.configRef.accepted_methods.begin(),
+									info.configRef.accepted_methods.end(),
+									requestReader.getMethod());
+
+	return (requestedMethod == info.configRef.accepted_methods.end());
 }
 
 void	Request::parseRequestInfo(ServerConfig &serverConfig)
@@ -92,6 +102,24 @@ void Request::parseRequest(ServerConfig &serverConfig)
 {
 	parseRequestInfo(serverConfig);
 	ParsePathInfo::parsePathInfo(info);
+	if (isInvalidMethod())
+	{
+		info.action = RESPONSE;
+		info.pathType = UNKNOWN;
+
+		std::vector<std::string> allowedMethods = insertAllowedMethods();
+
+
+		std::vector<std::string>::iterator	requestedMethod;
+
+
+		requestedMethod = std::find (allowedMethods.begin(), allowedMethods.end(), requestReader.getMethod());
+		if (requestedMethod != allowedMethods.end())
+			info.requestedRoute = "";
+		else
+			info.requestedRoute = "Bad";
+		return ;
+	}
 	ParseBodyInfo::parseBodyInfo(info);
 	PrintRequestInfo::printRequestInfo(info);
 }
