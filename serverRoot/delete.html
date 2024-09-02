@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Requisição DELETE</title>
+</head>
+<body>
+    <label for="resourcePath">Digite o caminho do recurso:</label>
+    <input type="text" id="resourcePath" placeholder="http://example.com/resource/path">
+    <button id="deleteButton">Enviar DELETE</button>
+
+    <script>
+        document.getElementById('deleteButton').addEventListener('click', function() {
+            // Obtém o valor do campo de entrada
+            const resourcePath = document.getElementById('resourcePath').value;
+
+            // Verifica se o campo não está vazio
+            if (!resourcePath) {
+                alert('Por favor, insira o caminho do recurso.');
+                return;
+            }
+
+            // Faz a requisição DELETE usando o URL fornecido
+            fetch(resourcePath, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log('Recurso deletado com sucesso!');
+                    alert('Recurso deletado com sucesso!');
+                } else {
+                    console.log('Erro ao deletar o recurso:', response.status);
+                    alert('Erro ao deletar o recurso: ' + response.status);
+                }
+            })
+            .catch(error => {
+                console.error('Erro na requisição:', error);
+                alert('Erro na requisição: ' + error);
+            });
+        });
+    </script>
+</body>
+</html>

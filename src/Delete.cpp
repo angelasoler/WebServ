@@ -5,32 +5,94 @@ Delete::Delete(Response &objectRef) : response(objectRef) {}
 
 Delete::~Delete(void) {}
 
-void	Delete::buildBody(void)
+void Delete::buildBody(void)
 {
 	std::string body = response.getDefaultPage();
-
 	response.setBody(body);
 }
 
 int Delete::handleRequest(void)
 {
-	if (response.requestInfo.pathType == File)
+	if (response.requestInfo.permissions.notFound)
+		return 404;
+	else if (response.requestInfo.pathType == File)
 	{
-		// Handle file deletion
-		return (204);
+		std::string parentDir = response.requestInfo.fullPath.substr(0, response.requestInfo.fullPath.find_last_of('/'));
+		if (!hasWritePermission(parentDir))
+			return 403;
+		if (remove(response.requestInfo.fullPath.c_str()) == 0)
+			return 204;
+		else
+			return 500;
 	}
-	else if (!endsWith(response.requestInfo.requestedRoute, "/"))
-		return (409);
-	else if (!response.requestInfo.permissions.write)
-		return (403);
-	else if (deleteDirectory())
-		return (204);
-	else
-		return (500);
+	else if (response.requestInfo.pathType == Directory)
+	{
+		if (deleteDirectory())
+			return 204;
+		else
+			return 403;
+	}
+	return 500;
 }
 
 bool Delete::deleteDirectory(void)
 {
-	// Try to delete a directory
+	if (!hasWritePermission(response.requestInfo.fullPath))
+		return false;
+	DIR *dir = opendir(response.requestInfo.fullPath.c_str());
+	if (!dir)
+		return false;
+
+	struct dirent *entry;
+	while ((entry = readdir(dir)) != NULL)
+	{
+		std::string entryName = entry->d_name;
+
+		if (entryName == "." || entryName == "..")
+		{
+			continue;
+		}
+		std::string fullPath = response.requestInfo.fullPath + "/" + entryName;
+		struct stat entryStat;
+		if (stat(fullPath.c_str(), &entryStat) == 0)
+		{
+			if (S_ISDIR(entryStat.st_mode))
+			{
+				Delete subDirDelete(response);
+				response.requestInfo.fullPath = fullPath;
+				if (!subDirDelete.deleteDirectory())
+				{
+					closedir(dir);
+					return false;
+				}
+			}
+			else
+			{
+				if (remove(fullPath.c_str()) != 0)
+				{
+					closedir(dir);
+					return false;
+				}
+			}
+		}
+		else
+		{
+			closedir(dir);
+			return false;
+		}
+	}
+
+	closedir(dir);
+	if (rmdir(response.requestInfo.fullPath.c_str()) != 0)
+		return false;
 	return true;
+}
+
+bool Delete::hasWritePermission(const std::string &path)
+{
+	struct stat pathStat;
+	if (stat(path.c_str(), &pathStat) != 0)
+		return false;
+
+	return (pathStat.st_mode & S_IWUSR) || (pathStat.st_mode & S_IWGRP) || (pathStat.st_mode & S_IWOTH);
 }
