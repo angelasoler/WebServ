@@ -18,6 +18,7 @@ class Post : public IHttpMethod
 
 		void		upload(void);
 		void		buildBody(void);
+		int			responseCGI(void);
 		// std::string
 };
 

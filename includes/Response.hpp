@@ -52,8 +52,8 @@ class Response
 		std::string	getStatusMessage(void);
 
 		// SEND RESPONSE
-		void	sendResponse(void);
 		void	printResponse(std::string &response);
+		int		responseCGI(void);
 
 	public:
 		RequestInfo	requestInfo;
@@ -67,6 +67,7 @@ class Response
 		std::string	&getBody(void);
 		void		setHeader(const std::string& key, const std::string& value);
 		std::string	getDefaultPage(void);
+		void		sendResponse(void);
 };
 
 #endif /* RESPONSE_HPP */

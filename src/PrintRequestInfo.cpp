@@ -66,7 +66,6 @@ const char* PrintRequestInfo::pathTypeToString(e_pathType pathType) {
 	switch (pathType) {
 		case File: return "File";
 		case Directory: return "Directory";
-		case URL: return "URL";
 		case Redirection: return "Redirection";
 		case CGI: return "CGI";
 		case UNKNOWN: return "UNKNOWN";

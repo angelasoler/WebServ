@@ -40,7 +40,6 @@ typedef enum
 {
 	File,
 	Directory,
-	URL,
 	Redirection,
 	CGI,
 	UNKNOWN
@@ -60,6 +59,8 @@ struct RequestInfo
 	std::string							fullPath;
 	e_pathType							pathType;
 	Permission							permissions;
+
+	std::string				queryString;
 
 	// Reference
 	ServerConfig			serverRef;

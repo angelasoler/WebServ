@@ -10,13 +10,25 @@ void	CGIServer::setEnv(RequestInfo &requestInfo)
 	std::ostringstream oss;
 
 	oss << requestInfo.body.size();
-	if (requestInfo.action == RESPONSE)
-		envVars["REQUEST_METHOD"] = "GET";
-	if (requestInfo.action == UPLOAD)
-		envVars["REQUEST_METHOD"] = "POST";
+	switch (requestInfo.action)
+	{
+		case RESPONSE:
+			envVars["REQUEST_METHOD"] = "GET";
+			break;
+		case UPLOAD:
+			envVars["REQUEST_METHOD"] = "POST";
+			break;
+		default:
+			return;
+	}
+	// if (requestInfo.action == RESPONSE)
+	// 	envVars["REQUEST_METHOD"] = "GET";
+	// if (requestInfo.action == UPLOAD)
+	// 	envVars["REQUEST_METHOD"] = "POST";
 	envVars["SCRIPT_NAME"] = scriptPath;
 	envVars["SERVER_PROTOCOL"] = "HTTP/1.1";
 	envVars["CONTENT_LENGTH"] = oss.str();
+	envVars["QUERY_STRING"] = requestInfo.queryString;
 }
 
 // TO-DO: verifica se está corretamente alocado
@@ -46,10 +58,10 @@ void redirChildPipes(int pipefd[], int pipefderror[])
 void CGIServer::readChildReturn(int pipefd[], int pipefderror[])
 {
 	char buffer[4096];
-	char buffererror[4096];
 	ssize_t count;
 	std::string buffererror2;
 	std::string buffer2;
+	char buffererror[4096];
 
 	count = read(pipefd[0], buffer, sizeof(buffer) - 1);
 	close(pipefd[0]);
@@ -69,15 +81,16 @@ void CGIServer::readChildReturn(int pipefd[], int pipefderror[])
 		buffererror2 = buffererror;
 	}
 	if (!buffererror2.empty()) {
-		std::cout << "\t\t======CGI stderr=======" << std::endl;
-		std::cout << buffererror;
-		GBIReturn.body = buffererror;
-		GBIReturn.code = 400;
+		GBIReturn.code = 500;
+		GBIReturn.body.clear();
+		// mandar para log
+		// std::cout << "\t\t======CGI stderr=======" << std::endl;
+		// std::cout << buffererror;
+		// GBIReturn.body = buffererror;
+		// GBIReturn.code = 500;
 	}
 }
 
-// TO-DO: pegar stderror só para debug, retornar menssagem padrão
-// pegar codigo de retorno do script?
 htmlResponse	CGIServer::executeScript(std::string requestData) {
 	std::cout << "\t\t======CGI exec=======" << std::endl;
 	int	pipefd[2];
@@ -103,8 +116,13 @@ htmlResponse	CGIServer::executeScript(std::string requestData) {
 		write(pipefd[1], requestData.c_str(), requestData.size());
 		close(pipefd[1]);
 		close(pipefderror[1]);
-		waitpid(pid, NULL, 0);
+		// pid_t exit_code = waitpid(pid, NULL, WUNTRACED);
+		waitpid(pid, NULL, WUNTRACED);
 		readChildReturn(pipefd, pipefderror);
+		// if (exit_code) {
+		// 	GBIReturn.code = 500;
+		// 	GBIReturn.body.clear();
+		// }
 		return (GBIReturn);
 	}
 	return GBIReturn;

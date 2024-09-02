@@ -8,7 +8,7 @@ api_key = "90c5a08f95c54ec48a4170335242908"
 # Lê a localização enviada pelo formulário
 
 form = cgi.FieldStorage()
-location = form.getvalue("location", "São Paulo")  # "São Paulo" como valor padrão caso não seja fornecido
+location = form.getvalue("location", "São Paulo")
 
 
 # Faz a requisição GET para a API
