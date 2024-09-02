@@ -52,6 +52,11 @@ void Response::setBody(const std::string& body)
 	responseMsg.body = body;
 }
 
+std::string &Response::getBody(void)
+{
+	return responseMsg.body;
+}
+
 std::string Response::buildResponse(void)
 {
 	std::ostringstream responseStream;
@@ -72,7 +77,7 @@ std::string Response::getStatusMessage(void)
 		case 200: return "OK";
 		case 201: return "Created";
 		case 204: return "No Content";
-		case 301: return "Moved Permanently";
+		case 307: return "Temporary Redirect";
 		case 400: return "Bad Request";
 		case 403: return "Forbidden";
 		case 404: return "Not Found";

@@ -18,8 +18,7 @@ std::string	identifyFullPath(RequestInfo &info)
 	std::string	fullPath;
 
 	std::map<std::string, RouteConfig>::iterator it;
-	if (info.requestedRoute.empty())
-		info.requestedRoute = "/";
+
 	for (it = info.serverRef.routes.begin(); it != info.serverRef.routes.end(); ++it)
 	{
 		routeConfig = it->second;
@@ -37,6 +36,16 @@ std::string	identifyFullPath(RequestInfo &info)
 		else
 			fullPath = composeFullPath(routeConfig.root_directory, info.requestedRoute);
 	}
+	// Buscar a rota "/" caso ela exista e não houve match com o loop acima
+	if (it == info.serverRef.routes.end())
+	{
+		it = info.serverRef.routes.find("/");
+		if (it != info.serverRef.routes.end())
+		{
+			routeConfig = it->second;
+			fullPath = composeFullPath(routeConfig.root_directory, info.requestedRoute);
+		}
+	}
 	info.configRef = routeConfig;
 	return fullPath;
 }
@@ -52,7 +61,15 @@ e_pathType identifyType(RequestInfo &info)
 		return CGI;
 	if (isFile(info.fullPath))
 		return File;
-	if (isDirectory(info.fullPath))
+	if (*info.requestedRoute.rbegin() == '/' && *info.fullPath.rbegin() != '/')
+	{
+		if (isDirectory(info.configRef.root_directory))
+		{
+			info.fullPath = info.configRef.root_directory + (endsWith(info.configRef.root_directory, "/") ? "" : "/");
+			return Directory;
+		}
+	}
+	else if (isDirectory(info.fullPath))
 		return Directory;
 	info.fullPath.clear();
 	return UNKNOWN;
@@ -71,7 +88,10 @@ std::string composeFullPath(const std::string& prefix, const std::string& suffix
 			fullPath += suffix;
 	}
 	else {
-		fullPath += "/" + suffix;
+		if (suffix[0] == '/')
+			fullPath += suffix;
+		else
+			fullPath += "/" + suffix;
 	}
 	return fullPath;
 }
@@ -136,6 +156,8 @@ Permission getPermissions(std::string path)
 void	addFileToDirectoryPath(RequestInfo &info)
 {
 	if (isDirectory(info.fullPath)) {
+		if (*info.fullPath.rbegin() == '/' && *info.requestedRoute.rbegin() == '/')
+			return ;
 		if (isFile(composeFullPath(info.fullPath, DEFAULT_FILE)))
 			info.fullPath = composeFullPath(info.fullPath, DEFAULT_FILE);
 		else if (isFile(composeFullPath(info.fullPath, info.configRef.default_file)))

@@ -36,6 +36,31 @@ bool	Request::readRequest(int client_fd)
 	return false;
 }
 
+void	adjustRoute(std::string &route)
+{
+	std::string newRoute;
+	bool		appendSlash = false;
+	
+	newRoute.reserve(route.size());
+	for (std::string::iterator it = route.begin(); it != route.end(); it++)
+	{
+		if (*it == '/')
+		{
+			if (!appendSlash)
+			{
+				newRoute += *it;
+				appendSlash = true;
+			}
+		}
+		else
+		{
+			newRoute += *it;
+			appendSlash = false;
+		}
+	}
+	route = newRoute;
+}
+
 void	Request::parseRequestInfo(ServerConfig &serverConfig)
 {
 	info.action = getMethodAction();
@@ -49,6 +74,7 @@ void	Request::parseRequestInfo(ServerConfig &serverConfig)
 		info.multipartValues = requestReader.getMultipartValues();
 	}
 	info.requestedRoute = requestReader.getRequestedRoute();
+	adjustRoute(info.requestedRoute);
 	info.serverRef = serverConfig;
 }
 
