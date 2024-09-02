@@ -75,15 +75,16 @@ TEST(GETstatusCodes, Request404) {
 	stop_server();
 }
 
-TEST(GETstatusCodes, Request301) {
+TEST(GETstatusCodes, Request307) {
+	//ARRANGE
 	HttpResponse response;
 	CURL* curl;
-	start_server("");
+	start_server("test/redir-tests/redir-config.conf");
 	curl = curl_easy_init();
 	ASSERT_NE(curl, nullptr);
-	std::string url = std::string("http://localhost:8080/") + DEFAULT_REDIRECTION;
-	
-	curl_easy_setopt(curl, CURLOPT_URL, url); // É necessario inserir o redirect configurado
+
+	// ACT
+	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080/redir-to-home");
 	curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
@@ -92,9 +93,10 @@ TEST(GETstatusCodes, Request301) {
 	CURLcode res = curl_easy_perform(curl);
 	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response.status_code);
 
+	// ASSERT: Verificar os resultados
 	EXPECT_EQ(res, CURLE_OK);
-	EXPECT_EQ(response.status_code, 301);
-	EXPECT_TRUE(response.headers.count("Location") > 0);
+	EXPECT_EQ(response.status_code, 307);
+	EXPECT_EQ(response.headers["Location"], "http://localhost:8080/home");
 
 	curl_easy_cleanup(curl);
 	stop_server();

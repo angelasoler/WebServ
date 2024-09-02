@@ -16,7 +16,7 @@ TEST(DirectoryListing, listingOn) {
 	ASSERT_NE(curl, nullptr);
 
 	// ACT
-	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080/subdir");
+	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080/subdir/");
 	curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
@@ -28,7 +28,7 @@ TEST(DirectoryListing, listingOn) {
 	// ASSERT: Verificar os resultados
 	EXPECT_EQ(res, CURLE_OK);
 	EXPECT_EQ(response.status_code, 200);
-	EXPECT_TRUE(response.body.find("List:") != std::string::npos); //place holder
+	EXPECT_TRUE(response.body.find("badFile") != std::string::npos); //place holder
 
 	curl_easy_cleanup(curl);
 	stop_server();
@@ -167,7 +167,7 @@ TEST(DirectoryListing, directoryNotFoud) {
 	ASSERT_NE(curl, nullptr);
 
 	// ACT
-	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080/not_found");
+	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080/not_found/");
 	curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
@@ -178,7 +178,7 @@ TEST(DirectoryListing, directoryNotFoud) {
 
 	// ASSERT: Verificar os resultados
 	EXPECT_EQ(res, CURLE_OK);
-	EXPECT_EQ(response.status_code, 400); //UNKNOWN
+	EXPECT_EQ(response.status_code, 404); //UNKNOWN
 
 	curl_easy_cleanup(curl);
 	stop_server();
