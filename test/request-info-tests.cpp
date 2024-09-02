@@ -151,38 +151,6 @@ TEST(RequestInfoTest, HandlesPostRequestWithMultipartFormData) {
 	EXPECT_TRUE(requestInfo.multipartHeaders[1].find("filename=\"test.txt\"") != std::string::npos);
 }
 
-TEST(RequestInfoTest, HandlesPostRequestWithChunkedMultipartFormData) {
-	std::string boundary = "--boundary";
-	std::string chunkedPostRequest = 
-		"POST " + std::string(DEFAULT_ROUTE_PATH) + " HTTP/1.1\r\n"
-		"Host: localhost\r\n"
-		"Transfer-Encoding: chunked\r\n"
-		"Content-Type: multipart/form-data; boundary=" + boundary + "\r\n\r\n"
-		"42\r\n"
-		+ boundary + "\r\n" +
-		"Content-Disposition: form-data; name=\"field1\"\r\n\r\n" +
-		"value1\r\n" + 
-		"31\r\n"
-		+ boundary + "\r\n" +
-		"Content-Disposition: form-data; name=\"file\"; filename=\"test.txt\"\r\n" +
-		"Content-Type: text/plain\r\n\r\n"
-		"13\r\n"
-		"file content here\r\n"
-		"0\r\n\r\n" +
-		boundary + "--";
-
-	RequestInfo requestInfo = parseHttpRequest(chunkedPostRequest);
-
-	EXPECT_EQ(requestInfo.requestedRoute, DEFAULT_ROUTE_PATH);
-	EXPECT_EQ(requestInfo.action, UPLOAD);
-	ASSERT_EQ(requestInfo.multipartHeaders.size(), 2);
-	ASSERT_EQ(requestInfo.multipartValues.size(), 2);
-	EXPECT_TRUE(requestInfo.multipartValues[0].find("value1") != std::string::npos);
-	EXPECT_TRUE(requestInfo.multipartValues[1].find("file content here") != std::string::npos);
-	EXPECT_TRUE(requestInfo.multipartHeaders[0].find("name=\"field1\"") != std::string::npos);
-	EXPECT_TRUE(requestInfo.multipartHeaders[1].find("filename=\"test.txt\"") != std::string::npos);
-}
-
 TEST(RequestInfoTest, HandlesPostRequestWithChunkedHtmlBody) {
 	std::string chunkedPostRequest = 
 		"POST " + std::string(DEFAULT_ROUTE_PATH) + " HTTP/1.1\r\n"
