@@ -201,6 +201,10 @@ int	Get::responseToDirectory(void)
 
 int	Get::responseToInvalid(void)
 {
+	if (response.requestInfo.requestedRoute == "Bad")
+		return (400);
+	if (response.requestInfo.requestedRoute.empty())
+		return (405);
 	return(404);
 }
 
