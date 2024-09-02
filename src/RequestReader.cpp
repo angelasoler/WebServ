@@ -9,18 +9,19 @@ bool    RequestReader::readHttpRequest(int &fdConection)
 {
 	this->_fdClient = fdConection;
 	readRequestStartLine();
-	if (_incompleted)
+	if (_incompleted && !_errorRead)
 		return true;
 	readRequestHeader();
-	if (_incompleted)
+	if (_incompleted && !_errorRead)
 		return true;
 	readRequestBody();
-	if (_incompleted)
+	if (_incompleted && !_errorRead)
 		return true;
 	if (_errorRead)
 		return false;
 	return true;
 }
+
 
 // READ START LINE
 void RequestReader::readRequestStartLine(void)
@@ -112,8 +113,8 @@ void RequestReader::readRequestBodyChunked()
 	while (chunkSize > 0)
 	{
 		readLine(this->_fdClient, tempLine, CRLF, this->_errorRead);
-		this->_requestBody += tempLine + "\n";
-		this->_fullRequest += tempLine + "\n";
+		this->_requestBody += tempLine;
+		this->_fullRequest += tempLine;
 
 		length += chunkSize;
 		readLine(this->_fdClient, tempLine, CRLF, this->_errorRead);

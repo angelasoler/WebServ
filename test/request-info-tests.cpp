@@ -11,19 +11,19 @@ RequestInfo parseHttpRequest(const std::string& httpRequest)
 	config->loadDefaultConfig();
 	ServerConfig server = config->servers[0];
 
-    // Cria um par de sockets conectados
-    if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockfd) == -1) {
-        perror("[request-info-tests.cpp - parseHttpRequest] socketpair");
-    }
+	// Cria um par de sockets conectados
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockfd) == -1) {
+		perror("[request-info-tests.cpp - parseHttpRequest] socketpair");
+	}
 
-    // Envia a string de teste para o socket
-    if (send(sockfd[0], httpRequest.c_str(), strlen(httpRequest.c_str()), 0) == -1) {
-        perror("[request-info-tests.cpp - parseHttpRequest] send");
-    }
+	// Envia a string de teste para o socket
+	if (send(sockfd[0], httpRequest.c_str(), strlen(httpRequest.c_str()), 0) == -1) {
+		perror("[request-info-tests.cpp - parseHttpRequest] send");
+	}
 
 	close(sockfd[0]);
 	request.readRequest(sockfd[1]);
-    close(sockfd[1]);
+	close(sockfd[1]);
 
 	request.parseRequest(server);
 	return request.info;
@@ -149,4 +149,40 @@ TEST(RequestInfoTest, HandlesPostRequestWithMultipartFormData) {
 	EXPECT_TRUE(requestInfo.multipartValues[1].find("file content here") != std::string::npos);
 	EXPECT_TRUE(requestInfo.multipartHeaders[0].find("name=\"field1\"") != std::string::npos);
 	EXPECT_TRUE(requestInfo.multipartHeaders[1].find("filename=\"test.txt\"") != std::string::npos);
+}
+
+TEST(RequestInfoTest, HandlesPostRequestWithChunkedHtmlBody) {
+	std::string chunkedPostRequest = 
+		"POST " + std::string(DEFAULT_ROUTE_PATH) + " HTTP/1.1\r\n"
+		"Host: localhost\r\n"
+		"Transfer-Encoding: chunked\r\n"
+		"Content-Type: text/html\r\n\r\n"
+		"33\r\n"
+		"<html><body><p>This is a chunked test</p></body></html>\r\n"
+		"0\r\n\r\n";
+
+	RequestInfo requestInfo = parseHttpRequest(chunkedPostRequest);
+
+	EXPECT_EQ(requestInfo.requestedRoute, DEFAULT_ROUTE_PATH);
+	EXPECT_EQ(requestInfo.action, UPLOAD);
+	EXPECT_EQ(requestInfo.body, "<html><body><p>This is a chunked test</p></body></html>");
+}
+
+TEST(RequestInfoTest, HandlesPostRequestWithChunkedFormUrlEncoded) {
+	std::string chunkedPostRequest = 
+		"POST " + std::string(DEFAULT_ROUTE_PATH) + " HTTP/1.1\r\n"
+		"Host: localhost\r\n"
+		"Transfer-Encoding: chunked\r\n"
+		"Content-Type: application/x-www-form-urlencoded\r\n\r\n"
+		"1e\r\n"
+		"username=testuser&age=34\r\n"
+		"0\r\n\r\n";
+
+	RequestInfo requestInfo = parseHttpRequest(chunkedPostRequest);
+
+	EXPECT_EQ(requestInfo.requestedRoute, DEFAULT_ROUTE_PATH);
+	EXPECT_EQ(requestInfo.action, UPLOAD);
+	EXPECT_EQ(requestInfo.body, "username=testuser&age=34");
+	EXPECT_EQ(requestInfo.urlencodedValues["username"], "testuser");
+	EXPECT_EQ(requestInfo.urlencodedValues["age"], "34");
 }
