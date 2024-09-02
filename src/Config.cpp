@@ -219,14 +219,12 @@ void Config::finishRoute()
 
 void Config::finishServer()
 {
-	if (currentServer.port < 0)
-	{
+	if (currentServer.port < 0) {
 		currentServer.port = DEFAULT_PORT;
 	}
-	if (isInPorts(currentServer.port))
-	{
+	if (isReservedPort(currentServer.port)) {
 		currentServer = ServerConfig();
-		return;
+		return ;
 	}
 	usedPorts.push_back(currentServer.port);
 	if (currentServer.server_names.empty())
@@ -239,7 +237,11 @@ void Config::finishServer()
 	inServer = false;
 }
 
-bool Config::isInPorts(int port)
+bool Config::isReservedPort(int port)
 {
-	return std::find(usedPorts.begin(), usedPorts.end(), port) != usedPorts.end();
+	if (port < 1024)
+		return true;
+	if (std::find(usedPorts.begin(), usedPorts.end(), port) != usedPorts.end())
+		return true;
+	return false;
 }
