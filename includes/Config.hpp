@@ -71,7 +71,7 @@ class Config
 		bool				inServer;
 		bool				inRoute;
 		std::vector<int>	usedPorts;
-		bool 				isInPorts(int port);
+		bool				isReservedPort(int port);
 		void	finishServer(void);
 		void	finishRoute(void);
 		void	processConfigLine(const std::string &line);
