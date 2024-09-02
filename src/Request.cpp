@@ -78,6 +78,16 @@ void	Request::parseRequestInfo(ServerConfig &serverConfig)
 	info.serverRef = serverConfig;
 }
 
+std::vector<std::string> insertAllowedMethods(void)
+{
+	std::vector<std::string>	vec;
+
+	vec.push_back("GET");
+	vec.push_back("POST");
+	vec.push_back("DELETE");
+	return vec;
+}
+
 void Request::parseRequest(ServerConfig &serverConfig)
 {
 	parseRequestInfo(serverConfig);
@@ -89,26 +99,20 @@ void Request::parseRequest(ServerConfig &serverConfig)
 e_httpMethodActions	Request::getMethodAction(void)
 {
 	// printHeaderDataStructure();
-	if (requestReader.getMethod() == "GET")
+	std::vector<std::string> allowedMethods = insertAllowedMethods();
+
+	std::vector<std::string>::iterator	requestedMethod;
+
+
+	requestedMethod = std::find (allowedMethods.begin(), allowedMethods.end(), requestReader.getMethod());
+	if (requestedMethod != allowedMethods.end())
 	{
-		std::cout << "\tRESPONSE\n" << std::endl;
-		return (RESPONSE);
+		std::cout << "\t" << *requestedMethod << "\n";
+		return ((e_httpMethodActions)(requestedMethod - allowedMethods.begin()));
 	}
-	else if (requestReader.getMethod() == "POST")
-	{
-		std::cout << "\tPOST\n" << std::endl;
-		return (UPLOAD);
-	}
-	else if (requestReader.getMethod() == "DELETE")
-	{
-		std::cout << "\tDELETE\n" << std::endl;
-		return (DELETE);
-	}
-	else
-	{
-		std::cout << "\tCLOSE\n" << std::endl;
-		return(CLOSE);
-	}
+
+	std::cout << "\tCLOSE\n" << std::endl;
+	return(CLOSE);
 }
 
 RequestInfo::RequestInfo() :
