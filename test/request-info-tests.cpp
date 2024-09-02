@@ -11,19 +11,19 @@ RequestInfo parseHttpRequest(const std::string& httpRequest)
 	config->loadDefaultConfig();
 	ServerConfig server = config->servers[0];
 
-    // Cria um par de sockets conectados
-    if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockfd) == -1) {
-        perror("[request-info-tests.cpp - parseHttpRequest] socketpair");
-    }
+	// Cria um par de sockets conectados
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockfd) == -1) {
+		perror("[request-info-tests.cpp - parseHttpRequest] socketpair");
+	}
 
-    // Envia a string de teste para o socket
-    if (send(sockfd[0], httpRequest.c_str(), strlen(httpRequest.c_str()), 0) == -1) {
-        perror("[request-info-tests.cpp - parseHttpRequest] send");
-    }
+	// Envia a string de teste para o socket
+	if (send(sockfd[0], httpRequest.c_str(), strlen(httpRequest.c_str()), 0) == -1) {
+		perror("[request-info-tests.cpp - parseHttpRequest] send");
+	}
 
 	close(sockfd[0]);
 	request.readRequest(sockfd[1]);
-    close(sockfd[1]);
+	close(sockfd[1]);
 
 	request.parseRequest(server);
 	return request.info;
