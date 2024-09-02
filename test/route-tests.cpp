@@ -76,7 +76,7 @@ TEST(routesTesting, twoRoutesNoroot) {
 
 	// ASSERT: Verificar os resultados
 	EXPECT_EQ(res, CURLE_OK);
-	EXPECT_EQ(response.status_code, 400);
+	EXPECT_EQ(response.status_code, 404);
 	EXPECT_TRUE(response.body.find("ERROR") != std::string::npos);
 
 	curl_easy_cleanup(curl);
@@ -194,7 +194,7 @@ TEST(routesTesting, routeNoIndex) {
 	// ASSERT: Verificar os resultados
 	EXPECT_EQ(res, CURLE_OK);
 	EXPECT_EQ(response.status_code, 200);
-	EXPECT_TRUE(response.body.find("List:") != std::string::npos);
+	EXPECT_TRUE(response.body.find("calculator.html") != std::string::npos);
 
 	curl_easy_cleanup(curl);
 	stop_server();
