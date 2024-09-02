@@ -40,4 +40,8 @@ fclean: clean
 
 re: fclean all
 
+resetLogs:
+	@rm -rf logs
+	@mkdir logs
+
 .PHONY: all clean fclean re run git valgrind v
