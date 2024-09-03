@@ -1,27 +1,30 @@
 #include "tests.hpp"
 #include "Config.hpp"
+#include "Response.hpp"
 
 bool thisFileExists(const std::string& filename) {
 	struct stat buffer;
 	return (stat(filename.c_str(), &buffer) == 0);
 }
 
-bool areFilesIdentical(const std::string& file1, const std::string& file2) {
-    std::ifstream ifs1(file1.c_str(), std::ifstream::binary);
-    std::ifstream ifs2(file2.c_str(), std::ifstream::binary);
+bool areFilesIdentical(const std::string& p1, const std::string& p2) {
+	std::ifstream f1(p1, std::ifstream::binary|std::ifstream::ate);
+	std::ifstream f2(p2, std::ifstream::binary|std::ifstream::ate);
 
-    if (!ifs1.is_open() || !ifs2.is_open()) {
-        return false;
-    }
+	if (f1.fail() || f2.fail()) {
+		return false; //file problem
+	}
 
-    char ch1, ch2;
-    while (ifs1.get(ch1) && ifs2.get(ch2)) {
-        if (ch1 != ch2) {
-            return false;
-        }
-    }
+	if (f1.tellg() != f2.tellg()) {
+		return false; //size mismatch
+	}
 
-    return ifs1.eof() && ifs2.eof();
+	//seek back to beginning and use std::equal to compare contents
+	f1.seekg(0, std::ifstream::beg);
+	f2.seekg(0, std::ifstream::beg);
+	return std::equal(std::istreambuf_iterator<char>(f1.rdbuf()),
+						std::istreambuf_iterator<char>(),
+						std::istreambuf_iterator<char>(f2.rdbuf()));
 }
 
 bool createAndWriteFile(const std::string& filename, const std::string& text) {
@@ -52,10 +55,11 @@ TEST(POSTuploadFile, UploadMakefile) {
 	mime = curl_mime_init(curl);
 
 	// Adiciona o arquivo ao POST
-	std::string filename = "./FileRandom";
+	std::string filename = "FileRandom";
 	std::string	fileContent = "texto\naleatorio\naqui\ndentro1111111111111";
 	if (!createAndWriteFile(filename, fileContent))
 		std::cerr << "Error\n";
+
 	part = curl_mime_addpart(mime);
 	curl_mime_name(part, "file");
 	curl_mime_filedata(part, (filename).c_str());
@@ -71,12 +75,12 @@ TEST(POSTuploadFile, UploadMakefile) {
 	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response.status_code);
 
 	// Verifica o resultado
-	std::string uploadedFile = std::string(DEFAULT_ROUTE_PATH) + "/" + DEFAULT_UPLOAD_DIRECTORY + "/" + filename;
-	ASSERT_TRUE(thisFileExists(uploadedFile.c_str())) << "File not created\n" << unlink(filename.c_str());
-	ASSERT_TRUE(areFilesIdentical(filename, uploadedFile)) << "Uploaded File are not the same\n" << unlink(filename.c_str());
+	std::string uploadedFile = std::string(DEFAULT_ROOT_DIRECTORY) + "/" + DEFAULT_UPLOAD_DIRECTORY + "/" + filename;
+	EXPECT_TRUE(thisFileExists(uploadedFile.c_str())); // << "File not created\n" << unlink(filename.c_str());
+	EXPECT_TRUE(areFilesIdentical(filename, uploadedFile)); // << "Uploaded File are not the same\n" << unlink(uploadedFile.c_str()) << unlink(filename.c_str());
 	EXPECT_EQ(res, CURLE_OK);
-	EXPECT_EQ(response.status_code, 202);
-	EXPECT_TRUE(response.body.find("Upload successful") != std::string::npos);
+	EXPECT_EQ(response.status_code, 201);
+	EXPECT_TRUE(response.body.find(CREATED_SUCCESSFULLY) != std::string::npos);
 
 	// Limpeza
 	unlink(filename.c_str());

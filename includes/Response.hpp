@@ -16,6 +16,7 @@
 #include "CGIServer.hpp"
 # include "IHttpMethod.hpp"
 
+#define CREATED_SUCCESSFULLY "<html><head><title>201</title></head><body><h1>201<br>Created Successfully!</h1></body></html>"
 #define NO_CONTENT "<html><head><title>204</title></head><body><h1>204<br>No Content!</h1></body></html>"
 #define BAD_REQUEST_ERROR "<html><head><title>ERROR 400</title></head><body><h1>ERROR 400<br>Bad Request!</h1></body></html>"
 #define FORBIDDEN_ERROR "<html><head><title>ERROR 403</title></head><body><h1>ERROR 403<br>Forbidden!</h1></body></html>"
