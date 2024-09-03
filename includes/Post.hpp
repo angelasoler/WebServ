@@ -16,7 +16,7 @@ class Post : public IHttpMethod
 	private:
 		Response &response;
 
-		void		upload(void);
+		int			upload(void);
 		void		buildBody(void);
 		// std::string
 };
