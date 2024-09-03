@@ -6,17 +6,18 @@
 
 void	parseQueryString(RequestInfo &info)
 {
-	int	pos = info.fullPath.find("?");
-	if (pos) {
-		info.queryString = info.fullPath.substr(pos + 1);
-		info.fullPath = info.fullPath.substr(0, pos);
+	size_t	pos = info.requestedRoute.find("?");
+
+	if (pos != std::string::npos) {
+		info.queryString = info.requestedRoute.substr(pos + 1);
+		info.requestedRoute = info.requestedRoute.substr(0, pos);
 	}
 }
 
 void	ParsePathInfo::parsePathInfo(RequestInfo &info)
 {
-	info.fullPath = identifyFullPath(info);
 	parseQueryString(info);
+	info.fullPath = identifyFullPath(info);
 	addFileToDirectoryPath(info);
 	info.pathType = identifyType(info);
 	info.permissions = getPermissions(info.fullPath);

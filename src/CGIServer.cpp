@@ -1,25 +1,22 @@
 #include "CGIServer.hpp"
 #include <cerrno>
 #include <sstream>
+#include "TimeNow.hpp"
 
 CGIServer::CGIServer(RequestInfo &info) : requestInfo(info), scriptPath(info.fullPath) {}
 
 void	CGIServer::setEnv(void)
 {
 	std::ostringstream oss;
+	// std::string tmp = scriptPath;
+	// size_t pos = tmp.rfind("/");
 
+	// execDir = tmp.substr(0, pos);
 	oss << requestInfo.body.size();
-	switch (requestInfo.action)
-	{
-		case RESPONSE:
-			envVars["REQUEST_METHOD"] = "GET";
-			break;
-		case UPLOAD:
-			envVars["REQUEST_METHOD"] = "POST";
-			break;
-		default:
-			return;
-	}
+	if (requestInfo.action == RESPONSE)
+		envVars["REQUEST_METHOD"] = "GET";
+	else
+		envVars["REQUEST_METHOD"] = "POST";
 	envVars["SCRIPT_NAME"] = scriptPath;
 	envVars["SERVER_PROTOCOL"] = "HTTP/1.1";
 	envVars["CONTENT_LENGTH"] = oss.str();
@@ -51,16 +48,19 @@ void CGIServer::redirChildPipes(void)
 
 void	CGIServer::CGIFeedLog(std::string buffer)
 {
+	std::ofstream	logFd("logs/CGI.log", std::ios_base::app);
 	std::string	buffererror2;
 	char		buffererror[4096];
 	ssize_t		count;
+	std::string CGIbody(requestInfo.rawBody.begin(), requestInfo.rawBody.end());
 
-	if (!requestInfo.body.empty())
-		std::cout << "requestInfo.body: " << requestInfo.body << std::endl;
+	logFd << "\n" << TimeNow();
+	if (!CGIbody.empty())
+		logFd << "requestInfo.rawBody: " << CGIbody << std::endl;
 	if (!buffer.empty()) {
-		std::cout << "\t\t======CGI stdout=======" << std::endl;
+		logFd << "\t\t======CGI stdout=======" << std::endl;
 		close(pipefderror[0]);
-		std::cout << buffer;
+		logFd << buffer;
 		return ;
 	}
 	count = read(pipefderror[0], buffererror, sizeof(buffererror) - 1);
@@ -68,8 +68,8 @@ void	CGIServer::CGIFeedLog(std::string buffer)
 	buffererror[count] = '\0';
 	buffererror2 = buffererror;
 	if (!buffererror2.empty()) {
-		std::cout << "\t\t======CGI stderr=======" << std::endl;
-		std::cout << buffererror;
+		logFd << "\t\t======CGI stderr=======" << std::endl;
+		logFd << buffererror;
 	}
 }
 
@@ -86,7 +86,10 @@ void CGIServer::readChildReturn(void)
 	buffer2 = buffer;
 	if (!buffer2.empty()) {
 		CGIReturn.body = buffer;
-		CGIReturn.code = 200; //201 se for post
+		if (requestInfo.action == RESPONSE)
+			CGIReturn.code = 200;
+		else
+			CGIReturn.code = 201;
 	}
 	CGIFeedLog(buffer2);
 }
@@ -113,24 +116,30 @@ void	CGIServer::executeScript(void)
 		CGIReturn.body.clear();
 		return ;
 	}
-	std::cout << "\t\t======CGI exec=======" << std::endl;
+	if (requestInfo.permissions.notFound) {
+		CGIReturn.code = 404;
+		CGIReturn.body.clear();
+		return ;
+	}
+
 
 	if (pipe(pipefd) == -1 || pipe(pipefderror) == -1)
-		throw(std::runtime_error("Pipe creation failed.")); //mandar no log
+		std::cerr << "Pipe creation failed." << std::endl;
 	pid_t pid = fork();
 	if (pid < 0)
-		throw(std::runtime_error("Fork failed.")); //mandar no log
+		std::cerr << "Fork failed." << std::endl;
 	else if (pid == 0) {
 		char *envp[envVars.size() + 1];
+		std::string pyBin = "/usr/bin/python3";
+		char* const argv[] = {const_cast<char*>(pyBin.c_str()), const_cast<char*>(scriptPath.c_str()), NULL};
 
+		// chdir(execDir.c_str());
 		redirChildPipes();
 		getEnvp(envp);
-		std::string pyBin = "/usr/bin/python3";
-		//TO-DO: fazer cd para stacticScriptPath
-		char* const argv[] = {const_cast<char*>(pyBin.c_str()), const_cast<char*>(scriptPath.c_str()), NULL};
 		execve(argv[0], argv, envp);
 	} else {
-		write(pipefd[1], requestInfo.body.c_str(), requestInfo.body.size());
+		char* rawPtr = requestInfo.rawBody.data();
+		write(pipefd[1], rawPtr, requestInfo.rawBody.size());
 		close(pipefd[1]);
 		close(pipefderror[1]);
 

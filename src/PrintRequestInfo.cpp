@@ -51,6 +51,8 @@ void PrintRequestInfo::printRequestInfo(RequestInfo& request)
 
 void PrintRequestInfo::printRawBody(RequestInfo& request)
 {
+	if (request.rawBody.empty())
+		return ;
 	std::ofstream	logFd("logs/raw_body.log", std::ios_base::app);
 
 	logFd << "\n" << TimeNow();

@@ -1,7 +1,6 @@
 #include "tests.hpp"
 
 //não mandou o dado do file, requisição com metadados vazia
-
 TEST(CGITests, PostUploadPyFail) {
 	//ARRANGE
 	HttpResponse response;
@@ -23,7 +22,7 @@ TEST(CGITests, PostUploadPyFail) {
 	// ASSERT: Verificar os resultados
 	EXPECT_EQ(res, CURLE_OK);
 	EXPECT_EQ(response.status_code, 500);
-	EXPECT_TRUE(response.body.find("Error") != std::string::npos);
+	EXPECT_TRUE(response.body.find("ERROR") != std::string::npos);
 
 	curl_easy_cleanup(curl);
 	stop_server();
@@ -154,7 +153,7 @@ TEST(CGITests, GETNotAllowed) {
 	ASSERT_NE(curl, nullptr);
 
 	// ACT
-	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080/cgi-bin/cantexec.py?dasfafafasdf");
+	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080/cgi-bin/no_permission/cantexec.py?dasfafafasdf");
 	curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
@@ -166,7 +165,7 @@ TEST(CGITests, GETNotAllowed) {
 	// ASSERT: Verificar os resultados
 	EXPECT_EQ(res, CURLE_OK);
 	EXPECT_EQ(response.status_code, 405);
-	EXPECT_TRUE(response.body.find("Not allowed") != std::string::npos);
+	EXPECT_TRUE(response.body.find("Method Not Allowed") != std::string::npos);
 
 	curl_easy_cleanup(curl);
 	stop_server();
@@ -181,7 +180,7 @@ TEST(CGITests, GETNotAllowed) {
 // 	ASSERT_NE(curl, nullptr);
 
 // 	// ACT
-// 	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080/cgi-bin/infinit_loop.py?dasfafafasdf");
+// 	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080/cgi-bin/no_permission/infinit_loop.py?dasfafafasdf");
 // 	curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
 // 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
 // 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
@@ -198,3 +197,6 @@ TEST(CGITests, GETNotAllowed) {
 // 	curl_easy_cleanup(curl);
 // 	stop_server();
 // }
+
+// notfound
+// http://localhost:8080/cgi-bin/infinit_loop.py

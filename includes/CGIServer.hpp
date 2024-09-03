@@ -27,6 +27,7 @@ class CGIServer {
 	private:
 		RequestInfo							&requestInfo;
 		std::string							scriptPath;
+		std::string							execDir;
 		std::map<std::string, std::string>	envVars;
 		int									pipefd[2];
 		int									pipefderror[2];

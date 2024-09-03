@@ -3,6 +3,7 @@
 
 import cgi
 import os
+import sys
 
 # Defina o diretório de destino para os uploads
 upload_dir = os.getcwd() + '/serverRoot/upload'
@@ -37,6 +38,8 @@ if "file" in form:
     else:
         print("Content-Type: text/html\n")
         print("<html><body><h2>Falha no upload: Nenhum arquivo foi enviado.</h2></body></html>")
+        sys.exit(1)
 else:
     print("Content-Type: text/html\n")
     print("<html><body><h2>Falha no upload: O campo 'file' não foi encontrado.</h2></body></html>")
+    sys.exit(1)
