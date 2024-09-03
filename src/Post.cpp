@@ -7,50 +7,20 @@ Post::~Post(void) {}
 
 int	Post::handleRequest(void)
 {
-	uploadLogs("\n\n-----Starting Upload-----\n");
+	add_post_log("\n\n-----Starting Upload-----\n");
 	// verifica se é cgi
 	if (response.requestInfo.pathType == CGI) {
-		uploadLogs("Handling CGI request.");
+		add_post_log("Handling CGI request.");
 		// handleCGI
 	}
 
 	if (isValidRoute()) {
-		uploadLogs("Valid route detected, proceeding with upload.");
+		add_post_log("Valid route detected, proceeding with upload.");
 		return upload();
 	}
 
-	uploadLogs("Invalid route: " + response.requestInfo.fullPath);
+	add_post_log("Invalid route: " + response.requestInfo.fullPath);
 	return (400);
-}
-
-bool	Post::isValidRoute(void) {
-	RequestInfo &info = response.requestInfo;
-
-	std::string uploadPath = info.configRef.root_directory + "/" + info.configRef.upload_directory + "/";
-	if (response.requestInfo.pathType == Directory)
-	{
-		if (response.requestInfo.fullPath == uploadPath) {
-			uploadLogs("Route is valid for upload: " + uploadPath);
-			return true;
-		}
-		uploadLogs("Route is not valid for upload: " + response.requestInfo.fullPath);
-		return false;
-	}
-	uploadLogs("Path type is not a Directory.");
-	return false;
-}
-
-bool	writeFile(const std::string& content, const std::string& fileName) {
-	std::ofstream file(fileName.c_str());
-	if (file.is_open()) {
-		file << content;
-		file.close();
-		uploadLogs("File written successfully: " + fileName);
-		return true;
-	} else {
-		uploadLogs("Error opening file: " + fileName);
-	}
-	return false;
 }
 
 int Post::upload(void)
@@ -60,7 +30,7 @@ int Post::upload(void)
 	if (info.contentType.find("multipart/form-data") != std::string::npos)
 	{
 		if (info.multipartHeaders.size() < 1 || info.multipartValues.size() < 1) {
-			uploadLogs("Multipart data is incomplete.");
+			add_post_log("Multipart data is incomplete.");
 			return 400;
 		}
 
@@ -68,16 +38,46 @@ int Post::upload(void)
 		{
 			std::string filename = getFileName();
 			if (!writeFile(info.multipartValues[i], filename)) {
-				uploadLogs("Failed to write file: " + filename);
+				add_post_log("Failed to write file: " + filename);
 				return 400;
 			}
-			uploadLogs("File uploaded successfully: " + filename);
+			add_post_log("File uploaded successfully: " + filename);
 		}
 		return 201;
 	}
 
-	uploadLogs("Unsupported content type: " + info.contentType);
+	add_post_log("Unsupported content type: " + info.contentType);
 	return 400;
+}
+
+bool	Post::isValidRoute(void) {
+	RequestInfo &info = response.requestInfo;
+
+	std::string uploadPath = info.configRef.root_directory + "/" + info.configRef.upload_directory + "/";
+	if (response.requestInfo.pathType == Directory)
+	{
+		if (response.requestInfo.fullPath == uploadPath) {
+			add_post_log("Route is valid for upload: " + uploadPath);
+			return true;
+		}
+		add_post_log("Route is not valid for upload: " + response.requestInfo.fullPath);
+		return false;
+	}
+	add_post_log("Path type is not a Directory.");
+	return false;
+}
+
+bool	writeFile(const std::string& content, const std::string& fileName) {
+	std::ofstream file(fileName.c_str());
+	if (file.is_open()) {
+		file << content;
+		file.close();
+		add_post_log("File written successfully: " + fileName);
+		return true;
+	} else {
+		add_post_log("Error opening file: " + fileName);
+	}
+	return false;
 }
 
 void	Post::buildBody(void) {
@@ -127,7 +127,7 @@ std::string	Post::getFileName(void)
 	return filename;
 }
 
-void uploadLogs(const std::string& content) {
+void add_post_log(const std::string& content) {
 	std::ofstream	logFd("logs/uploads.log", std::ios_base::app);
 	logFd << content << std::endl;
 }

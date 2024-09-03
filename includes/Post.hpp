@@ -23,6 +23,7 @@ class Post : public IHttpMethod
 		// utils
 		static bool	fileExists(const std::string& filename);
 };
+bool	writeFile(const std::string& content, const std::string& fileName);
+void	add_post_log(const std::string& content);
 
-void uploadLogs(const std::string& content);
 #endif // POST_HPP
