@@ -36,7 +36,7 @@ int Post::upload(void)
 
 		for (size_t i = 0; i < info.multipartValues.size(); ++i)
 		{
-			std::string filename = getFileName();
+			std::string filename = getFileName(i);
 			if (!writeFile(info.multipartValues[i], filename)) {
 				add_post_log("Failed to write file: " + filename);
 				return 400;
@@ -94,37 +94,20 @@ bool Post::fileExists(const std::string& filename)
 	return (stat(filename.c_str(), &buffer) == 0);
 }
 
-std::string	Post::getFileName(void)
+std::string	Post::getFileName(int index)
 {
 	RequestInfo	&info = response.requestInfo;
 	std::string filename;
-	std::string header = info.multipartHeaders[0];
+	std::string header = info.multipartHeaders[index];
 	size_t pos = header.find("filename=");
 
 	if (pos != std::string::npos) {
 		size_t start = header.find("\"", pos + 5) + 1;
 		size_t end = header.find("\"", start);
 		filename = info.fullPath + header.substr(start, end - start);
-		// return filename;
+		return filename;
 	}
-	// Se o filename foi encontrado
-	if (filename.empty()) {
-		filename = info.fullPath + "new_file";
-	}
-	// Verifica se o arquivo já existe
-	if (fileExists(filename)) {
-		int counter = 1;
-		std::string newFilename;
-		do {
-			std::stringstream ss;
-			ss << filename << "_" << counter;
-			newFilename = ss.str();
-			counter++;
-		} while (fileExists(newFilename));
-
-		filename = newFilename;
-	}
-	return filename;
+	return info.fullPath + "new_file";
 }
 
 void add_post_log(const std::string& content) {

@@ -16,7 +16,7 @@ class Post : public IHttpMethod
 	private:
 		Response &response;
 
-		std::string	getFileName(void);
+		std::string	getFileName(int index);
 		bool		isValidRoute(void);
 		int			upload(void);
 		void		buildBody(void);
