@@ -41,7 +41,7 @@ bool createAndWriteFile(const std::string& filename, const std::string& text) {
 	return true;
 }
 
-TEST(POSTuploadFile, UploadMakefile) {
+TEST(POSTuploadFile, UploadFile) {
 	HttpResponse response;
 	CURL* curl;
 	start_server("");
@@ -49,7 +49,7 @@ TEST(POSTuploadFile, UploadMakefile) {
 	ASSERT_NE(curl, nullptr);
 
 	// Configurações para o POST com arquivo
-	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080/");
+	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080/uploads/");
 	curl_mime* mime;
 	curl_mimepart* part;
 	mime = curl_mime_init(curl);

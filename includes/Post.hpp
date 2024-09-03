@@ -17,10 +17,12 @@ class Post : public IHttpMethod
 		Response &response;
 
 		std::string	getFileName(void);
+		bool		isValidRoute(void);
 		int			upload(void);
 		void		buildBody(void);
 		// utils
 		static bool	fileExists(const std::string& filename);
 };
 
+void uploadLogs(const std::string& content);
 #endif // POST_HPP
