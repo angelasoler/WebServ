@@ -33,22 +33,56 @@ bool writeFile(const std::string& content, const std::string& fileName) {
 	return false;
 }
 
+std::string	Post::getFileName(void)
+{
+	RequestInfo	&info = response.requestInfo;
+	std::string filename;
+	std::string header = info.multipartHeaders[0];
+	size_t pos = header.find("filename=");
+
+	if (pos != std::string::npos) {
+		size_t start = header.find("\"", pos + 5) + 1;
+		size_t end = header.find("\"", start);
+		filename = info.configRef.root_directory + "/" + info.configRef.upload_directory + "/" + header.substr(start, end - start);
+		return filename;
+	}
+    // Se o filename foi encontrado
+    if (!filename.empty()) {
+        filename = info.configRef.root_directory + "/" + info.configRef.upload_directory + "/" + filename;
+    } else {
+        filename = info.configRef.root_directory + "/" + info.configRef.upload_directory + "/new_file";
+    }
+
+    // Verifica se o arquivo já existe
+    if (fileExists(filename)) {
+        int counter = 1;
+        std::string newFilename;
+        do {
+            std::stringstream ss;
+            ss << filename << "_" << counter;
+            newFilename = ss.str();
+            counter++;
+        } while (fileExists(newFilename));
+
+        filename = newFilename;
+    }
+
+    return filename;
+}
+
 int	Post::upload(void)
 {
-	if (response.requestInfo.contentType.find("multipart/form-data") != std::string::npos)
+	RequestInfo	&info = response.requestInfo;
+
+	if (info.contentType.find("multipart/form-data") != std::string::npos)
 	{
-		if (response.requestInfo.multipartHeaders.size() < 1 || response.requestInfo.multipartValues.size() < 1)
+		if (info.multipartHeaders.size() < 1 || info.multipartValues.size() < 1)
 			return 202;
-		std::string header = response.requestInfo.multipartHeaders[0];
-		size_t pos = header.find("filename=");
-		if (pos != std::string::npos) {
-			size_t start = header.find("\"", pos + 5) + 1;
-			size_t end = header.find("\"", start);
-			std::string filename = response.requestInfo.configRef.root_directory + "/" + response.requestInfo.configRef.upload_directory + "/" + header.substr(start, end - start);
-			if (!writeFile(response.requestInfo.multipartValues[0], filename))
-				return (500);
-			return (201);
-		}
+
+		std::string filename = getFilename();
+		if (!writeFile(info.multipartValues[0], filename))
+			return (500);
+		return (201);
 	}
 }
 
@@ -58,4 +92,10 @@ void	Post::buildBody(void) {
 	if (body == NO_DEFAULT_ERROR)
 		response.setBody(CREATED_SUCCESSFULLY);
 	response.setBody(body);
+}
+
+static bool fileExists(const std::string& filename)
+{
+    struct stat buffer;
+    return (stat(filename.c_str(), &buffer) == 0);
 }

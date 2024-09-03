@@ -16,9 +16,11 @@ class Post : public IHttpMethod
 	private:
 		Response &response;
 
+		std::string	getFileName(void);
 		int			upload(void);
 		void		buildBody(void);
-		// std::string
+		// utils
+		static bool	fileExists(const std::string& filename);
 };
 
 #endif // POST_HPP
