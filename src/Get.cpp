@@ -17,7 +17,7 @@ int Get::handleRequest(void)
 			return responseToFile();
 		case Redirection:
 			return responseToRedirection();
-		case UNKNOWN:
+		default:
 			return responseToInvalid();
 	}
 	return 0;
@@ -94,10 +94,11 @@ int	Get::responseToRedirection(void)
 
 int	Get::responseCGI(void) {
 	htmlResponse	htmlResponse;
-	CGIServer		cgi(response.requestInfo.fullPath);
+	CGIServer		cgi(response.requestInfo);
 
-	cgi.setEnv(response.requestInfo);
-	htmlResponse = cgi.executeScript(response.requestInfo.body);
+	cgi.setEnv();
+	htmlResponse = cgi.executeScript();
+
 	response.setBody(htmlResponse.body);
 	return(htmlResponse.code);
 }

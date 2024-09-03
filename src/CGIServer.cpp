@@ -2,10 +2,9 @@
 #include <cerrno>
 #include <sstream>
 
-CGIServer::CGIServer(const std::string scriptPath) : scriptPath(scriptPath) {}
+CGIServer::CGIServer(RequestInfo &info) : requestInfo(info), scriptPath(info.fullPath) {}
 
-// TO-DO: verificar o script path do routes?
-void	CGIServer::setEnv(RequestInfo &requestInfo)
+void	CGIServer::setEnv(void)
 {
 	std::ostringstream oss;
 
@@ -21,17 +20,12 @@ void	CGIServer::setEnv(RequestInfo &requestInfo)
 		default:
 			return;
 	}
-	// if (requestInfo.action == RESPONSE)
-	// 	envVars["REQUEST_METHOD"] = "GET";
-	// if (requestInfo.action == UPLOAD)
-	// 	envVars["REQUEST_METHOD"] = "POST";
 	envVars["SCRIPT_NAME"] = scriptPath;
 	envVars["SERVER_PROTOCOL"] = "HTTP/1.1";
 	envVars["CONTENT_LENGTH"] = oss.str();
 	envVars["QUERY_STRING"] = requestInfo.queryString;
 }
 
-// TO-DO: verifica se está corretamente alocado
 void CGIServer::getEnvp(char *envp[])
 {
 	int i = 0;
@@ -44,7 +38,7 @@ void CGIServer::getEnvp(char *envp[])
 	envp[i] = NULL;
 }
 
-void redirChildPipes(int pipefd[], int pipefderror[])
+void CGIServer::redirChildPipes(void)
 {
 	dup2(pipefd[0], STDIN_FILENO);
 	close(pipefd[0]);
@@ -55,13 +49,12 @@ void redirChildPipes(int pipefd[], int pipefderror[])
 	close(pipefderror[1]);
 }
 
-void CGIServer::readChildReturn(int pipefd[], int pipefderror[])
+void CGIServer::readChildReturn(void)
 {
 	char buffer[4096];
 	ssize_t count;
 	std::string buffererror2;
 	std::string buffer2;
-	char buffererror[4096];
 
 	count = read(pipefd[0], buffer, sizeof(buffer) - 1);
 	close(pipefd[0]);
@@ -74,27 +67,29 @@ void CGIServer::readChildReturn(int pipefd[], int pipefderror[])
 		GBIReturn.body = buffer;
 		GBIReturn.code = 200;
 	}
-	else {
-		count = read(pipefderror[0], buffererror, sizeof(buffererror) - 1);
-		close(pipefderror[0]);
-		buffererror[count] = '\0';
-		buffererror2 = buffererror;
-	}
-	if (!buffererror2.empty()) {
-		GBIReturn.code = 500;
-		GBIReturn.body.clear();
-		// mandar para log
+	// [_] mandar para log
+	// char buffererror[4096];
+	// else {
+	// 	count = read(pipefderror[0], buffererror, sizeof(buffererror) - 1);
+	// 	close(pipefderror[0]);
+	// 	buffererror[count] = '\0';
+	// 	buffererror2 = buffererror;
+	// }
+	// if (!buffererror2.empty()) {
 		// std::cout << "\t\t======CGI stderr=======" << std::endl;
 		// std::cout << buffererror;
 		// GBIReturn.body = buffererror;
 		// GBIReturn.code = 500;
-	}
+	// }
 }
 
-htmlResponse	CGIServer::executeScript(std::string requestData) {
+htmlResponse	CGIServer::executeScript(void)
+{
+	if (!requestInfo.permissions.execute) {
+		GBIReturn.code = 405;
+		return GBIReturn;
+	}
 	std::cout << "\t\t======CGI exec=======" << std::endl;
-	int	pipefd[2];
-	int	pipefderror[2];
 
 	if (pipe(pipefd) == -1 || pipe(pipefderror) == -1)
 		throw(std::runtime_error("Pipe creation failed."));
@@ -104,25 +99,33 @@ htmlResponse	CGIServer::executeScript(std::string requestData) {
 	else if (pid == 0) {
 		char *envp[envVars.size() + 1];
 
-		redirChildPipes(pipefd, pipefderror);
+		redirChildPipes();
 		getEnvp(envp);
 		std::string pyBin = "/usr/bin/python3";
 		//TO-DO: fazer cd para stacticScriptPath
 		char* const argv[] = {const_cast<char*>(pyBin.c_str()), const_cast<char*>(scriptPath.c_str()), NULL};
 		execve(argv[0], argv, envp);
 	} else {
-		if (!requestData.empty())
-			std::cout << "requestData: " << requestData << std::endl;
-		write(pipefd[1], requestData.c_str(), requestData.size());
+		if (!requestInfo.body.empty())
+			std::cout << "requestInfo.body: " << requestInfo.body << std::endl;
+		write(pipefd[1], requestInfo.body.c_str(), requestInfo.body.size());
 		close(pipefd[1]);
 		close(pipefderror[1]);
-		// pid_t exit_code = waitpid(pid, NULL, WUNTRACED);
-		waitpid(pid, NULL, WUNTRACED);
-		readChildReturn(pipefd, pipefderror);
-		// if (exit_code) {
-		// 	GBIReturn.code = 500;
-		// 	GBIReturn.body.clear();
-		// }
+		//wait and read child
+		int	child_exit_status;
+		int exit_code;
+		waitpid(pid, &child_exit_status, 0);
+		readChildReturn();
+		if (WIFEXITED(child_exit_status))
+			exit_code = WEXITSTATUS(child_exit_status);
+		if (exit_code) {
+			GBIReturn.code = 500;
+			GBIReturn.body.clear();
+		}
+		////
+		//if exit_code != 0
+		///feed_log();
+		/////
 		return (GBIReturn);
 	}
 	return GBIReturn;

@@ -7,8 +7,10 @@
 void	parseQueryString(RequestInfo &info)
 {
 	int	pos = info.fullPath.find("?");
-	info.queryString = info.fullPath.substr(pos + 1);
-	info.fullPath = info.fullPath.substr(0, pos);
+	if (pos) {
+		info.queryString = info.fullPath.substr(pos + 1);
+		info.fullPath = info.fullPath.substr(0, pos);
+	}
 }
 
 void	ParsePathInfo::parsePathInfo(RequestInfo &info)
@@ -43,6 +45,15 @@ std::string	identifyFullPath(RequestInfo &info)
 		}
 		else
 			fullPath = composeFullPath(routeConfig.root_directory, info.requestedRoute);
+	}
+	if (it == info.serverRef.routes.end())
+	{
+		it = info.serverRef.routes.find("/");
+		if (it != info.serverRef.routes.end())
+		{
+			routeConfig = it->second;
+			fullPath = composeFullPath(routeConfig.root_directory, info.requestedRoute);
+		}
 	}
 	info.configRef = routeConfig;
 	return fullPath;

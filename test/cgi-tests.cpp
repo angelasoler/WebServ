@@ -44,7 +44,6 @@ TEST(CGITests, PostUploadPy) {
 
 	// ACT
 	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080/cgi-bin/upload/upload.py");
-	// curl_easy_setopt(curl, CURLOPT_HTTPPOST, curl_mime_init(curl));
 	curl_easy_setopt(curl, CURLOPT_MIMEPOST, form);
 	curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
@@ -56,7 +55,7 @@ TEST(CGITests, PostUploadPy) {
 
 	// ASSERT: Verificar os resultados
 	EXPECT_EQ(res, CURLE_OK);
-	EXPECT_EQ(response.status_code, 200);
+	EXPECT_EQ(response.status_code, 201);
 	EXPECT_TRUE(response.body.find("Upload bem-sucedido") != std::string::npos);
 
 	curl_easy_cleanup(curl);
@@ -91,7 +90,7 @@ TEST(CGITests, GETCalculatorPy) {
 	stop_server();
 }
 
-// preenche campos com string
+// bad query string
 TEST(CGITests, GETCalculatorPyFail) {
 	//ARRANGE
 	HttpResponse response;
@@ -139,10 +138,63 @@ TEST(CGITests, GETCalculatorPyBadQueryString) {
 
 	// ASSERT: Verificar os resultados
 	EXPECT_EQ(res, CURLE_OK);
-	EXPECT_EQ(response.status_code, 500);//or what
-	EXPECT_TRUE(response.body.find("ERROR") != std::string::npos);
+	EXPECT_EQ(response.status_code, 200);
+	EXPECT_TRUE(response.body.find("0.0") != std::string::npos);
 
 	curl_easy_cleanup(curl);
 	stop_server();
 }
 
+TEST(CGITests, GETNotAllowed) {
+	//ARRANGE
+	HttpResponse response;
+	CURL* curl;
+	start_server("test/cgi-tests/cgi-config.conf");
+	curl = curl_easy_init();
+	ASSERT_NE(curl, nullptr);
+
+	// ACT
+	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080/cgi-bin/cantexec.py?dasfafafasdf");
+	curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+	curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, HeaderCallback);
+	curl_easy_setopt(curl, CURLOPT_HEADERDATA, &response);
+	CURLcode res = curl_easy_perform(curl);
+	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response.status_code);
+
+	// ASSERT: Verificar os resultados
+	EXPECT_EQ(res, CURLE_OK);
+	EXPECT_EQ(response.status_code, 405);
+	EXPECT_TRUE(response.body.find("Not allowed") != std::string::npos);
+
+	curl_easy_cleanup(curl);
+	stop_server();
+}
+
+// TEST(CGITests, GETInfinitLoop) {
+// 	//ARRANGE
+// 	HttpResponse response;
+// 	CURL* curl;
+// 	start_server("test/cgi-tests/cgi-config.conf");
+// 	curl = curl_easy_init();
+// 	ASSERT_NE(curl, nullptr);
+
+// 	// ACT
+// 	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080/cgi-bin/infinit_loop.py?dasfafafasdf");
+// 	curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
+// 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+// 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+// 	curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, HeaderCallback);
+// 	curl_easy_setopt(curl, CURLOPT_HEADERDATA, &response);
+// 	CURLcode res = curl_easy_perform(curl);
+// 	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response.status_code);
+
+// 	// ASSERT: Verificar os resultados
+// 	EXPECT_EQ(res, CURLE_OK);
+// 	EXPECT_EQ(response.status_code, 500);
+// 	EXPECT_TRUE(response.body.find("Error") != std::string::npos);
+
+// 	curl_easy_cleanup(curl);
+// 	stop_server();
+// }

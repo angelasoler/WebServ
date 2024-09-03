@@ -14,7 +14,6 @@ bool    RequestReader::readHttpRequest(int &fdConection)
 	readRequestHeader();
 	if (_incompleted && !_errorRead)
 		return true;
-	readRequestBody();
 	if (_incompleted && !_errorRead)
 		return true;
 	if (_errorRead)
@@ -313,7 +312,7 @@ void	 RequestReader::readLineBody(int fd, std::string &line, int contentLength, 
 	ssize_t		numberBytes;
 	char		buffer[20] = {0};
 
-	while (true)
+	while (true)	
 	{
 		if (!contentLength)
 			break;
