@@ -1,7 +1,7 @@
 #include "RequestReader.hpp"
 # include <sstream>
 
-RequestReader::RequestReader(void) : _errorRead(false), _incompleted(false), _headers(), _method(""), _requestedRoute(""), _httpVersion(""), _requestBody("") {}
+RequestReader::RequestReader(void) : _errorRead(false), _incompleted(false), _readRawBody(false), _headers(), _method(""), _requestedRoute(""), _httpVersion(""), _requestBody("") {}
 
 RequestReader::~RequestReader(void) {}
 
@@ -331,8 +331,9 @@ void	 RequestReader::readLineBody(int fd, std::string &line, int contentLength, 
 			break ;
 		}
 		contentLength -= numberBytes;
-		if (_readRawBody)
+		if (_readRawBody) {
 			_rawBody.insert(_rawBody.end(), buffer, buffer + numberBytes);
+		}
 		line.append(buffer, numberBytes);
 		memset(buffer, 0, 20);
 	}
