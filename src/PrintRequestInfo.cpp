@@ -57,7 +57,7 @@ void PrintRequestInfo::printRawBody(RequestInfo& request)
 	logFd << "\tRaw Body: " << request.body << std::endl;
 	for (std::vector<char>::iterator it = request.rawBody.begin(); it != request.rawBody.end(); ++it)
 	{
-		std::cout << *it;
+		logFd << *it;
 	}
 	logFd << "\n\t--------Raw Body End" << request.body << std::endl;
 }
