@@ -45,7 +45,21 @@ void PrintRequestInfo::printRequestInfo(RequestInfo& request)
 	}
 	logFd << "\tserverRef:" << std::endl;
 
+	printRawBody(request);
 	// printServerConfig(request.serverRef, logFd);
+}
+
+void PrintRequestInfo::printRawBody(RequestInfo& request)
+{
+	std::ofstream	logFd("logs/raw_body.log", std::ios_base::app);
+
+	logFd << "\n" << TimeNow();
+	logFd << "\tRaw Body: " << std::endl;
+	for (std::vector<char>::iterator it = request.rawBody.begin(); it != request.rawBody.end(); ++it)
+	{
+		logFd << *it;
+	}
+	logFd << "\n\t--------Raw Body End" << std::endl;
 }
 
 const char* PrintRequestInfo::pathTypeToString(e_pathType pathType) {
