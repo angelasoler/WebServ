@@ -26,6 +26,7 @@ class RequestReader
 		std::string							getMethod(void) const;
 		std::string							getHttpVersion(void) const;
 		std::string							getBody(void) const;
+		std::vector<char>					getRawBody(void) const;
 		std::string							getHeader(std::string headerName) const;
 		std::string							getFullRequest(void) const;
 		int									getContentLength(void) const;
@@ -59,6 +60,7 @@ class RequestReader
 		// STATUS VARS
 		bool									_errorRead;
 		bool									_incompleted;
+		bool									_readRawBody;
 
 		// REQUEST VARS
 		std::map<std::string, std::string> 		_headers;
@@ -70,6 +72,7 @@ class RequestReader
 		std::string								_requestBody;
 		int										_fdClient;
 		std::string								_fullRequest;
+		std::vector<char>						_rawBody;
 };
 
 #endif

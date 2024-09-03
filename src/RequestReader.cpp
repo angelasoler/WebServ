@@ -86,6 +86,7 @@ void 	RequestReader::readRequestHeader(void)
 // READ REQUEST BODY
 void RequestReader::readRequestBody(void)
 {
+	_readRawBody = true;
 	if (getHeader("Transfer-Encoding") == "chunked")
 	{
 		readRequestBodyChunked();
@@ -228,6 +229,11 @@ std::string RequestReader::getBody(void) const
 	return this->_requestBody;
 }
 
+std::vector<char>	RequestReader::getRawBody(void) const
+{
+	return this->_rawBody;
+}
+
 std::string RequestReader::getHeader(std::string headerName) const
 {
 	std::map<std::string, std::string>::const_iterator it = this->_headers.find(headerName);
@@ -292,6 +298,8 @@ void	 RequestReader::readLine(int fd, std::string &line, std::string delimiter, 
 			break ;
 		}
 		tempLine += buffer;
+		if (_readRawBody)
+			_rawBody.push_back(buffer[0]);
 		if (isDelimiter(tempLine, delimiter))
 			break ;
 	}
@@ -323,6 +331,8 @@ void	 RequestReader::readLineBody(int fd, std::string &line, int contentLength, 
 			break ;
 		}
 		contentLength -= numberBytes;
+		if (_readRawBody)
+			_rawBody.insert(_rawBody.end(), buffer, buffer + numberBytes);
 		line.append(buffer, numberBytes);
 		memset(buffer, 0, 20);
 	}
