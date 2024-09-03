@@ -10,6 +10,7 @@ class PrintRequestInfo
 {
 	public:
 		static void printRequestInfo(RequestInfo& request);
+		static void	printRawBody(RequestInfo& request);
 
 	private:
 		static const char* pathTypeToString(e_pathType pathType);

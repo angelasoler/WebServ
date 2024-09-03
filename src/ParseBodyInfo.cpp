@@ -56,11 +56,11 @@ void parseUrlEncodedValues(RequestInfo &info)
 				info.urlencodedValues[key] = value;
 			}
 			else {
-				std::cerr << "Error: Encountered an empty key in the request body." << std::endl;
+				// std::cerr << "Error: Encountered an empty key in the request body." << std::endl;
 			}
 		}
 		else {
-			std::cerr << "Error: Malformed key-value pair '" << pair << "' in the request body." << std::endl;
+			// std::cerr << "Error: Malformed key-value pair '" << pair << "' in the request body." << std::endl;
 		}
 
 		start = end + 1;
@@ -81,11 +81,11 @@ void parseUrlEncodedValues(RequestInfo &info)
 			info.urlencodedValues[key] = value;
 		}
 		else {
-			std::cerr << "Error: Encountered an empty key in the request body." << std::endl;
+			// std::cerr << "Error: Encountered an empty key in the request body." << std::endl;
 		}
 	}
 	else if (!pair.empty()) {
-		std::cerr << "Error: Malformed key-value pair '" << pair << "' in the request body." << std::endl;
+		// std::cerr << "Error: Malformed key-value pair '" << pair << "' in the request body." << std::endl;
 	}
 }
 
