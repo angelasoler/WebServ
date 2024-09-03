@@ -49,11 +49,35 @@ void CGIServer::redirChildPipes(void)
 	close(pipefderror[1]);
 }
 
+void	CGIServer::CGIFeedLog(std::string buffer)
+{
+	std::string	buffererror2;
+	char		buffererror[4096];
+	ssize_t		count;
+
+	if (!requestInfo.body.empty())
+		std::cout << "requestInfo.body: " << requestInfo.body << std::endl;
+	if (!buffer.empty()) {
+		std::cout << "\t\t======CGI stdout=======" << std::endl;
+		close(pipefderror[0]);
+		std::cout << buffer;
+		return ;
+	}
+	count = read(pipefderror[0], buffererror, sizeof(buffererror) - 1);
+	close(pipefderror[0]);
+	buffererror[count] = '\0';
+	buffererror2 = buffererror;
+	if (!buffererror2.empty()) {
+		std::cout << "\t\t======CGI stderr=======" << std::endl;
+		std::cout << buffererror;
+	}
+}
+
 void CGIServer::readChildReturn(void)
 {
 	char buffer[4096];
 	ssize_t count;
-	std::string buffererror2;
+	
 	std::string buffer2;
 
 	count = read(pipefd[0], buffer, sizeof(buffer) - 1);
@@ -61,41 +85,41 @@ void CGIServer::readChildReturn(void)
 	buffer[count] = '\0';
 	buffer2 = buffer;
 	if (!buffer2.empty()) {
-		std::cout << "\t\t======CGI stdout=======" << std::endl;
-		close(pipefderror[0]);
-		std::cout << buffer;
-		GBIReturn.body = buffer;
-		GBIReturn.code = 200;
+		CGIReturn.body = buffer;
+		CGIReturn.code = 200; //201 se for post
 	}
-	// [_] mandar para log
-	// char buffererror[4096];
-	// else {
-	// 	count = read(pipefderror[0], buffererror, sizeof(buffererror) - 1);
-	// 	close(pipefderror[0]);
-	// 	buffererror[count] = '\0';
-	// 	buffererror2 = buffererror;
-	// }
-	// if (!buffererror2.empty()) {
-		// std::cout << "\t\t======CGI stderr=======" << std::endl;
-		// std::cout << buffererror;
-		// GBIReturn.body = buffererror;
-		// GBIReturn.code = 500;
-	// }
+	CGIFeedLog(buffer2);
 }
 
-htmlResponse	CGIServer::executeScript(void)
+void	CGIServer::waitAndReadChild(pid_t pid)
+{
+	int	child_exit_status;
+	int exit_code;
+
+	waitpid(pid, &child_exit_status, 0);
+	readChildReturn();
+	if (WIFEXITED(child_exit_status))
+		exit_code = WEXITSTATUS(child_exit_status);
+	if (exit_code) {
+		CGIReturn.code = 500;
+		CGIReturn.body.clear();
+	}
+}
+
+void	CGIServer::executeScript(void)
 {
 	if (!requestInfo.permissions.execute) {
-		GBIReturn.code = 405;
-		return GBIReturn;
+		CGIReturn.code = 405;
+		CGIReturn.body.clear();
+		return ;
 	}
 	std::cout << "\t\t======CGI exec=======" << std::endl;
 
 	if (pipe(pipefd) == -1 || pipe(pipefderror) == -1)
-		throw(std::runtime_error("Pipe creation failed."));
+		throw(std::runtime_error("Pipe creation failed.")); //mandar no log
 	pid_t pid = fork();
 	if (pid < 0)
-		throw(std::runtime_error("Fork failed."));
+		throw(std::runtime_error("Fork failed.")); //mandar no log
 	else if (pid == 0) {
 		char *envp[envVars.size() + 1];
 
@@ -106,27 +130,11 @@ htmlResponse	CGIServer::executeScript(void)
 		char* const argv[] = {const_cast<char*>(pyBin.c_str()), const_cast<char*>(scriptPath.c_str()), NULL};
 		execve(argv[0], argv, envp);
 	} else {
-		if (!requestInfo.body.empty())
-			std::cout << "requestInfo.body: " << requestInfo.body << std::endl;
 		write(pipefd[1], requestInfo.body.c_str(), requestInfo.body.size());
 		close(pipefd[1]);
 		close(pipefderror[1]);
-		//wait and read child
-		int	child_exit_status;
-		int exit_code;
-		waitpid(pid, &child_exit_status, 0);
-		readChildReturn();
-		if (WIFEXITED(child_exit_status))
-			exit_code = WEXITSTATUS(child_exit_status);
-		if (exit_code) {
-			GBIReturn.code = 500;
-			GBIReturn.body.clear();
-		}
-		////
-		//if exit_code != 0
-		///feed_log();
-		/////
-		return (GBIReturn);
+
+		waitAndReadChild(pid);
 	}
-	return GBIReturn;
+	return ;
 }

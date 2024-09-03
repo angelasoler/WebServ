@@ -17,14 +17,15 @@ typedef struct {
 
 class CGIServer {
 	public:
+		htmlResponse	CGIReturn;
+
 		CGIServer(RequestInfo &info);
 
-		void			setEnv(void);
-		htmlResponse	executeScript(void);
+		void	setEnv(void);
+		void	executeScript(void);
 
 	private:
 		RequestInfo							&requestInfo;
-		htmlResponse						GBIReturn;
 		std::string							scriptPath;
 		std::map<std::string, std::string>	envVars;
 		int									pipefd[2];
@@ -34,6 +35,8 @@ class CGIServer {
 		void	getEnvp(char *envp[]);
 		void	readChildReturn(void);
 		void	redirChildPipes(void);
+		void	CGIFeedLog(std::string buffer);
+		void	waitAndReadChild(pid_t pid);
 };
 
 #endif

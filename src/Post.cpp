@@ -21,13 +21,11 @@ void	Post::upload(void)
 void	Post::buildBody(void) {}
 
 int	Post::responseCGI(void) {
-	htmlResponse	htmlResponse;
-	CGIServer		cgi(response.requestInfo);
+	CGIServer	cgi(response.requestInfo);
 
 	cgi.setEnv();
-	htmlResponse = cgi.executeScript();
+	cgi.executeScript();
 
-
-	response.setBody(htmlResponse.body);
-	return(htmlResponse.code);
+	response.setBody(cgi.CGIReturn.body);
+	return(cgi.CGIReturn.code);
 }
