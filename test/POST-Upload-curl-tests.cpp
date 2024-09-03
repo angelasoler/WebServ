@@ -53,7 +53,7 @@ TEST(POSTuploadFile, UploadMakefile) {
 
 	// Adiciona o arquivo ao POST
 	std::string filename = "./FileRandom";
-	std::string	fileContent = "texto\naleatorio\naqui\ndentro";
+	std::string	fileContent = "texto\naleatorio\naqui\ndentro1111111111111";
 	if (!createAndWriteFile(filename, fileContent))
 		std::cerr << "Error\n";
 	part = curl_mime_addpart(mime);
@@ -75,11 +75,13 @@ TEST(POSTuploadFile, UploadMakefile) {
 	ASSERT_TRUE(thisFileExists(uploadedFile.c_str())) << "File not created\n" << unlink(filename.c_str());
 	ASSERT_TRUE(areFilesIdentical(filename, uploadedFile)) << "Uploaded File are not the same\n" << unlink(filename.c_str());
 	EXPECT_EQ(res, CURLE_OK);
-	EXPECT_EQ(response.status_code, 200);
+	EXPECT_EQ(response.status_code, 202);
 	EXPECT_TRUE(response.body.find("Upload successful") != std::string::npos);
 
 	// Limpeza
 	unlink(filename.c_str());
+	unlink(uploadedFile.c_str());
+
 	curl_mime_free(mime);
 	curl_easy_cleanup(curl);
 	stop_server();
