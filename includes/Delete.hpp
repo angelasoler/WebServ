@@ -15,7 +15,6 @@ class Delete : public IHttpMethod
 		int handleRequest(void);
 	private:
 		Response &response;
-		bool		hasWritePermission(const std::string &path);
 		bool		deleteDirectory(void);
 		void	buildBody(void);
 };
