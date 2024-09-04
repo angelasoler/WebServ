@@ -13,6 +13,7 @@ int	IHttpMethod::responseCGI(Response &response) {
 	response.setBody(cgi.CGIReturn.body);
 	return(cgi.CGIReturn.code);
 }
+
 bool IHttpMethod::hasWritePermission(const std::string &path)
 {
 	struct stat pathStat;
