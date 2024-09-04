@@ -17,10 +17,13 @@ int	Post::handleRequest(void)
 	RequestInfo &info = response.requestInfo;
 	uploadPath = info.configRef.root_directory + "/" + info.configRef.upload_directory + "/";
 
+	// if (info.configRef.upload_directory == "")
+	// 	add_post_log("Upload Path do not exist.")
+	// 	return 405;
 	if (!dirExists(uploadPath)) {
 		add_post_log("Upload Path do not exist.");
 		return 500;
-	}
+	}	
 	if (!hasWritePermission(uploadPath)) {
 		add_post_log("Upload Path do not have permissions");
 		return 403;
