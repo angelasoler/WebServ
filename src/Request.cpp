@@ -60,15 +60,38 @@ void	adjustRoute(std::string &route)
 	route = newRoute;
 }
 
-bool	Request::isInvalidMethod(void)
+std::vector<std::string> insertAllowedMethods(void)
 {
+	std::vector<std::string>	vec;
+
+	vec.push_back("GET");
+	vec.push_back("POST");
+	vec.push_back("DELETE");
+	return vec;
+}
+
+int	Request::getInformationalStatus(void)
+{
+	std::vector<std::string> 			allowedMethods = insertAllowedMethods();
+
 	std::vector<std::string>::iterator	requestedMethod;
 
-	requestedMethod = std::find(info.configRef.accepted_methods.begin(),
-									info.configRef.accepted_methods.end(),
-									requestReader.getMethod());
 
-	return (requestedMethod == info.configRef.accepted_methods.end());
+	if (!requestReader.getHttpVersion().empty() && requestReader.getHttpVersion() != "HTTP/1.1")
+		return 400;
+	requestedMethod = std::find (allowedMethods.begin(), allowedMethods.end(), requestReader.getMethod());
+	if (requestedMethod != allowedMethods.end())
+	{
+		requestedMethod = std::find(info.configRef.accepted_methods.begin(),
+										info.configRef.accepted_methods.end(),
+										requestReader.getMethod());
+		if (requestedMethod != info.configRef.accepted_methods.end())
+		{
+			return 200;
+		}
+		return 405; // Not ALLOWED
+	}
+	return 400; // Bad
 }
 
 void	Request::parseRequestInfo(ServerConfig &serverConfig)
@@ -89,33 +112,16 @@ void	Request::parseRequestInfo(ServerConfig &serverConfig)
 	info.serverRef = serverConfig;
 }
 
-std::vector<std::string> insertAllowedMethods(void)
-{
-	std::vector<std::string>	vec;
-
-	vec.push_back("GET");
-	vec.push_back("POST");
-	vec.push_back("DELETE");
-	return vec;
-}
-
 void Request::parseRequest(ServerConfig &serverConfig)
 {
 	parseRequestInfo(serverConfig);
 	ParsePathInfo::parsePathInfo(info);
-	if (isInvalidMethod())
+	int	status = getInformationalStatus();
+	if (status != 200)
 	{
 		info.action = RESPONSE;
 		info.pathType = UNKNOWN;
-
-		std::vector<std::string> allowedMethods = insertAllowedMethods();
-
-
-		std::vector<std::string>::iterator	requestedMethod;
-
-
-		requestedMethod = std::find (allowedMethods.begin(), allowedMethods.end(), requestReader.getMethod());
-		if (requestedMethod != allowedMethods.end())
+		if (status == 405)
 			info.requestedRoute = "";
 		else
 			info.requestedRoute = "Bad";
