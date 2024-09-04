@@ -48,7 +48,7 @@ void PrintRequestInfo::printRequestInfo(RequestInfo& request)
 void PrintRequestInfo::printRawBody(RequestInfo& request)
 {
 	std::ofstream	logFd("logs/raw_body.log", std::ios_base::app);
-	bool isDelimiter;
+	bool isDelimiter = false;
 	logFd << "\n" << TimeNow();
 	logFd << "--------Raw Body Start-------" << std::endl;
 	logFd << "\n";
