@@ -68,6 +68,7 @@ struct RequestInfo
 	// About Body
 	std::string							contentType;
 	e_httpMethodActions					action;
+	std::vector<char>					rawBody;
 	std::string							body;
 	std::vector<std::string>			multipartHeaders;
 	std::vector<std::string>			multipartValues;

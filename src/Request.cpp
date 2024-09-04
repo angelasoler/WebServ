@@ -76,6 +76,7 @@ void	Request::parseRequestInfo(ServerConfig &serverConfig)
 	info.action = getMethodAction();
 	if (info.action == CLOSE)
 		return ;
+	info.rawBody = requestReader.getRawBody();
 	info.body = requestReader.getBody();
 	info.contentType = requestReader.getHeader("Content-Type");
 

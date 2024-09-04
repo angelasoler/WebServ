@@ -96,6 +96,7 @@ std::string Response::getDefaultPage(void)
 {
 	switch (statusCode)
 	{
+		case 201: return CREATED_SUCCESSFULLY;
 		case 204: return NO_CONTENT;
 		case 400: return BAD_REQUEST_ERROR;
 		case 403: return FORBIDDEN_ERROR;

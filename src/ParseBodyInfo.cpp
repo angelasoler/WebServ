@@ -2,17 +2,6 @@
 #include <sys/stat.h>
 #include <string.h>
 
-// void writeFile(const std::string& content, const std::string& fileName) {
-// 	std::ofstream file(fileName.c_str());
-// 	if (file.is_open()) {
-// 		file << content;
-// 		file.close();
-// 		std::cout << "[ParseBodyInfo.cpp - writefile] File Writed!" << std::endl;
-// 	} else {
-// 		std::cerr << "[ParseBodyInfo.cpp - writefile] Error at open file!" << std::endl;
-// 	}
-// }
-
 void ParseBodyInfo::parseBodyInfo(RequestInfo &info)
 {	
 	if (info.action != UPLOAD)
@@ -23,14 +12,6 @@ void ParseBodyInfo::parseBodyInfo(RequestInfo &info)
 	{
 		if (info.multipartHeaders.size() < 1 || info.multipartValues.size() < 1)
 			return;
-		// std::string header = info.multipartHeaders[0];
-		// size_t pos = header.find("filename=");
-		// if (pos != std::string::npos) {
-		// 	size_t start = header.find("\"", pos + 5) + 1;
-		// 	size_t end = header.find("\"", start);
-		// 	std::string filename = header.substr(start, end - start);
-		// 	writeFile(info.multipartValues[0], filename + ".jpg");
-		// }
 	}
 	
 }
@@ -56,11 +37,11 @@ void parseUrlEncodedValues(RequestInfo &info)
 				info.urlencodedValues[key] = value;
 			}
 			else {
-				std::cerr << "Error: Encountered an empty key in the request body." << std::endl;
+				// std::cerr << "Error: Encountered an empty key in the request body." << std::endl;
 			}
 		}
 		else {
-			std::cerr << "Error: Malformed key-value pair '" << pair << "' in the request body." << std::endl;
+			// std::cerr << "Error: Malformed key-value pair '" << pair << "' in the request body." << std::endl;
 		}
 
 		start = end + 1;
@@ -81,11 +62,11 @@ void parseUrlEncodedValues(RequestInfo &info)
 			info.urlencodedValues[key] = value;
 		}
 		else {
-			std::cerr << "Error: Encountered an empty key in the request body." << std::endl;
+			// std::cerr << "Error: Encountered an empty key in the request body." << std::endl;
 		}
 	}
 	else if (!pair.empty()) {
-		std::cerr << "Error: Malformed key-value pair '" << pair << "' in the request body." << std::endl;
+		// std::cerr << "Error: Malformed key-value pair '" << pair << "' in the request body." << std::endl;
 	}
 }
 
