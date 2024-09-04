@@ -14,14 +14,14 @@ class Post : public IHttpMethod
 
 		int handleRequest(void);
 	private:
-		Response &response;
+		Response 	&response;
+		std::string uploadPath;
 
 		std::string	getFileName(int index);
 		bool		isValidRoute(void);
 		int			upload(void);
 		void		buildBody(void);
-		// utils
-		static bool	fileExists(const std::string& filename);
+		int			uploadMultipart(void);
 };
 bool	writeFile(const std::string& content, const std::string& fileName);
 void	add_post_log(const std::string& content);

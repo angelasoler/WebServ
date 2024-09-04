@@ -87,12 +87,3 @@ bool Delete::deleteDirectory(void)
 		return false;
 	return true;
 }
-
-bool Delete::hasWritePermission(const std::string &path)
-{
-	struct stat pathStat;
-	if (stat(path.c_str(), &pathStat) != 0)
-		return false;
-
-	return (pathStat.st_mode & S_IWUSR) || (pathStat.st_mode & S_IWGRP) || (pathStat.st_mode & S_IWOTH);
-}

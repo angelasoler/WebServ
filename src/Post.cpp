@@ -14,53 +14,67 @@ int	Post::handleRequest(void)
 		// handleCGI
 	}
 
-	if (isValidRoute()) {
-		add_post_log("Valid route detected, proceeding with upload.");
-		return upload();
-	}
+	RequestInfo &info = response.requestInfo;
+	uploadPath = info.configRef.root_directory + "/" + info.configRef.upload_directory + "/";
 
-	add_post_log("Invalid route: " + response.requestInfo.fullPath);
-	return (400);
+	if (!dirExists(uploadPath)) {
+		add_post_log("Upload Path do not exist.");
+		return 500;
+	}
+	if (!hasWritePermission(uploadPath)) {
+		add_post_log("Upload Path do not have permissions");
+		return 403;
+	}
+	if (!isValidRoute()) {
+		add_post_log("Invalid route: " + response.requestInfo.fullPath);
+		return (400);
+	}
+	add_post_log("Valid route detected, proceeding with upload.");
+	return upload();
 }
 
 int Post::upload(void)
 {
 	RequestInfo &info = response.requestInfo;
-
 	if (info.contentType.find("multipart/form-data") != std::string::npos)
 	{
-		if (info.multipartHeaders.size() < 1 || info.multipartValues.size() < 1) {
-			add_post_log("Multipart data is incomplete.");
-			return 400;
-		}
-
-		for (size_t i = 0; i < info.multipartValues.size(); ++i)
-		{
-			std::string filename = getFileName(i);
-			if (!writeFile(info.multipartValues[i], filename)) {
-				add_post_log("Failed to write file: " + filename);
-				return 400;
-			}
-			add_post_log("File uploaded successfully: " + filename);
-		}
-		return 201;
+		return uploadMultipart();
 	}
-
 	add_post_log("Unsupported content type: " + info.contentType);
 	return 400;
+}
+
+int		Post::uploadMultipart(void)
+{
+	RequestInfo &info = response.requestInfo;
+
+	if (info.multipartHeaders.size() < 1 || info.multipartValues.size() < 1) {
+		add_post_log("Multipart data is incomplete.");
+		return 400;
+	}
+
+	for (size_t i = 0; i < info.multipartValues.size(); ++i)
+	{
+		std::string filename = getFileName(i);
+		if (!writeFile(info.multipartValues[i], filename)) {
+			add_post_log("Failed to write file: " + filename);
+			return 400;
+		}
+		add_post_log("File uploaded successfully: " + filename);
+	}
+	return 201;
 }
 
 bool	Post::isValidRoute(void) {
 	RequestInfo &info = response.requestInfo;
 
-	std::string uploadPath = info.configRef.root_directory + "/" + info.configRef.upload_directory + "/";
-	if (response.requestInfo.pathType == Directory)
+	if (info.pathType == Directory)
 	{
-		if (response.requestInfo.fullPath == uploadPath) {
+		if (info.fullPath == uploadPath) {
 			add_post_log("Route is valid for upload: " + uploadPath);
 			return true;
 		}
-		add_post_log("Route is not valid for upload: " + response.requestInfo.fullPath);
+		add_post_log("Route is not valid for upload: " + info.fullPath);
 		return false;
 	}
 	add_post_log("Path type is not a Directory.");
@@ -86,12 +100,6 @@ void	Post::buildBody(void) {
 	if (body == NO_DEFAULT_ERROR)
 		response.setBody(CREATED_SUCCESSFULLY);
 	response.setBody(body);
-}
-
-bool Post::fileExists(const std::string& filename)
-{
-	struct stat buffer;
-	return (stat(filename.c_str(), &buffer) == 0);
 }
 
 std::string	Post::getFileName(int index)
