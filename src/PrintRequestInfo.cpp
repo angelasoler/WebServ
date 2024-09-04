@@ -38,10 +38,6 @@ void PrintRequestInfo::printRequestInfo(RequestInfo& request)
 			logFd << "\t  " << *it << std::endl;
 		}
 		logFd << "\tMultipartBody Values size: " << request.multipartValues.size() << std::endl;
-		logFd << "\tMultipartBody Parts:" << std::endl;
-		for (std::vector<std::string>::iterator it = request.multipartValues.begin(); it != request.multipartValues.end(); ++it) {
-			logFd << "\t  " << *it << std::endl;
-		}
 	}
 	logFd << "\tserverRef:" << std::endl;
 

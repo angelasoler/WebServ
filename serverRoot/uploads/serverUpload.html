@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Upload</title>
+    <title>Upload de Arquivo</title>
 </head>
 <body>
-    <h1>File Upload</h1>
+    <h1>Upload de Arquivo</h1>
     <form id="uploadForm" action="/uploads/" method="post" enctype="multipart/form-data">
-        <label for="endpoint">Endpoint (URL):</label>
+        <label for="endpoint">Endpoint (URL de envio):</label>
         <input type="text" id="endpoint" value="/uploads/" placeholder="/uploads/" onchange="updateAction()">
         <br><br>
-        <label for="file">Select File:</label>
+        <label for="file">Escolha um arquivo:</label>
         <input type="file" name="file" id="file" required>
         <br><br>
-        <button type="submit">upload</button>
+        <button type="submit">Enviar</button>
     </form>
 
     <script>
