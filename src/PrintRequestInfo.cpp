@@ -52,14 +52,32 @@ void PrintRequestInfo::printRequestInfo(RequestInfo& request)
 void PrintRequestInfo::printRawBody(RequestInfo& request)
 {
 	std::ofstream	logFd("logs/raw_body.log", std::ios_base::app);
-
+	bool isDelimiter;
 	logFd << "\n" << TimeNow();
-	logFd << "\tRaw Body: " << std::endl;
+	logFd << "--------Raw Body Start-------" << std::endl;
+	logFd << "\n";
 	for (std::vector<char>::iterator it = request.rawBody.begin(); it != request.rawBody.end(); ++it)
 	{
-		logFd << *it;
+		if (std::isprint(static_cast<unsigned char>(*it))) {
+			logFd << *it;
+		} else {
+			int c = static_cast<int>(*it);
+			// if (c != 10)
+			// 	logFd << "\\r";
+			// if (c != 13)
+			// 	logFd << "\\n";
+			// else
+				// logFd << "?";
+			logFd << '[' << c << ']';
+			if (isDelimiter && c == 10)
+				logFd << "\n";
+			isDelimiter = false;
+			if (c == 13)
+				isDelimiter = true;
+			
+		}
 	}
-	logFd << "\n\t--------Raw Body End" << std::endl;
+	logFd << "\n--------Raw Body End---------" << std::endl;
 }
 
 const char* PrintRequestInfo::pathTypeToString(e_pathType pathType) {
