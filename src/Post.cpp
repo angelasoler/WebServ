@@ -29,10 +29,6 @@ int	Post::handleRequest(void)
 		add_post_log("Upload Path do not have permissions");
 		return 403;
 	}
-	if (!isValidRoute()) {
-		add_post_log("Invalid route: " + response.requestInfo.fullPath);
-		return (400);
-	}
 	add_post_log("Valid route detected, proceeding with upload.");
 	return upload();
 }
@@ -69,22 +65,6 @@ int		Post::uploadMultipart(void)
 	return 201;
 }
 
-bool	Post::isValidRoute(void) {
-	RequestInfo &info = response.requestInfo;
-
-	if (info.pathType == Directory)
-	{
-		if (info.fullPath == uploadPath) {
-			add_post_log("Route is valid for upload: " + uploadPath);
-			return true;
-		}
-		add_post_log("Route is not valid for upload: " + info.fullPath);
-		return false;
-	}
-	add_post_log("Path type is not a Directory.");
-	return false;
-}
-
 bool	writeFile(const std::string& content, const std::string& fileName) {
 	std::ofstream file(fileName.c_str());
 	if (file.is_open()) {
@@ -116,10 +96,10 @@ std::string	Post::getFileName(int index)
 	if (pos != std::string::npos) {
 		size_t start = header.find("\"", pos + 5) + 1;
 		size_t end = header.find("\"", start);
-		filename = info.fullPath + header.substr(start, end - start);
+		filename = uploadPath + header.substr(start, end - start);
 		return filename;
 	}
-	return info.fullPath + "new_file";
+	return uploadPath + "new_file";
 }
 
 void add_post_log(const std::string& content) {
