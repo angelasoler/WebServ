@@ -132,14 +132,14 @@ e_httpMethodActions	Request::getMethodAction(void)
 
 	std::vector<std::string>::iterator	requestedMethod;
 
-
 	requestedMethod = std::find (allowedMethods.begin(), allowedMethods.end(), requestReader.getMethod());
 	if (requestedMethod != allowedMethods.end())
 	{
 		std::cout << "\t" << *requestedMethod << "\n";
 		return ((e_httpMethodActions)(requestedMethod - allowedMethods.begin()));
 	}
-
+	if (!requestReader.getMethod().empty())
+		return (RESPONSE);
 	std::cout << "\tCLOSE\n" << std::endl;
 	return(CLOSE);
 }
