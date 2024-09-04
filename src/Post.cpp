@@ -17,9 +17,10 @@ int	Post::handleRequest(void)
 	RequestInfo &info = response.requestInfo;
 	uploadPath = info.configRef.root_directory + "/" + info.configRef.upload_directory + "/";
 
-	// if (info.configRef.upload_directory == "")
-	// 	add_post_log("Upload Path do not exist.")
-	// 	return 405;
+	if (info.configRef.upload_directory.empty()) {
+		add_post_log("Upload Directory not Configured");
+		return 500;
+	}
 	if (!dirExists(uploadPath)) {
 		add_post_log("Upload Path do not exist.");
 		return 500;
