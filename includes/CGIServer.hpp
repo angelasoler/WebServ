@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <map>
+#include <ctime>
 #include "Request.hpp"
 
 typedef struct {
@@ -32,6 +33,7 @@ class CGIServer {
 		int									pipefd[2];
 		int									pipefderror[2];
 
+		std::clock_t	start;
 
 		void	getEnvp(char *envp[]);
 		void	readChildReturn(void);

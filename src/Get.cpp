@@ -12,7 +12,7 @@ int Get::handleRequest(void)
 		case Directory:
 			return responseToDirectory();
 		case CGI:
-			return responseCGI();
+			return responseCGI(response);;
 		case File:
 			return responseToFile();
 		case Redirection:
@@ -90,16 +90,6 @@ int	Get::responseToRedirection(void)
 {
 	response.setHeader("Location", response.requestInfo.configRef.redirection);
 	return(307);
-}
-
-int	Get::responseCGI(void) {
-	CGIServer	cgi(response.requestInfo);
-
-	cgi.setEnv();
-	cgi.executeScript();
-
-	response.setBody(cgi.CGIReturn.body);
-	return(cgi.CGIReturn.code);
 }
 
 std::string formatSize(off_t item_size)

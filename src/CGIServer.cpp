@@ -94,7 +94,17 @@ void	CGIServer::waitAndReadChild(pid_t pid)
 	int	child_exit_status;
 	int exit_code;
 
-	waitpid(pid, &child_exit_status, 0);
+	if (!waitpid(pid, &child_exit_status, WNOHANG)) {
+		while (double(std::clock() - start) / CLOCKS_PER_SEC <= 2.0) {
+			if (waitpid(pid, &child_exit_status, WNOHANG))
+				break ;
+		}
+		if (!waitpid(pid, &child_exit_status, WNOHANG)) {
+			kill(pid, SIGKILL);
+			waitpid(pid, &child_exit_status, 0);
+			child_exit_status = 1;
+		}
+	}
 	readChildReturn();
 	if (WIFEXITED(child_exit_status))
 		exit_code = WEXITSTATUS(child_exit_status);
@@ -125,7 +135,7 @@ void	CGIServer::executeScript(void)
 	std::string	pyBin = "/usr/bin/python3";
 	char		*const argv[] = {const_cast<char*>(pyBin.c_str()), const_cast<char*>(scriptPath.c_str()), NULL};
 
-
+	start = std::clock();
 	getEnvp(envp);
 	if (pipe(pipefd) == -1 || pipe(pipefderror) == -1)
 		std::cerr << "Pipe creation failed." << std::endl;
