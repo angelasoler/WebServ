@@ -8,15 +8,10 @@ CGIServer::CGIServer(RequestInfo &info) : requestInfo(info), scriptPath(info.ful
 void	CGIServer::setEnv(void)
 {
 	std::ostringstream oss;
-	// std::string tmp = scriptPath;
-	// size_t pos = tmp.rfind("/");
+	size_t pos = scriptPath.rfind("/");
 
-	// execDir = tmp.substr(0, pos);
-	oss << requestInfo.body.size();
-	if (requestInfo.action == RESPONSE)
-		envVars["REQUEST_METHOD"] = "GET";
-	else
-		envVars["REQUEST_METHOD"] = "POST";
+	execDir = scriptPath.substr(0, pos);
+	scriptPath = scriptPath.substr(pos+1);
 	envVars["SCRIPT_NAME"] = scriptPath;
 	envVars["SERVER_PROTOCOL"] = "HTTP/1.1";
 	envVars["CONTENT_LENGTH"] = oss.str();
@@ -109,41 +104,46 @@ void	CGIServer::waitAndReadChild(pid_t pid)
 	}
 }
 
+bool	CGIServer::verifyRequestedScript(void)
+{
+	if (!requestInfo.permissions.execute)
+		CGIReturn.code = 405;
+	else if (requestInfo.permissions.notFound)
+		CGIReturn.code = 404;
+	else
+		return false;
+	CGIReturn.body.clear();
+	return true;
+}
+
 void	CGIServer::executeScript(void)
 {
-	if (!requestInfo.permissions.execute) {
-		CGIReturn.code = 405;
-		CGIReturn.body.clear();
+	if (verifyRequestedScript())
 		return ;
-	}
-	if (requestInfo.permissions.notFound) {
-		CGIReturn.code = 404;
-		CGIReturn.body.clear();
-		return ;
-	}
+	char		*envp[envVars.size() + 1];
+	char		*rawPtr = requestInfo.rawBody.data();
+	std::string	pyBin = "/usr/bin/python3";
+	char		*const argv[] = {const_cast<char*>(pyBin.c_str()), const_cast<char*>(scriptPath.c_str()), NULL};
 
 
+	getEnvp(envp);
 	if (pipe(pipefd) == -1 || pipe(pipefderror) == -1)
 		std::cerr << "Pipe creation failed." << std::endl;
 	pid_t pid = fork();
 	if (pid < 0)
 		std::cerr << "Fork failed." << std::endl;
 	else if (pid == 0) {
-		char *envp[envVars.size() + 1];
-		std::string pyBin = "/usr/bin/python3";
-		char* const argv[] = {const_cast<char*>(pyBin.c_str()), const_cast<char*>(scriptPath.c_str()), NULL};
-
-		// chdir(execDir.c_str());
+		chdir(execDir.c_str());
 		redirChildPipes();
-		getEnvp(envp);
 		execve(argv[0], argv, envp);
 	} else {
-		char* rawPtr = requestInfo.rawBody.data();
 		write(pipefd[1], rawPtr, requestInfo.rawBody.size());
 		close(pipefd[1]);
 		close(pipefderror[1]);
 
 		waitAndReadChild(pid);
 	}
+	for (size_t i = 0; i < envVars.size() + 1; i++)
+		delete envp[i];
 	return ;
 }

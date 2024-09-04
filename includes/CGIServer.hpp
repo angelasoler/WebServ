@@ -38,6 +38,7 @@ class CGIServer {
 		void	redirChildPipes(void);
 		void	CGIFeedLog(std::string buffer);
 		void	waitAndReadChild(pid_t pid);
+		bool	verifyRequestedScript(void);
 };
 
 #endif
