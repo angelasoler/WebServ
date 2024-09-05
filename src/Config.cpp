@@ -15,6 +15,16 @@ Config* Config::getInstance()
 	return instance;
 }
 
+// Static pointer endalization
+void	Config::freeInstance()
+{
+	if (instance != NULL)
+	{
+		delete instance;
+		instance = NULL;
+	}
+}
+
 // Struct Constructors
 RouteConfig::RouteConfig()
 	: route(DEFAULT_ROUTE_PATH),
