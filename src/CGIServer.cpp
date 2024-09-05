@@ -28,7 +28,7 @@ void CGIServer::getEnvp(char *envp[])
 	int i = 0;
 	for (std::map<std::string, std::string>::const_iterator it = envVars.begin(); it != envVars.end(); ++it) {
 		std::string envEntry = it->first + "=" + it->second;
-		envp[i] = new char[envEntry.size() + 1];
+		envp[i] = (char *)std::calloc(envEntry.size() + 1, sizeof(char));
 		std::strcpy(envp[i], envEntry.c_str());
 		++i;
 	}
@@ -97,7 +97,7 @@ void CGIServer::readChildReturn(void)
 void	CGIServer::waitAndReadChild(pid_t pid)
 {
 	int	child_exit_status;
-	int exit_code;
+	int exit_code = 0;
 
 	if (!waitpid(pid, &child_exit_status, WNOHANG)) {
 		while (double(std::clock() - start) / CLOCKS_PER_SEC <= 2.0) {
@@ -158,7 +158,7 @@ void	CGIServer::executeScript(void)
 
 		waitAndReadChild(pid);
 	}
-	// for (size_t i = 0; i < envVars.size() + 1; i++)
-	// 	delete envp[i];
+	for (size_t i = 0; i < envVars.size() + 1; i++)
+		std::free(envp[i]);
 	return ;
 }

@@ -136,4 +136,10 @@ void	Connection::requestResponse(void)
 void	Connection::cleanPollFds(void) {
 	for (std::vector<struct pollfd>::iterator it = poll_fds.begin(); it == poll_fds.end(); it++)
 		close(it->fd);
+
+	for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); it++)
+		close(it->fd);
+
+	for (std::map<int, ServerConfig>::iterator it = clientServerConfig.begin(); it != clientServerConfig.end(); it++)
+		close(it->first);
 }

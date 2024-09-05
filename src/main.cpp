@@ -1,6 +1,10 @@
 #include "EventLoop.hpp"
 #include "Config.hpp"
 
+void endConfig(void)
+{
+	Config::getInstance()->freeInstance();
+}
 
 int initializeConfig(int argc, char* argv[]) {
 	Config	*config = Config::getInstance();
@@ -25,5 +29,6 @@ int main(int argc, char* argv[])
 	EventLoop	eventLoop;
 
 	eventLoop.run();
+	endConfig();
 	return 0;
 }
