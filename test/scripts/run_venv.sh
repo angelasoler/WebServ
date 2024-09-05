@@ -1,5 +1,9 @@
 #!/bin/bash
+echo "execute: source test/script/run_venv.sh"
 
-source test/venv/bin/activate
+python3 -m venv test/venv
 
-pip install -r test/venv/requirements.txt
+. test/venv/bin/activate
+
+test/venv/bin/python -m pip install -r test/venv/requirements.txt
+
