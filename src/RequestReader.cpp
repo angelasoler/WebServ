@@ -91,7 +91,7 @@ void RequestReader::readRequestBody(void)
 	{
 		readRequestBodyChunked();
 	}
-	else if (!getHeader("Content-Type").empty() && getHeader("Content-Type").find("multipart/form-data") != std::string::npos)
+	if (!getHeader("Content-Type").empty() && getHeader("Content-Type").find("multipart/form-data") != std::string::npos)
 	{
 		readRequestBodyMultipart();
 	}
@@ -145,18 +145,28 @@ size_t  RequestReader::readChunkSize(void)
 void RequestReader::readRequestBodyMultipart(void)
 {
 	std::string tempLine;
+	std::string boundary;
 	size_t pos;
 
-	readLineBody(this->_fdClient, tempLine, getContentLength(), this->_errorRead);
 	pos = getHeader("Content-Type").find("boundary=", 0);
 	if (pos != std::string::npos)
-	{
-		std::string boundary = getHeader("Content-Type").substr(pos + 9);
+		boundary = getHeader("Content-Type").substr(pos + 9);
+
+
+
+	if (getHeader("Transfer-Encoding") == "chunked") {
+		tempLine = std::string(_requestBody.begin(), _requestBody.end());
 		readMultipartInfo(boundary, tempLine);
 	}
-	_requestBody.insert(_requestBody.end(), tempLine.begin(), tempLine.end());
-	this->_fullRequest += tempLine + "\n";
-
+	else {
+		readLineBody(this->_fdClient, tempLine, getContentLength(), this->_errorRead);
+		if (pos != std::string::npos)
+		{
+			readMultipartInfo(boundary, tempLine);
+		}
+		_requestBody.insert(_requestBody.end(), tempLine.begin(), tempLine.end());
+		this->_fullRequest += tempLine + "\n";
+	}
 }
 
 void RequestReader::readMultipartInfo(const std::string& boundary, std::string &tempLine)
