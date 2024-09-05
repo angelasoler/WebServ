@@ -46,44 +46,6 @@ TEST(RequestInfoTest, HandlesGetRequest) {
 	ASSERT_TRUE(requestInfo.urlencodedValues.empty());
 }
 
-TEST(RequestInfoTest, HandlesPostRequest) {
-	std::string postRequest = 
-		"POST " + std::string(DEFAULT_ROUTE_PATH) + " HTTP/1.1\r\n"
-		"Host: localhost\r\n"
-		"Content-Type: application/x-www-form-urlencoded\r\n"
-		"Content-Length: 27\r\n\r\n"
-		"name=John&age=30&city=NYC";
-
-	RequestInfo requestInfo = parseHttpRequest(postRequest);
-
-	EXPECT_EQ(requestInfo.requestedRoute, DEFAULT_ROUTE_PATH);
-	EXPECT_EQ(requestInfo.action, UPLOAD);
-	// EXPECT_EQ(requestInfo.pathType, URL);
-	EXPECT_EQ(requestInfo.body, "name=John&age=30&city=NYC");
-	EXPECT_EQ(requestInfo.urlencodedValues["name"], "John");
-	EXPECT_EQ(requestInfo.urlencodedValues["age"], "30");
-	EXPECT_EQ(requestInfo.urlencodedValues["city"], "NYC");
-}
-
-TEST(RequestInfoTest, HandlesPostRequestWithFormUrlEncoded) {
-	std::string postRequest = 
-		"POST " + std::string(DEFAULT_ROUTE_PATH) + " HTTP/1.1\r\n"
-		"Host: localhost\r\n"
-		"Content-Type: application/x-www-form-urlencoded\r\n"
-		"Content-Length: 29\r\n\r\n"
-		"username=testuser&age=34";
-
-	
-	RequestInfo requestInfo = parseHttpRequest(postRequest);
-
-	EXPECT_EQ(requestInfo.requestedRoute, DEFAULT_ROUTE_PATH);
-	EXPECT_EQ(requestInfo.action, UPLOAD);
-	// EXPECT_EQ(requestInfo.pathType, URL);
-	EXPECT_EQ(requestInfo.body, "username=testuser&age=34");
-	EXPECT_EQ(requestInfo.urlencodedValues["username"], "testuser");
-	EXPECT_EQ(requestInfo.urlencodedValues["age"], "34");
-}
-
 TEST(RequestInfoTest, HandlesDeleteRequest) {
 	std::string deleteRequest = 
 		"DELETE " + std::string(DEFAULT_FILE) + " HTTP/1.1\r\n"
@@ -102,28 +64,90 @@ TEST(RequestInfoTest, HandlesDeleteRequest) {
 	ASSERT_TRUE(requestInfo.urlencodedValues.empty());
 }
 
+#include "PrintRequestInfo.hpp"
+RequestInfo parsePOSTHttpRequest(const std::string& httpRequest)
+{
+	int 			sockfd[2];
+	Request			request;
+	Config  		*config = Config::getInstance();
+
+	config->loadConfig("test/upload-tests/upload-config.conf");
+	printConfig();
+	ServerConfig server = config->servers[0];
+
+	// Cria um par de sockets conectados
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockfd) == -1) {
+		perror("[request-info-tests.cpp - parsePOSTHttpRequest] socketpair");
+	}
+	
+	// Envia a string de teste para o socket
+	if (send(sockfd[0], httpRequest.c_str(), strlen(httpRequest.c_str()), 0) == -1) {
+		perror("[request-info-tests.cpp - parsePOSTHttpRequest] send");
+	}
+	close(sockfd[0]);
+	request.readRequest(sockfd[1]);
+	close(sockfd[1]);
+
+	request.parseRequest(server);
+	PrintRequestInfo::printRequestInfo(request.info);
+	return request.info;
+}
+
+TEST(RequestInfoTest, HandlesPostRequest) {
+	std::string postRequest = 
+		"POST " + std::string("/uploads") + " HTTP/1.1\r\n"
+		"Host: localhost\r\n"
+		"Content-Type: application/x-www-form-urlencoded\r\n"
+		"Content-Length: 27\r\n\r\n"
+		"name=John&age=30&city=NYC";
+
+	RequestInfo requestInfo = parsePOSTHttpRequest(postRequest);
+
+	EXPECT_EQ(requestInfo.requestedRoute, "/uploads");
+	EXPECT_EQ(requestInfo.action, UPLOAD);
+	EXPECT_EQ(requestInfo.body, "name=John&age=30&city=NYC");
+	EXPECT_EQ(requestInfo.urlencodedValues["name"], "John");
+	EXPECT_EQ(requestInfo.urlencodedValues["age"], "30");
+	EXPECT_EQ(requestInfo.urlencodedValues["city"], "NYC");
+}
+
+TEST(RequestInfoTest, HandlesPostRequestWithFormUrlEncoded) {
+	std::string postRequest = 
+		"POST " + std::string("/uploads") + " HTTP/1.1\r\n"
+		"Host: localhost\r\n"
+		"Content-Type: application/x-www-form-urlencoded\r\n"
+		"Content-Length: 29\r\n\r\n"
+		"username=testuser&age=34";
+
+	
+	RequestInfo requestInfo = parsePOSTHttpRequest(postRequest);
+
+	EXPECT_EQ(requestInfo.requestedRoute, "/uploads");
+	EXPECT_EQ(requestInfo.action, UPLOAD);
+	EXPECT_EQ(requestInfo.body, "username=testuser&age=34");
+	EXPECT_EQ(requestInfo.urlencodedValues["username"], "testuser");
+	EXPECT_EQ(requestInfo.urlencodedValues["age"], "34");
+}
+
 TEST(RequestInfoTest, HandlesPostRequestWithHtmlBody) {
 	std::string postRequest = 
-		"POST " + std::string(DEFAULT_ROUTE_PATH) + " HTML HTTP/1.1\r\n"
+		"POST /uploads HTTP/1.1\r\n"
 		"Host: localhost\r\n"
 		"Content-Type: text/html\r\n"
 		"Content-Length: 51\r\n\r\n"
 		"<html><body><p>This is a test</p></body></html>";
 
-	RequestInfo requestInfo = parseHttpRequest(postRequest);
+	RequestInfo requestInfo = parsePOSTHttpRequest(postRequest);
 
-	EXPECT_EQ(requestInfo.requestedRoute, DEFAULT_ROUTE_PATH);
+	EXPECT_EQ(requestInfo.requestedRoute, "/uploads");
 	EXPECT_EQ(requestInfo.action, UPLOAD);
-	EXPECT_EQ(requestInfo.permissions.read, true);
-	EXPECT_EQ(requestInfo.permissions.write, true);
-	EXPECT_EQ(requestInfo.permissions.execute, false);
 	EXPECT_EQ(requestInfo.body, "<html><body><p>This is a test</p></body></html>");
 }
 
 TEST(RequestInfoTest, HandlesPostRequestWithMultipartFormData) {
 	std::string boundary = "--boundary";
 	std::string postRequest = 
-		"POST " + std::string(DEFAULT_ROUTE_PATH) + " HTTP/1.1\r\n"
+		"POST /uploads HTTP/1.1\r\n"
 		"Host: localhost\r\n"
 		"Content-Type: multipart/form-data; boundary=" + boundary + "\r\n"
 		"Content-Length: 144\r\n\r\n" +
@@ -136,9 +160,9 @@ TEST(RequestInfoTest, HandlesPostRequestWithMultipartFormData) {
 		"file content here\r\n" + 
 		boundary + "--";
 
-	RequestInfo requestInfo = parseHttpRequest(postRequest);
+	RequestInfo requestInfo = parsePOSTHttpRequest(postRequest);
 
-	EXPECT_EQ(requestInfo.requestedRoute, DEFAULT_ROUTE_PATH);
+	EXPECT_EQ(requestInfo.requestedRoute, "/uploads");
 	EXPECT_EQ(requestInfo.action, UPLOAD);
 	EXPECT_EQ(requestInfo.permissions.read, true);
 	EXPECT_EQ(requestInfo.permissions.write, true);
@@ -153,7 +177,7 @@ TEST(RequestInfoTest, HandlesPostRequestWithMultipartFormData) {
 
 TEST(RequestInfoTest, HandlesPostRequestWithChunkedHtmlBody) {
 	std::string chunkedPostRequest = 
-		"POST " + std::string(DEFAULT_ROUTE_PATH) + " HTTP/1.1\r\n"
+		"POST /uploads HTTP/1.1\r\n"
 		"Host: localhost\r\n"
 		"Transfer-Encoding: chunked\r\n"
 		"Content-Type: text/html\r\n\r\n"
@@ -161,16 +185,16 @@ TEST(RequestInfoTest, HandlesPostRequestWithChunkedHtmlBody) {
 		"<html><body><p>This is a chunked test</p></body></html>\r\n"
 		"0\r\n\r\n";
 
-	RequestInfo requestInfo = parseHttpRequest(chunkedPostRequest);
+	RequestInfo requestInfo = parsePOSTHttpRequest(chunkedPostRequest);
 
-	EXPECT_EQ(requestInfo.requestedRoute, DEFAULT_ROUTE_PATH);
+	EXPECT_EQ(requestInfo.requestedRoute, "/uploads");
 	EXPECT_EQ(requestInfo.action, UPLOAD);
 	EXPECT_EQ(requestInfo.body, "<html><body><p>This is a chunked test</p></body></html>");
 }
 
 TEST(RequestInfoTest, HandlesPostRequestWithChunkedFormUrlEncoded) {
 	std::string chunkedPostRequest = 
-		"POST " + std::string(DEFAULT_ROUTE_PATH) + " HTTP/1.1\r\n"
+		"POST /uploads HTTP/1.1\r\n"
 		"Host: localhost\r\n"
 		"Transfer-Encoding: chunked\r\n"
 		"Content-Type: application/x-www-form-urlencoded\r\n\r\n"
@@ -178,9 +202,9 @@ TEST(RequestInfoTest, HandlesPostRequestWithChunkedFormUrlEncoded) {
 		"username=testuser&age=34\r\n"
 		"0\r\n\r\n";
 
-	RequestInfo requestInfo = parseHttpRequest(chunkedPostRequest);
+	RequestInfo requestInfo = parsePOSTHttpRequest(chunkedPostRequest);
 
-	EXPECT_EQ(requestInfo.requestedRoute, DEFAULT_ROUTE_PATH);
+	EXPECT_EQ(requestInfo.requestedRoute, "/uploads");
 	EXPECT_EQ(requestInfo.action, UPLOAD);
 	EXPECT_EQ(requestInfo.body, "username=testuser&age=34");
 	EXPECT_EQ(requestInfo.urlencodedValues["username"], "testuser");

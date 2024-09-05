@@ -14,7 +14,7 @@
 #define DEFAULT_DIRECTORY_LISTING false
 #define DEFAULT_FILE "index.html"
 #define DEFAULT_CGI_EXTENSION ".py"
-#define DEFAULT_UPLOAD_DIRECTORY "uploads"
+#define DEFAULT_UPLOAD_DIRECTORY ""
 #define DEFAULT_ACCEPTED_METHODS "GET", "DELETE"
 
 // Definições de macros para CGIConfig
