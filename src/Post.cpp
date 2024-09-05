@@ -103,4 +103,5 @@ std::string	Post::getFileName(int index)
 void add_post_log(const std::string& content) {
 	std::ofstream	logFd("logs/uploads.log", std::ios_base::app);
 	logFd << content << std::endl;
+	logFd.close();
 }
