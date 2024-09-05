@@ -18,7 +18,6 @@ class Post : public IHttpMethod
 		std::string uploadPath;
 
 		std::string	getFileName(int index);
-		bool		isValidRoute(void);
 		int			upload(void);
 		void		buildBody(void);
 		int			uploadMultipart(void);
