@@ -6,20 +6,10 @@ import os
 import sys
 
 # Defina o diretório de destino para os uploads
-upload_dir = os.getcwd() + '/serverRoot/upload'
+upload_dir = os.getcwd()
 
 # Crie o objeto de campo de armazenamento para os dados enviados
 form = cgi.FieldStorage()
-# Exibir o conteúdo de cada campo do formulário
-for field in form.keys():
-    field_item = form[field]
-    if field_item.filename:
-        file_content = field_item.file.read().decode('utf-8')  # Ler o conteúdo do arquivo como string
-        print(f"Content-Disposition: {field_item.name}; filename={field_item.filename}")
-        print(f"Content-Type: {field_item.type}")
-        print(f"Content:\n{file_content}")
-    else:
-        print(f"{field}: {form.getvalue(field)}")
 
 # Verifique se o campo de upload está presente no formulário
 if "file" in form:

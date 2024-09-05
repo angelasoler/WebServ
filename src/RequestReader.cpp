@@ -14,6 +14,7 @@ bool    RequestReader::readHttpRequest(int &fdConection)
 	readRequestHeader();
 	if (_incompleted && !_errorRead)
 		return true;
+	readRequestBody();
 	if (_incompleted && !_errorRead)
 		return true;
 	if (_errorRead)

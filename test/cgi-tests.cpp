@@ -38,7 +38,7 @@ TEST(CGITests, PostUploadPy) {
 	curl_mime *form = curl_mime_init(curl);
 	curl_mimepart *field = curl_mime_addpart(form);
 	curl_mime_name(field, "file");
-	curl_mime_filedata(field, "rubberduck.avif");
+	curl_mime_filedata(field, "test/cgi-tests/upload-thisfile.txt");
 	ASSERT_NE(curl, nullptr);
 
 	// ACT

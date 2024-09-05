@@ -12,6 +12,11 @@ void	CGIServer::setEnv(void)
 
 	execDir = scriptPath.substr(0, pos);
 	scriptPath = scriptPath.substr(pos+1);
+	if (requestInfo.action == RESPONSE)
+		envVars["REQUEST_METHOD"] = "GET";
+	else
+		envVars["REQUEST_METHOD"] = "POST";
+	envVars["CONTENT_TYPE"] = requestInfo.contentType;
 	envVars["SCRIPT_NAME"] = scriptPath;
 	envVars["SERVER_PROTOCOL"] = "HTTP/1.1";
 	envVars["CONTENT_LENGTH"] = oss.str();
@@ -153,7 +158,7 @@ void	CGIServer::executeScript(void)
 
 		waitAndReadChild(pid);
 	}
-	for (size_t i = 0; i < envVars.size() + 1; i++)
-		delete envp[i];
+	// for (size_t i = 0; i < envVars.size() + 1; i++)
+	// 	delete envp[i];
 	return ;
 }
