@@ -313,7 +313,7 @@ void	 RequestReader::readLineBody(int fd, std::string &line, int contentLength, 
 	ssize_t		numberBytes;
 	char		buffer[20] = {0};
 
-	while (true)
+	while (true)	
 	{
 		if (!contentLength)
 			break;

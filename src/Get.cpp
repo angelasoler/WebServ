@@ -12,7 +12,7 @@ int Get::handleRequest(void)
 		case Directory:
 			return responseToDirectory();
 		case CGI:
-			return responseCGI();
+			return responseCGI(response);;
 		case File:
 			return responseToFile();
 		case Redirection:
@@ -20,6 +20,7 @@ int Get::handleRequest(void)
 		default:
 			return responseToInvalid();
 	}
+	return 0;
 }
 
 std::string	Get::getBodyFromFile(const std::string& fileName)
@@ -38,7 +39,7 @@ std::string	Get::getBodyFromFile(const std::string& fileName)
 
 void	Get::buildBody(void)
 {
-	if (response.requestInfo.pathType == CGI || !response.getBody().empty())
+	if (!response.getBody().empty())
 		return ;
 	if (response.requestInfo.pathType == File && !endsWith(response.requestInfo.fullPath, ".html"))
 		response.setHeader("Content-Type", "text/plain; charset=utf-8");
@@ -58,6 +59,42 @@ int	Get::responseToFile(void)
 	else if (!response.requestInfo.fullPath.empty())
 		return (200);
 	return(400);
+}
+
+int	Get::responseToDirectory(void)
+{
+	if (response.requestInfo.configRef.directory_listing)
+	{
+		if (*response.requestInfo.fullPath.rbegin() != '/')
+		{
+			std::stringstream	port;
+
+			port << response.requestInfo.serverRef.port;
+			response.setHeader("Location", "http://localhost:" + port.str() + response.requestInfo.requestedRoute + "/");
+			return 307;
+		}
+		response.setBody(makeBodyForDirListing());
+		if (response.getBody().empty())
+			return (500);
+		return 200;
+	}
+	return 404;
+}
+
+int	Get::responseToInvalid(void)
+{
+	if (response.requestInfo.requestedRoute == "Bad")
+		return (400);
+	if (response.requestInfo.requestedRoute.empty())
+		return (405);
+	return(404);
+
+}
+
+int	Get::responseToRedirection(void)
+{
+	response.setHeader("Location", response.requestInfo.configRef.redirection);
+	return(307);
 }
 
 std::string formatSize(off_t item_size)
@@ -176,50 +213,4 @@ std::string Get::makeBodyForDirListing()
 
 	body += "</html>" + line_feed;
 	return body;
-}
-
-
-int	Get::responseToDirectory(void)
-{
-	if (response.requestInfo.configRef.directory_listing)
-	{
-		if (*response.requestInfo.fullPath.rbegin() != '/')
-		{
-			std::stringstream	port;
-
-			port << response.requestInfo.serverRef.port;
-			response.setHeader("Location", "http://localhost:" + port.str() + response.requestInfo.requestedRoute + "/");
-			return 307;
-		}
-		response.setBody(makeBodyForDirListing());
-		if (response.getBody().empty())
-			return (500);
-		return 200;
-	}
-	return 404;
-}
-
-int	Get::responseToInvalid(void)
-{
-	if (response.requestInfo.requestedRoute == "Bad")
-		return (400);
-	if (response.requestInfo.requestedRoute.empty())
-		return (405);
-	return(404);
-}
-
-int	Get::responseToRedirection(void)
-{
-	response.setHeader("Location", response.requestInfo.configRef.redirection);
-	return(307);
-}
-
-int	Get::responseCGI(void) {
-	htmlResponse	htmlResponse;
-	CGIServer		cgi(response.requestInfo.fullPath);
-
-	cgi.setEnv(response.requestInfo);
-	htmlResponse = cgi.executeScript(response.requestInfo.body);
-	response.setBody(htmlResponse.body);
-	return(htmlResponse.code);
 }

@@ -4,8 +4,19 @@
 #include <string.h>
 
 
+void	parseQueryString(RequestInfo &info)
+{
+	size_t	pos = info.requestedRoute.find("?");
+
+	if (pos != std::string::npos) {
+		info.queryString = info.requestedRoute.substr(pos + 1);
+		info.requestedRoute = info.requestedRoute.substr(0, pos);
+	}
+}
+
 void	ParsePathInfo::parsePathInfo(RequestInfo &info)
 {
+	parseQueryString(info);
 	info.fullPath = identifyFullPath(info);
 	addFileToDirectoryPath(info);
 	info.pathType = identifyType(info);
@@ -36,7 +47,6 @@ std::string	identifyFullPath(RequestInfo &info)
 		else
 			fullPath = composeFullPath(routeConfig.root_directory, info.requestedRoute);
 	}
-	// Buscar a rota "/" caso ela exista e não houve match com o loop acima
 	if (it == info.serverRef.routes.end())
 	{
 		it = info.serverRef.routes.find("/");

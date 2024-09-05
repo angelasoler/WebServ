@@ -177,7 +177,7 @@ TEST(routesTesting, routeNoIndex) {
 	//ARRANGE
 	HttpResponse response;
 	CURL* curl;
-	start_server("test/cgi-tests/cgi-config.conf");
+	start_server("test/directory_test/listingManyRoutes.conf");
 	curl = curl_easy_init();
 	ASSERT_NE(curl, nullptr);
 
@@ -212,7 +212,7 @@ TEST(routesTesting, routeGetSomeFile) {
 	//ARRANGE
 	HttpResponse response;
 	CURL* curl;
-	start_server("test/cgi-tests/cgi-config.conf");
+	start_server("test/directory_test/listingManyRoutes.conf");
 	curl = curl_easy_init();
 	ASSERT_NE(curl, nullptr);
 

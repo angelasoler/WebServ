@@ -1,25 +1,28 @@
 #include "CGIServer.hpp"
 #include <cerrno>
 #include <sstream>
+#include "TimeNow.hpp"
 
-CGIServer::CGIServer(const std::string scriptPath) : scriptPath(scriptPath) {}
+CGIServer::CGIServer(RequestInfo &info) : requestInfo(info), scriptPath(info.fullPath) {}
 
-// TO-DO: verificar o script path do routes?
-void	CGIServer::setEnv(RequestInfo &requestInfo)
+void	CGIServer::setEnv(void)
 {
 	std::ostringstream oss;
+	size_t pos = scriptPath.rfind("/");
 
-	oss << requestInfo.body.size();
+	execDir = scriptPath.substr(0, pos);
+	scriptPath = scriptPath.substr(pos+1);
 	if (requestInfo.action == RESPONSE)
 		envVars["REQUEST_METHOD"] = "GET";
-	if (requestInfo.action == UPLOAD)
+	else
 		envVars["REQUEST_METHOD"] = "POST";
+	envVars["CONTENT_TYPE"] = requestInfo.contentType;
 	envVars["SCRIPT_NAME"] = scriptPath;
 	envVars["SERVER_PROTOCOL"] = "HTTP/1.1";
 	envVars["CONTENT_LENGTH"] = oss.str();
+	envVars["QUERY_STRING"] = requestInfo.queryString;
 }
 
-// TO-DO: verifica se está corretamente alocado
 void CGIServer::getEnvp(char *envp[])
 {
 	int i = 0;
@@ -32,7 +35,7 @@ void CGIServer::getEnvp(char *envp[])
 	envp[i] = NULL;
 }
 
-void redirChildPipes(int pipefd[], int pipefderror[])
+void CGIServer::redirChildPipes(void)
 {
 	dup2(pipefd[0], STDIN_FILENO);
 	close(pipefd[0]);
@@ -43,12 +46,38 @@ void redirChildPipes(int pipefd[], int pipefderror[])
 	close(pipefderror[1]);
 }
 
-void CGIServer::readChildReturn(int pipefd[], int pipefderror[])
+void	CGIServer::CGIFeedLog(std::string buffer)
+{
+	std::ofstream	logFd("logs/CGI.log", std::ios_base::app);
+	std::string	buffererror2;
+	char		buffererror[4096];
+	ssize_t		count;
+	std::string CGIbody(requestInfo.rawBody.begin(), requestInfo.rawBody.end());
+
+	logFd << "\n" << TimeNow();
+	if (!CGIbody.empty())
+		logFd << "requestInfo.rawBody: " << CGIbody << std::endl;
+	if (!buffer.empty()) {
+		logFd << "\t\t======CGI stdout=======" << std::endl;
+		close(pipefderror[0]);
+		logFd << buffer;
+		return ;
+	}
+	count = read(pipefderror[0], buffererror, sizeof(buffererror) - 1);
+	close(pipefderror[0]);
+	buffererror[count] = '\0';
+	buffererror2 = buffererror;
+	if (!buffererror2.empty()) {
+		logFd << "\t\t======CGI stderr=======" << std::endl;
+		logFd << buffererror;
+	}
+}
+
+void CGIServer::readChildReturn(void)
 {
 	char buffer[4096];
-	char buffererror[4096];
 	ssize_t count;
-	std::string buffererror2;
+	
 	std::string buffer2;
 
 	count = read(pipefd[0], buffer, sizeof(buffer) - 1);
@@ -56,56 +85,80 @@ void CGIServer::readChildReturn(int pipefd[], int pipefderror[])
 	buffer[count] = '\0';
 	buffer2 = buffer;
 	if (!buffer2.empty()) {
-		std::cout << "\t\t======CGI stdout=======" << std::endl;
-		close(pipefderror[0]);
-		std::cout << buffer;
-		GBIReturn.body = buffer;
-		GBIReturn.code = 200;
+		CGIReturn.body = buffer;
+		if (requestInfo.action == RESPONSE)
+			CGIReturn.code = 200;
+		else
+			CGIReturn.code = 201;
 	}
-	else {
-		count = read(pipefderror[0], buffererror, sizeof(buffererror) - 1);
-		close(pipefderror[0]);
-		buffererror[count] = '\0';
-		buffererror2 = buffererror;
+	CGIFeedLog(buffer2);
+}
+
+void	CGIServer::waitAndReadChild(pid_t pid)
+{
+	int	child_exit_status;
+	int exit_code;
+
+	if (!waitpid(pid, &child_exit_status, WNOHANG)) {
+		while (double(std::clock() - start) / CLOCKS_PER_SEC <= 2.0) {
+			if (waitpid(pid, &child_exit_status, WNOHANG))
+				break ;
+		}
+		if (!waitpid(pid, &child_exit_status, WNOHANG)) {
+			kill(pid, SIGKILL);
+			waitpid(pid, &child_exit_status, 0);
+			child_exit_status = 1;
+		}
 	}
-	if (!buffererror2.empty()) {
-		std::cout << "\t\t======CGI stderr=======" << std::endl;
-		std::cout << buffererror;
-		GBIReturn.body = buffererror;
-		GBIReturn.code = 400;
+	readChildReturn();
+	if (WIFEXITED(child_exit_status))
+		exit_code = WEXITSTATUS(child_exit_status);
+	if (exit_code) {
+		CGIReturn.code = 500;
+		CGIReturn.body.clear();
 	}
 }
 
-// TO-DO: pegar stderror só para debug, retornar menssagem padrão
-// pegar codigo de retorno do script?
-htmlResponse	CGIServer::executeScript(std::string requestData) {
-	std::cout << "\t\t======CGI exec=======" << std::endl;
-	int	pipefd[2];
-	int	pipefderror[2];
+bool	CGIServer::verifyRequestedScript(void)
+{
+	if (!requestInfo.permissions.execute)
+		CGIReturn.code = 405;
+	else if (requestInfo.permissions.notFound)
+		CGIReturn.code = 404;
+	else
+		return false;
+	CGIReturn.body.clear();
+	return true;
+}
 
+void	CGIServer::executeScript(void)
+{
+	if (verifyRequestedScript())
+		return ;
+	char		*envp[envVars.size() + 1];
+	char		*rawPtr = requestInfo.rawBody.data();
+	std::string	pyBin = "/usr/bin/python3";
+	char		*const argv[] = {const_cast<char*>(pyBin.c_str()), const_cast<char*>(scriptPath.c_str()), NULL};
+
+	start = std::clock();
+	getEnvp(envp);
 	if (pipe(pipefd) == -1 || pipe(pipefderror) == -1)
-		throw(std::runtime_error("Pipe creation failed."));
+		std::cerr << "Pipe creation failed." << std::endl;
 	pid_t pid = fork();
 	if (pid < 0)
-		throw(std::runtime_error("Fork failed."));
+		std::cerr << "Fork failed." << std::endl;
 	else if (pid == 0) {
-		char *envp[envVars.size() + 1];
-
-		redirChildPipes(pipefd, pipefderror);
-		getEnvp(envp);
-		std::string pyBin = "/usr/bin/python3";
-		//TO-DO: fazer cd para stacticScriptPath
-		char* const argv[] = {const_cast<char*>(pyBin.c_str()), const_cast<char*>(scriptPath.c_str()), NULL};
+		chdir(execDir.c_str());
+		redirChildPipes();
 		execve(argv[0], argv, envp);
 	} else {
-		if (!requestData.empty())
-			std::cout << "requestData: " << requestData << std::endl;
-		write(pipefd[1], requestData.c_str(), requestData.size());
+		write(pipefd[1], rawPtr, requestInfo.rawBody.size());
 		close(pipefd[1]);
 		close(pipefderror[1]);
-		waitpid(pid, NULL, 0);
-		readChildReturn(pipefd, pipefderror);
-		return (GBIReturn);
+
+		waitAndReadChild(pid);
 	}
-	return GBIReturn;
+	// for (size_t i = 0; i < envVars.size() + 1; i++)
+	// 	delete envp[i];
+	return ;
 }

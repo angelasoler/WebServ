@@ -23,7 +23,6 @@ class Get : public IHttpMethod
 		int			responseToFile(void);
 		int			responseToDirectory(void);
 		int			responseToInvalid(void);
-		int			responseCGI(void);
 		int			responseToRedirection(void);
 		std::string	getBodyFromFile(const std::string& fileName);
 		void		buildBody(void);

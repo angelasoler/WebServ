@@ -47,6 +47,8 @@ void PrintRequestInfo::printRequestInfo(RequestInfo& request)
 
 void PrintRequestInfo::printRawBody(RequestInfo& request)
 {
+	if (request.rawBody.empty())
+		return ;
 	std::ofstream	logFd("logs/raw_body.log", std::ios_base::app);
 	bool isDelimiter = false;
 	logFd << "\n" << TimeNow();
@@ -74,7 +76,6 @@ const char* PrintRequestInfo::pathTypeToString(e_pathType pathType) {
 	switch (pathType) {
 		case File: return "File";
 		case Directory: return "Directory";
-		case URL: return "URL";
 		case Redirection: return "Redirection";
 		case CGI: return "CGI";
 		case UNKNOWN: return "UNKNOWN";
