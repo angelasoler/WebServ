@@ -41,6 +41,7 @@ void PrintRequestInfo::printRequestInfo(RequestInfo& request)
 	}
 	logFd << "\tserverRef:" << std::endl;
 
+	logFd.close();
 	printRawBody(request);
 	// printServerConfig(request.serverRef, logFd);
 }
@@ -70,6 +71,7 @@ void PrintRequestInfo::printRawBody(RequestInfo& request)
 		}
 	}
 	logFd << "\n--------Raw Body End---------" << std::endl;
+	logFd.close();
 }
 
 const char* PrintRequestInfo::pathTypeToString(e_pathType pathType) {
