@@ -1,7 +1,7 @@
 #include "RequestReader.hpp"
 # include <sstream>
 
-RequestReader::RequestReader(void) : _errorRead(false), _incompleted(false), _readRawBody(false), _headers(), _method(""), _requestedRoute(""), _httpVersion(""), _requestBody("") {}
+RequestReader::RequestReader(void) : _errorRead(false), _incompleted(false), _readRawBody(false), _headers(), _method(""), _requestedRoute(""), _httpVersion(""), _requestBody() {}
 
 RequestReader::~RequestReader(void) {}
 
@@ -100,7 +100,7 @@ void RequestReader::readRequestBody(void)
 			std::string tempLine;
 
 		readLineBody(this->_fdClient, tempLine, getContentLength(), this->_errorRead);
-		this->_requestBody += tempLine;
+		_requestBody.insert(_requestBody.end(), tempLine.begin(), tempLine.end());
 		this->_fullRequest += tempLine + "\n";
 	}
 }
@@ -114,7 +114,7 @@ void RequestReader::readRequestBodyChunked()
 	while (chunkSize > 0)
 	{
 		readLine(this->_fdClient, tempLine, CRLF, this->_errorRead);
-		this->_requestBody += tempLine;
+		_requestBody.insert(_requestBody.end(), tempLine.begin(), tempLine.end());
 		this->_fullRequest += tempLine;
 
 		length += chunkSize;
@@ -154,7 +154,7 @@ void RequestReader::readRequestBodyMultipart(void)
 		std::string boundary = getHeader("Content-Type").substr(pos + 9);
 		readMultipartInfo(boundary, tempLine);
 	}
-	this->_requestBody += tempLine;
+	_requestBody.insert(_requestBody.end(), tempLine.begin(), tempLine.end());
 	this->_fullRequest += tempLine + "\n";
 
 }
@@ -226,7 +226,7 @@ std::string RequestReader::getHttpVersion(void) const
 
 std::string RequestReader::getBody(void) const
 {
-	return this->_requestBody;
+	return std::string(_requestBody.begin(), _requestBody.end());
 }
 
 std::vector<char>	RequestReader::getRawBody(void) const
