@@ -100,6 +100,7 @@ class Request
 		~Request(void);
 		void	parseRequest(ServerConfig &serverConfig);
 		bool	readRequest(int client_fd);
+		int		getInformationalStatus(void);
 };
 
 #endif /* REQUEST_HPP */

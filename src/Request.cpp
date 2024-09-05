@@ -28,7 +28,6 @@ bool	Request::readRequest(int client_fd)
 	requestsText.clear();
 	info = RequestInfo();
 	requestReader = RequestReader();
-
 	if (!requestReader.readHttpRequest(client_fd))
 		return (true);
 	requestsText = requestReader.getFullRequest();
@@ -61,6 +60,40 @@ void	adjustRoute(std::string &route)
 	route = newRoute;
 }
 
+std::vector<std::string> insertAllowedMethods(void)
+{
+	std::vector<std::string>	vec;
+
+	vec.push_back("GET");
+	vec.push_back("POST");
+	vec.push_back("DELETE");
+	return vec;
+}
+
+int	Request::getInformationalStatus(void)
+{
+	std::vector<std::string> 			allowedMethods = insertAllowedMethods();
+
+	std::vector<std::string>::iterator	requestedMethod;
+
+
+	if (!requestReader.getHttpVersion().empty() && requestReader.getHttpVersion() != "HTTP/1.1")
+		return 400;
+	requestedMethod = std::find (allowedMethods.begin(), allowedMethods.end(), requestReader.getMethod());
+	if (requestedMethod != allowedMethods.end())
+	{
+		requestedMethod = std::find(info.configRef.accepted_methods.begin(),
+										info.configRef.accepted_methods.end(),
+										requestReader.getMethod());
+		if (requestedMethod != info.configRef.accepted_methods.end())
+		{
+			return 200;
+		}
+		return 405; // Not ALLOWED
+	}
+	return 400; // Bad
+}
+
 void	Request::parseRequestInfo(ServerConfig &serverConfig)
 {
 	info.action = getMethodAction();
@@ -83,6 +116,17 @@ void Request::parseRequest(ServerConfig &serverConfig)
 {
 	parseRequestInfo(serverConfig);
 	ParsePathInfo::parsePathInfo(info);
+	int	status = getInformationalStatus();
+	if (status != 200)
+	{
+		info.action = RESPONSE;
+		info.pathType = UNKNOWN;
+		if (status == 405)
+			info.requestedRoute = "";
+		else
+			info.requestedRoute = "Bad";
+		return ;
+	}
 	ParseBodyInfo::parseBodyInfo(info);
 	PrintRequestInfo::printRequestInfo(info);
 }
@@ -90,26 +134,20 @@ void Request::parseRequest(ServerConfig &serverConfig)
 e_httpMethodActions	Request::getMethodAction(void)
 {
 	// printHeaderDataStructure();
-	if (requestReader.getMethod() == "GET")
+	std::vector<std::string> allowedMethods = insertAllowedMethods();
+
+	std::vector<std::string>::iterator	requestedMethod;
+
+	requestedMethod = std::find (allowedMethods.begin(), allowedMethods.end(), requestReader.getMethod());
+	if (requestedMethod != allowedMethods.end())
 	{
-		std::cout << "\tRESPONSE\n" << std::endl;
+		std::cout << "\t" << *requestedMethod << "\n";
+		return ((e_httpMethodActions)(requestedMethod - allowedMethods.begin()));
+	}
+	if (!requestReader.getMethod().empty())
 		return (RESPONSE);
-	}
-	else if (requestReader.getMethod() == "POST")
-	{
-		std::cout << "\tPOST\n" << std::endl;
-		return (UPLOAD);
-	}
-	else if (requestReader.getMethod() == "DELETE")
-	{
-		std::cout << "\tDELETE\n" << std::endl;
-		return (DELETE);
-	}
-	else
-	{
-		std::cout << "\tCLOSE\n" << std::endl;
-		return(CLOSE);
-	}
+	std::cout << "\tCLOSE\n" << std::endl;
+	return(CLOSE);
 }
 
 RequestInfo::RequestInfo() :
