@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <map>
+#include <ctime>
 #include "Request.hpp"
 
 typedef struct {
@@ -17,18 +18,29 @@ typedef struct {
 
 class CGIServer {
 	public:
-		CGIServer(std::string scriptPath);
+		htmlResponse	CGIReturn;
 
-		void			setEnv(RequestInfo &requestInfo);
-		htmlResponse	executeScript(std::string requestData);
+		CGIServer(RequestInfo &info);
+
+		void	setEnv(void);
+		void	executeScript(void);
 
 	private:
-		htmlResponse						GBIReturn;
-		std::string						scriptPath;
+		RequestInfo							&requestInfo;
+		std::string							scriptPath;
+		std::string							execDir;
 		std::map<std::string, std::string>	envVars;
+		int									pipefd[2];
+		int									pipefderror[2];
+
+		std::clock_t	start;
 
 		void	getEnvp(char *envp[]);
-		void	readChildReturn(int pipefd[], int pipefderror[]);
+		void	readChildReturn(void);
+		void	redirChildPipes(void);
+		void	CGIFeedLog(std::string buffer);
+		void	waitAndReadChild(pid_t pid);
+		bool	verifyRequestedScript(void);
 };
 
 #endif

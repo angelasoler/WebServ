@@ -17,6 +17,7 @@ class IHttpMethod {
 		bool		hasWritePermission(const std::string &path);
 		bool		fileExists(const std::string& filename);
 		bool		dirExists(const std::string& filename);
+		int		responseCGI(Response &response);
 };
 
 #endif

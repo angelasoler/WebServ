@@ -30,3 +30,4 @@ if "file" in form:
 else:
     print("Content-Type: text/html\n")
     print("<html><body><h2>Falha no upload: O campo 'file' não foi encontrado.</h2></body></html>")
+

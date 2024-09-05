@@ -64,8 +64,7 @@ void	Connection::readClientRequest(int client_fd)
 void	Connection::responseToClient(int client_fd)
 {
 	Response	response(request.info, client_fd);
-	response.treatActionAndResponse();
-	
+	response.treatActionAndResponse();	
 	request.requestsText.clear();
 }
 

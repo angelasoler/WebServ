@@ -7,12 +7,10 @@ Post::~Post(void) {}
 
 int	Post::handleRequest(void)
 {
+	if (response.requestInfo.pathType == CGI)
+		return responseCGI(response);
+
 	add_post_log("\n\n-----Starting Upload-----\n");
-	// verifica se é cgi
-	if (response.requestInfo.pathType == CGI) {
-		add_post_log("Handling CGI request.");
-		// handleCGI
-	}
 
 	RequestInfo &info = response.requestInfo;
 	uploadPath = info.configRef.root_directory + "/" + info.configRef.upload_directory + "/";
@@ -95,6 +93,8 @@ bool	writeFile(const std::string& content, const std::string& fileName) {
 }
 
 void	Post::buildBody(void) {
+	if (!response.getBody().empty())
+		return ;
 	std::string body = response.getDefaultPage();
 
 	if (body == NO_DEFAULT_ERROR)

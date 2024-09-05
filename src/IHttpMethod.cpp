@@ -1,4 +1,6 @@
 # include "IHttpMethod.hpp"
+# include "Response.hpp"
+# include "CGIServer.hpp"
 
 IHttpMethod::~IHttpMethod() {}
 
@@ -23,3 +25,12 @@ bool IHttpMethod::dirExists(const std::string& dirname)
 	return (stat(dirname.c_str(), &buffer) == 0 && S_ISDIR(buffer.st_mode));
 }
 
+int	IHttpMethod::responseCGI(Response &response) {
+	CGIServer	cgi(response.requestInfo);
+
+	cgi.setEnv();
+	cgi.executeScript();
+
+	response.setBody(cgi.CGIReturn.body);
+	return(cgi.CGIReturn.code);
+}
