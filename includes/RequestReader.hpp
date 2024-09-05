@@ -69,7 +69,7 @@ class RequestReader
 		std::string								_method;
 		std::string								_requestedRoute;
 		std::string								_httpVersion;
-		std::string								_requestBody;
+		std::vector<char>						_requestBody;
 		int										_fdClient;
 		std::string								_fullRequest;
 		std::vector<char>						_rawBody;
