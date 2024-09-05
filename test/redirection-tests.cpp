@@ -1,6 +1,30 @@
 #include "tests.hpp"
 
 TEST(RedirectionTests, invalidRedir) {
+	// ARRANGE
+	start_server("test/redir-tests/redir-config.conf");
+	// ACT
+	int result = std::system("test/scripts/test-invalid-redirection.py");
+
+	// ASSERT
+	EXPECT_EQ(result, 0);
+	stop_server();
+}
+
+// get to http://localhost:8080/redir-to-home
+// redirect to http://localhost:8090/home
+TEST(RedirectionTests, validRedir) {
+	// ARRANGE
+	start_server("test/redir-tests/redir-config.conf");
+	// ACT
+	int result = std::system("test/scripts/test-redirection.py");
+
+	// ASSERT
+	EXPECT_EQ(result, 0);
+	stop_server();
+}
+
+TEST(RedirectionTests, directRequest) {
 	//ARRANGE
 	HttpResponse response;
 	CURL* curl;
@@ -9,7 +33,7 @@ TEST(RedirectionTests, invalidRedir) {
 	ASSERT_NE(curl, nullptr);
 
 	// ACT
-	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080/invalid-redir");
+	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8090/home");
 	curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
@@ -20,13 +44,9 @@ TEST(RedirectionTests, invalidRedir) {
 
 	// ASSERT: Verificar os resultados
 	EXPECT_EQ(res, CURLE_OK);
-	EXPECT_EQ(response.status_code, 307);
-	EXPECT_EQ(response.headers["Location"], "some-crap");
+	EXPECT_EQ(response.status_code, 200);
+	EXPECT_TRUE(response.body.find("First server configurated") != std::string::npos);
 
 	curl_easy_cleanup(curl);
 	stop_server();
 }
-
-//TO-DO testes com varios servidores e servernames, com redirections entre eles
-// melhro com fire-fos/selenium pois com curl não veremos o redirection como tal
-// ou seja o proximos get resultante do redirection

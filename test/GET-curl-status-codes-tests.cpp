@@ -96,7 +96,7 @@ TEST(GETstatusCodes, Request307) {
 	// ASSERT: Verificar os resultados
 	EXPECT_EQ(res, CURLE_OK);
 	EXPECT_EQ(response.status_code, 307);
-	EXPECT_EQ(response.headers["Location"], "http://localhost:8080/home");
+	EXPECT_EQ(response.headers["Location"], "http://localhost:8090/home");
 
 	curl_easy_cleanup(curl);
 	stop_server();
