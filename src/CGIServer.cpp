@@ -97,7 +97,7 @@ void CGIServer::readChildReturn(void)
 void	CGIServer::waitAndReadChild(pid_t pid)
 {
 	int	child_exit_status;
-	int exit_code;
+	int exit_code = 0;
 
 	if (!waitpid(pid, &child_exit_status, WNOHANG)) {
 		while (double(std::clock() - start) / CLOCKS_PER_SEC <= 2.0) {
