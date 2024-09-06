@@ -89,7 +89,10 @@ void RequestReader::readRequestBody(void)
 	_readRawBody = true;
 	if (getHeader("Transfer-Encoding") == "chunked")
 	{
-		readRequestBodyChunked();
+		if (!getHeader("Content-Type").empty() && getHeader("Content-Type").find("multipart/form-data") != std::string::npos)
+			readRequestBodyChunkedVec();
+		else
+			readRequestBodyChunked();
 	}
 	if (!getHeader("Content-Type").empty() && getHeader("Content-Type").find("multipart/form-data") != std::string::npos)
 	{
@@ -103,6 +106,45 @@ void RequestReader::readRequestBody(void)
 		_requestBody.insert(_requestBody.end(), tempLine.begin(), tempLine.end());
 		this->_fullRequest += tempLine + "\n";
 	}
+}
+
+void	 RequestReader::readChunk(int fd, std::size_t limit, bool &error)
+{
+	char		buffer[2] = {0};
+	ssize_t		numberBytes;
+
+	while (limit > 0)
+	{
+		numberBytes = recv(fd, buffer, 1, 0);
+		if (numberBytes == -1){
+			error = true;
+			break;
+		}
+		if (numberBytes == 0){
+			break ;
+		}
+		limit -= numberBytes;
+		this->_rawBody.push_back(buffer[0]);
+		this->_requestBody.push_back(buffer[0]);
+		this->_fullRequest += buffer[0];
+	}
+}
+
+
+void RequestReader::readRequestBodyChunkedVec(void)
+{
+	std::size_t	length = 0;
+	std::string	tempLine;
+	std::size_t	chunkSize = readChunkSize();
+
+	while (chunkSize > 0)
+	{
+		readChunk(this->_fdClient, chunkSize, this->_errorRead);
+	
+		length += chunkSize;
+		chunkSize = readChunkSize();
+	}
+	this->_headers["Content-Length"] = intToString(length);
 }
 
 void RequestReader::readRequestBodyChunked()
@@ -155,8 +197,7 @@ void RequestReader::readRequestBodyMultipart(void)
 
 
 	if (getHeader("Transfer-Encoding") == "chunked") {
-		tempLine = std::string(_requestBody.begin(), _requestBody.end());
-		readMultipartInfo(boundary, tempLine);
+		readMultipartInfoChunked(boundary, _requestBody);
 	}
 	else {
 		readLineBody(this->_fdClient, tempLine, getContentLength(), this->_errorRead);
@@ -166,6 +207,48 @@ void RequestReader::readRequestBodyMultipart(void)
 		}
 		_requestBody.insert(_requestBody.end(), tempLine.begin(), tempLine.end());
 		this->_fullRequest += tempLine + "\n";
+	}
+}
+
+void RequestReader::readMultipartInfoChunked(const std::string& boundary, std::vector<char> &tempLine)
+{
+	size_t boundaryPos = 0;
+	size_t contentStart = 0;
+
+	while ((boundaryPos = std::search(tempLine.begin() + boundaryPos, tempLine.end(), boundary.begin(), boundary.end()) - tempLine.begin()) != tempLine.size())
+	{
+		// Encontrar o início do conteúdo depois do cabeçalho
+		std::vector<char>::iterator contentStartIt = std::search(tempLine.begin() + boundaryPos, tempLine.end(), "\r\n\r\n", "\r\n\r\n" + 4);
+		if (contentStartIt == tempLine.end())
+		{
+			return;
+		}
+
+		contentStart = contentStartIt - tempLine.begin() + 4;
+
+		// Extrair o cabeçalho multipart
+		std::string multipartHeader(tempLine.begin() + boundaryPos + boundary.size(), contentStartIt);
+		_multipartHeaders.push_back(multipartHeader);
+
+		// Encontrar o fim do conteúdo antes do próximo boundary
+		size_t contentEnd = std::search(tempLine.begin() + contentStart, tempLine.end(), boundary.begin(), boundary.end()) - tempLine.begin();
+		if (contentEnd == tempLine.size())
+		{
+			contentEnd = tempLine.size();
+		}
+
+		// Remover possíveis '\r', '\n' e '-' do final do conteúdo
+		while (contentEnd > contentStart && (tempLine[contentEnd - 1] == '\r' || tempLine[contentEnd - 1] == '\n' || tempLine[contentEnd - 1] == '-'))
+		{
+			--contentEnd;
+		}
+
+		// Extrair o valor do multipart
+		std::string multipartValue(tempLine.begin() + contentStart, tempLine.begin() + contentEnd);
+		_multipartValues.push_back(multipartValue);
+
+		// Ajustar boundaryPos para continuar a busca
+		boundaryPos = contentEnd;
 	}
 }
 

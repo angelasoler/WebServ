@@ -11,6 +11,7 @@
 # include <typeinfo>
 # include <vector>
 # include <fstream>
+# include <algorithm>
 #define CRLF			"\r\n"
 
 class RequestReader
@@ -44,8 +45,13 @@ class RequestReader
 		// READ REQUEST BODY
 		void								readRequestBody(void);
 		void								readRequestBodyChunked(void);
+
+		void								readRequestBodyChunkedVec(void);
+		void								readChunk(int fd, std::size_t limit, bool &error);
+
 		size_t								readChunkSize();
 		void								readRequestBodyMultipart(void);
+		void								readMultipartInfoChunked(const std::string& boundary, std::vector<char> &tempLine);
 		void								readMultipartInfo(const std::string& boundary, std::string &tempLine);
 
 		// READLINE AND UTILS
