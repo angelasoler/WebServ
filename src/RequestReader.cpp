@@ -1,20 +1,25 @@
 #include "RequestReader.hpp"
-# include <sstream>
 
-RequestReader::RequestReader(void) : _errorRead(false), _incompleted(false), _readRawBody(false), _headers(), _method(""), _requestedRoute(""), _httpVersion(""), _requestBody() {}
+RequestReader::RequestReader(void) : _errorRead(false),
+_incompleted(false),
+_readRawBody(false),
+_headers(), _method(""),
+_requestedRoute(""),
+_httpVersion(""),
+_requestBody() {}
 
 RequestReader::~RequestReader(void) {}
 
 bool    RequestReader::readHttpRequest(int &fdConection)
 {
 	this->_fdClient = fdConection;
-	readRequestStartLine();
+	readStartLine();
 	if (_incompleted && !_errorRead)
 		return true;
-	readRequestHeader();
+	readHeader();
 	if (_incompleted && !_errorRead)
 		return true;
-	readRequestBody();
+	readBody();
 	if (_incompleted && !_errorRead)
 		return true;
 	if (_errorRead)
@@ -22,16 +27,13 @@ bool    RequestReader::readHttpRequest(int &fdConection)
 	return true;
 }
 
-
-// READ START LINE
-void RequestReader::readRequestStartLine(void)
+void RequestReader::readStartLine(void)
 {
 	std::string line;
 
-	readLine(_fdClient, line, CRLF, this->_errorRead);
+	readRequestSegment(_fdClient, line, CRLF);
 	if (!line.empty())
 	{
-		this->_fullRequest += line +  "\n";
 		std::istringstream lineStream(line);
 		if (!(lineStream >> this->_method)) {
 			this->_incompleted = true;
@@ -48,90 +50,66 @@ void RequestReader::readRequestStartLine(void)
 	}
 }
 
-// READ REQUEST HEADER
-void 	RequestReader::readRequestHeader(void)
+void 	RequestReader::readHeader(void)
 {
 	std::string line;
 
 	while (true)
 	{
-		readLine(this->_fdClient, line, CRLF, this->_errorRead);
-		if (line == CRLF || line.empty() || _errorRead)
-		{
+		readRequestSegment(_fdClient, line, CRLF);
+		if (line == CRLF || line.empty() || _errorRead) {
 			if (_errorRead)
 				this->_incompleted = true;
 			break;
 		}
-		else
+		size_t colonPos = line.find(':');
+		if (colonPos != std::string::npos)
 		{
-			size_t colonPos = line.find(':');
-			if (colonPos != std::string::npos)
+			size_t lastNonCRLF = line.find_last_not_of(CRLF);
+			if (lastNonCRLF != std::string::npos)
 			{
-				size_t lastNonCRLF = line.find_last_not_of(CRLF);
-				if (lastNonCRLF != std::string::npos)
-				{
-					line = line.substr(0, lastNonCRLF + 1);
-					std::string headerName = line.substr(0, colonPos);
-					std::string headerValue = line.substr(colonPos + 2);
-					this->_headers[headerName] = headerValue;
+				line = line.substr(0, lastNonCRLF + 1);
+				std::string headerName = line.substr(0, colonPos);
+				std::string headerValue = line.substr(colonPos + 2);
+				this->_headers[headerName] = headerValue;
 
-				}
 			}
 		}
-		this->_fullRequest += line + "\n";
 	}
 	printHeaderDataStructure();
 }
 
-// READ REQUEST BODY
-void RequestReader::readRequestBody(void)
+void RequestReader::readBody(void)
 {
+	bool	isChunked = (getHeader("Transfer-Encoding") == "chunked");
+	bool	isMultipart = (!getHeader("Content-Type").empty() && getHeader("Content-Type").find("multipart/form-data") != std::string::npos);
 	_readRawBody = true;
-	if (getHeader("Transfer-Encoding") == "chunked")
+
+	if (isChunked)
 	{
-		readRequestBodyChunked();
+		if (isMultipart)
+			(void)isChunked;
+		else
+			readRequestBodyChunked();
 	}
-	if (!getHeader("Content-Type").empty() && getHeader("Content-Type").find("multipart/form-data") != std::string::npos)
+	else
+		readUntilLimit(this->_fdClient, getContentLength());
+
+
+	if (isMultipart)
 	{
 		readRequestBodyMultipart();
 	}
-	else if (!getHeader("Content-Length").empty())
-	{
-			std::string tempLine;
-
-		readLineBody(this->_fdClient, tempLine, getContentLength(), this->_errorRead);
-		_requestBody.insert(_requestBody.end(), tempLine.begin(), tempLine.end());
-		this->_fullRequest += tempLine + "\n";
-	}
 }
 
-void RequestReader::readRequestBodyChunked()
-{
-	std::size_t	length = 0;
-	std::string	tempLine;
-	std::size_t	chunkSize = readChunkSize();
-
-	while (chunkSize > 0)
-	{
-		readLine(this->_fdClient, tempLine, CRLF, this->_errorRead);
-		_requestBody.insert(_requestBody.end(), tempLine.begin(), tempLine.end());
-		this->_fullRequest += tempLine;
-
-		length += chunkSize;
-		readLine(this->_fdClient, tempLine, CRLF, this->_errorRead);
-		chunkSize = readChunkSize();
-	}
-	this->_headers["Content-Length"] = intToString(length);
-}
-
+// Chunked
 size_t  RequestReader::readChunkSize(void)
 {
 	std::string line;
 	std::string chunkSizeLine;
-
-	readLine(this->_fdClient, line, CRLF, this->_errorRead);
 	std::size_t chunkSize = 0;
 
+	readRequestSegment(this->_fdClient, line, CRLF);
 	if (line == "")
 		return 0;
 	chunkSizeLine = line.substr(0,  line.find(" "));
@@ -142,59 +120,76 @@ size_t  RequestReader::readChunkSize(void)
 	return chunkSize;
 }
 
+void RequestReader::readRequestBodyChunkedMultipart(void)
+{
+	std::size_t	length = 0;
+	std::string	tempLine;
+	std::size_t	chunkSize = readChunkSize();
+
+	while (chunkSize > 0)
+	{
+		readUntilLimit(this->_fdClient, chunkSize);
+		length += chunkSize;
+		chunkSize = readChunkSize();
+	}
+	this->_headers["Content-Length"] = intToString(length);
+}
+
+void RequestReader::readRequestBodyChunked()
+{
+	std::size_t	length = 0;
+	std::string	tempLine;
+	std::size_t	chunkSize = readChunkSize();
+
+	while (chunkSize > 0)
+	{
+		readRequestSegment(this->_fdClient, tempLine, CRLF);
+
+		length += chunkSize;
+		readRequestSegment(this->_fdClient, tempLine, CRLF);
+		chunkSize = readChunkSize();
+	}
+	this->_headers["Content-Length"] = intToString(length);
+}
+
+// Multipart
 void RequestReader::readRequestBodyMultipart(void)
 {
-	std::string tempLine;
 	std::string boundary;
 	size_t pos;
 
 	pos = getHeader("Content-Type").find("boundary=", 0);
 	if (pos != std::string::npos)
 		boundary = getHeader("Content-Type").substr(pos + 9);
-
-
-
-	if (getHeader("Transfer-Encoding") == "chunked") {
-		tempLine = std::string(_requestBody.begin(), _requestBody.end());
-		readMultipartInfo(boundary, tempLine);
-	}
-	else {
-		readLineBody(this->_fdClient, tempLine, getContentLength(), this->_errorRead);
-		if (pos != std::string::npos)
-		{
-			readMultipartInfo(boundary, tempLine);
-		}
-		_requestBody.insert(_requestBody.end(), tempLine.begin(), tempLine.end());
-		this->_fullRequest += tempLine + "\n";
+	if (pos != std::string::npos)
+	{
+		readMultipartInfo(boundary, _requestBody);
 	}
 }
 
-void RequestReader::readMultipartInfo(const std::string& boundary, std::string &tempLine)
+void RequestReader::readMultipartInfo(const std::string& boundary, std::vector<char> &tempLine)
 {
 	size_t boundaryPos = 0;
 	size_t contentStart = 0;
-	std::string multipartHeader;
 
-	while ((boundaryPos = tempLine.find(boundary, boundaryPos)) != std::string::npos)
+	while ((boundaryPos = std::search(tempLine.begin() + boundaryPos, tempLine.end(), boundary.begin(), boundary.end()) - tempLine.begin()) != tempLine.size())
 	{
-		contentStart = tempLine.find("\r\n\r\n", boundaryPos);
-		if (contentStart == std::string::npos)
+		// Encontrar o início do conteúdo depois do cabeçalho
+		std::vector<char>::iterator contentStartIt = std::search(tempLine.begin() + boundaryPos, tempLine.end(), "\r\n\r\n", "\r\n\r\n" + 4);
+		if (contentStartIt == tempLine.end())
 		{
 			return;
 		}
 
-		multipartHeader = tempLine.substr(boundaryPos + boundary.size(), contentStart - (boundaryPos + boundary.size()));
-		// std::cerr << "Multipart header:\n\t" << multipartHeader << std::endl;
+		contentStart = contentStartIt - tempLine.begin() + 4;
+
+		// Extrair o cabeçalho multipart
+		std::string multipartHeader(tempLine.begin() + boundaryPos + boundary.size(), contentStartIt);
 		_multipartHeaders.push_back(multipartHeader);
 
-		contentStart += 4; // Pular "\r\n\r\n"
-		if (contentStart >= tempLine.size())
-		{
-			return;
-		}
-
-		size_t contentEnd = tempLine.find(boundary, contentStart);
-		if (contentEnd == std::string::npos)
+		// Encontrar o fim do conteúdo antes do próximo boundary
+		size_t contentEnd = std::search(tempLine.begin() + contentStart, tempLine.end(), boundary.begin(), boundary.end()) - tempLine.begin();
+		if (contentEnd == tempLine.size())
 		{
 			contentEnd = tempLine.size();
 		}
@@ -205,20 +200,74 @@ void RequestReader::readMultipartInfo(const std::string& boundary, std::string &
 			--contentEnd;
 		}
 
-		std::string multipartValue = tempLine.substr(contentStart, contentEnd - contentStart);
-		// std::cerr << "Multipart body:\n\t" << multipartValues << std::endl;
+		// Extrair o valor do multipart
+		std::string multipartValue(tempLine.begin() + contentStart, tempLine.begin() + contentEnd);
 		_multipartValues.push_back(multipartValue);
 
-		// Atualizar tempLine para o conteúdo restante após o bodypart
-		tempLine = tempLine.substr(contentEnd);
-
-		// Ajustar boundaryPos para a próxima ocorrência do boundary
-		boundaryPos = 0;
+		// Ajustar boundaryPos para continuar a busca
+		boundaryPos = contentEnd;
 	}
+}
+
+// READ SEGMENTS
+void	 RequestReader::readRequestSegment(int fd, std::string &segment, std::string delimiter)
+{
+	int			buffer = 0;
+	ssize_t		numberBytes;
+	std::string tempLine;
+
+	while (true) {
+		numberBytes = recv(fd, &buffer, 1, 0);
+		if (numberBytes == -1 || numberBytes == 0) {
+			this->_errorRead = true;
+			break ;
+		}
+		tempLine += buffer;
+		this->_fullRequest.push_back(buffer);
+		if (this->_readRawBody)
+			this->_rawBody.push_back(buffer);
+		if (isDelimiter(tempLine, delimiter))
+			break ;
+	}
+	segment = tempLine;
+	if (isDelimiter(tempLine, delimiter))
+		segment.resize(segment.rfind(delimiter));
+}
+
+void	 RequestReader::readUntilLimit(int fd, std::size_t limit)
+{
+	char		buffer[2] = {0};
+	ssize_t		numberBytes;
+
+	while (limit > 0)
+	{
+		numberBytes = recv(fd, buffer, 1, 0);
+		if (numberBytes == -1 || numberBytes == 0) {
+			this->_errorRead = true;
+			break ;
+		}
+		limit -= numberBytes;
+		this->_rawBody.push_back(buffer[0]);
+		this->_requestBody.push_back(buffer[0]);
+		this->_fullRequest.push_back(buffer[0]);
+	}
+}
+
+std::string RequestReader::intToString(int value)
+{
+	std::stringstream ss;
+	ss << value;
+	return ss.str();
+}
+
+bool	RequestReader::isDelimiter(std::string line, std::string delimiter)
+{
+	return (line.rfind(delimiter) != std::string::npos);
 }
 
 
 // GETTERS
+
 std::string RequestReader::getMethod(void) const
 {
 	return this->_method;
@@ -260,7 +309,7 @@ std::string RequestReader::getHeader(std::string headerName) const
 
 std::string RequestReader::getFullRequest(void) const
 {
-	return this->_fullRequest;
+	return std::string(this->_fullRequest.begin(), this->_fullRequest.end());
 }
 
 int RequestReader::getContentLength() const
@@ -283,84 +332,6 @@ std::vector<std::string>	RequestReader::getMultipartValues(void) const
 {
 	return _multipartValues;
 }
-
-
-// READ LINE UTILS
-void	 RequestReader::readLine(int fd, std::string &line, std::string delimiter, bool &error)
-{
-	char		buffer[2] = {0};
-	ssize_t		numberBytes;
-	std::string tempLine;
-
-	while (true)
-	{
-		numberBytes = recv(fd, buffer, 1, 0);
-		if (numberBytes == -1)
-		{
-			error = true;
-			// std::cerr << "readLine: " << "bytes readed: " << numberBytes << std::endl;
-			break;
-		}
-		if (numberBytes == 0)
-		{
-			error = true;
-			// std::cerr << "readLine: " << "bytes readed: " << numberBytes << std::endl;
-			break ;
-		}
-		tempLine += buffer;
-		if (_readRawBody)
-			_rawBody.push_back(buffer[0]);
-		if (isDelimiter(tempLine, delimiter))
-			break ;
-	}
-	line = tempLine;
-	if (isDelimiter(tempLine, delimiter))
-		line.resize(line.rfind(delimiter));
-}
-
-void	 RequestReader::readLineBody(int fd, std::string &line, int contentLength, bool &error)
-{
-	ssize_t		numberBytes;
-	char		buffer[20] = {0};
-
-	while (true)	
-	{
-		if (!contentLength)
-			break;
-		numberBytes = recv(fd, buffer, 20, 0);
-		if (numberBytes == -1)
-		{
-			error = true;
-			// std::cerr << "readLineBody: " << "bytes readed: " << numberBytes << std::endl;
-			break;
-		}
-		if (numberBytes == 0)
-		{
-			error = true;
-			// std::cerr << "readLineBody: " << "bytes readed: " << numberBytes << std::endl;
-			break ;
-		}
-		contentLength -= numberBytes;
-		if (_readRawBody) {
-			_rawBody.insert(_rawBody.end(), buffer, buffer + numberBytes);
-		}
-		line.append(buffer, numberBytes);
-		memset(buffer, 0, 20);
-	}
-}
-
-std::string RequestReader::intToString(int value)
-{
-	std::stringstream ss;
-	ss << value;
-	return ss.str();
-}
-
-bool	RequestReader::isDelimiter(std::string line, std::string delimiter)
-{
-	return (line.rfind(delimiter) != std::string::npos);
-}
-
 
 // DEBUG
 void RequestReader::printHeaderDataStructure(void)

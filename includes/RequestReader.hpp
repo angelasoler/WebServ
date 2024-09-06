@@ -11,7 +11,9 @@
 # include <typeinfo>
 # include <vector>
 # include <fstream>
-#define CRLF			"\r\n"
+# include <sstream>
+# include <algorithm>
+# define CRLF	"\r\n"
 
 class RequestReader
 {
@@ -36,21 +38,22 @@ class RequestReader
 	private:
 
 		// READ START LINE
-		void								readRequestStartLine(void);
+		void								readStartLine(void);
 
 		// READ REQUEST HEADER
-		void								readRequestHeader(void);
+		void								readHeader(void);
 
 		// READ REQUEST BODY
-		void								readRequestBody(void);
+		void								readBody(void);
 		void								readRequestBodyChunked(void);
+		void								readRequestBodyChunkedMultipart(void);
 		size_t								readChunkSize();
 		void								readRequestBodyMultipart(void);
-		void								readMultipartInfo(const std::string& boundary, std::string &tempLine);
+		void								readMultipartInfo(const std::string& boundary, std::vector<char> &tempLine);
 
 		// READLINE AND UTILS
-		void								readLine(int fd, std::string &line, std::string delimiter, bool &error);
-		void								readLineBody(int fd, std::string &line, int contentLength, bool &error);
+		void	 							readRequestSegment(int fd, std::string &segment, std::string delimiter);
+		void								readUntilLimit(int fd, std::size_t limit);
 		std::string							intToString(int value);
 		bool								isDelimiter(std::string line, std::string delimiter);
 
@@ -71,7 +74,7 @@ class RequestReader
 		std::string								_httpVersion;
 		std::vector<char>						_requestBody;
 		int										_fdClient;
-		std::string								_fullRequest;
+		std::vector<char>						_fullRequest;
 		std::vector<char>						_rawBody;
 };
 
