@@ -89,6 +89,9 @@ void 	RequestReader::readHeader(void)
 
 void RequestReader::readBody(void)
 {
+	if (_method != "POST")
+		return ;
+
 	bool	isChunked = (getHeader("Transfer-Encoding") == "chunked");
 	bool	isMultipart = (!getHeader("Content-Type").empty() && getHeader("Content-Type").find("multipart/form-data") != std::string::npos);
 	_readRawBody = true;
@@ -222,19 +225,27 @@ void RequestReader::readMultipartInfo(const std::string& boundary, std::vector<c
 
 // READ SEGMENTS
 
-void	 RequestReader::readAllContentLength(int fd, int contentLength)
+void	 RequestReader::readAllContentLength(int fd, long int contentLength)
 {
 	ssize_t		numberBytes;
 	char		buffer[20] = {0};
+	bool		limited = true;
 
+	if (contentLength <= 0)
+		limited = false;
 	while (true)	
 	{
-		if (contentLength <= 0)
+		if (limited && contentLength <= 0)
 			break;
 		numberBytes = recv(fd, buffer, 20, 0);
-		if (numberBytes == -1 || numberBytes == 0)
+		if (numberBytes == -1)
 		{
-			this->_errorRead = true;
+			break ;
+		}
+		if (numberBytes == 0)
+		{
+			if (limited)
+				this->_errorRead = true;
 			break ;
 		}
 		contentLength -= numberBytes;
