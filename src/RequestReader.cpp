@@ -297,16 +297,16 @@ long int RequestReader::getContentLength() const
 void RequestReader::printHeaderDataStructure(void)
 {
 	std::map<std::string, std::string>::iterator headerIt;
-	std::ofstream parsedRequest("logs/parsedHeader.log");
+	std::ofstream parsedRequest("logs/parsedHeader.log", std::ios_base::app);
 
 	if (!parsedRequest.is_open()) {
 		return;
 	}
-	parsedRequest << "\t\t === parsed header ===" << std::endl;
+	parsedRequest << "\t\t === PARSED HEADER ===\n" << std::endl;
 	for (headerIt = _headers.begin(); headerIt != _headers.end(); ++headerIt) {
-		parsedRequest << headerIt->first << std::endl;
-		parsedRequest << "\t" << headerIt->second << std::endl;
+		parsedRequest << headerIt->first << ": ";
+		parsedRequest << headerIt->second << std::endl;
 	}
-	parsedRequest << "\t\t === \t\t ===" << std::endl;
+	parsedRequest << "\n\t\t === END OF HEADER ===" << std::endl << "\n";
 	parsedRequest.close();
 }

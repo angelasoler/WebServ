@@ -101,7 +101,6 @@ static void parseMultipartInfo(const std::string& boundary, std::vector<char> &t
 
 	while ((boundaryPos = std::search(tempLine.begin() + boundaryPos, tempLine.end(), boundary.begin(), boundary.end()) - tempLine.begin()) != tempLine.size())
 	{
-		// Encontrar o início do conteúdo depois do cabeçalho
 		std::vector<char>::iterator contentStartIt = std::search(tempLine.begin() + boundaryPos, tempLine.end(), "\r\n\r\n", "\r\n\r\n" + 4);
 		if (contentStartIt == tempLine.end())
 		{
