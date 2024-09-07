@@ -14,6 +14,7 @@
 # include <sstream>
 # include <algorithm>
 # define CRLF	"\r\n"
+# define READ_BUFFER_SIZE 1024
 
 class RequestReader
 {
@@ -43,12 +44,13 @@ class RequestReader
 
 		// READ REQUEST BODY
 		void								readBody(void);
+		std::vector<char> 					processChunkedRequestBody(const std::vector<char> &chunkedRequestBody);
 		void								readRequestBodyChunked(void);
 		void								readRequestBodyChunkedMultipart(void);
 		size_t								readChunkSize();
 
 		// READLINE AND UTILS
-		void	 							readAllContentLength(int fd, long int contentLength);
+		void	 							readUntilEOF(int fd);
 		void								readUntilSize(int fd, long int size);
 		void								readUntilCRLF(int fd, std::string &segment);
 		std::string							intToString(int value);
@@ -60,7 +62,6 @@ class RequestReader
 		// STATUS VARS
 		bool									_errorRead;
 		bool									_incompleted;
-		bool									_readRawBody;
 
 		// REQUEST VARS
 		std::map<std::string, std::string> 		_headers;

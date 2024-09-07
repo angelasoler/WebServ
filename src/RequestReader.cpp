@@ -3,7 +3,6 @@
 
 RequestReader::RequestReader(void) : _errorRead(false),
 _incompleted(false),
-_readRawBody(false),
 _headers(), _method(""),
 _requestedRoute(""),
 _httpVersion(""),
@@ -16,17 +15,17 @@ bool    RequestReader::readHttpRequest(int &fdConection)
 	this->_fdClient = fdConection;
 	readStartLine();
 	if (_incompleted && !_errorRead) {
-		PrintRequestInfo::printVectorChar(_fullRequest, "Interrupted Request", "logs/interruptedRequest.log");
+		PrintRequestInfo::printVectorChar(_fullRequest, "Interrupted Request", "logs/interruptedRequest_1.log");
 		return true;
 	}
 	readHeader();
 	if (_incompleted && !_errorRead) {
-		PrintRequestInfo::printVectorChar(_fullRequest, "Interrupted Request", "logs/interruptedRequest.log");
+		PrintRequestInfo::printVectorChar(_fullRequest, "Interrupted Request", "logs/interruptedRequest_2.log");
 		return true;
 	}
 	readBody();
 	if (_incompleted && !_errorRead) {
-		PrintRequestInfo::printVectorChar(_fullRequest, "Interrupted Request", "logs/interruptedRequest.log");
+		PrintRequestInfo::printVectorChar(_fullRequest, "Interrupted Request", "logs/interruptedRequest_3.log");
 		return true;
 	}
 	PrintRequestInfo::printVectorChar(_fullRequest, "raw Request", "logs/rawRequest.log");
@@ -66,8 +65,10 @@ void 	RequestReader::readHeader(void)
 	{
 		readUntilCRLF(_fdClient, line);
 		if (line == CRLF || line.empty() || _errorRead) {
-			if (_errorRead)
+			if (_errorRead) {
+				PrintRequestInfo::printVectorChar(_fullRequest, "headerIncomplete_Request bytes_readed = -1 ", "logs/headerIncomplete_Request.log");
 				this->_incompleted = true;
+			}
 			break;
 		}
 		size_t colonPos = line.find(':');
@@ -92,126 +93,111 @@ void RequestReader::readBody(void)
 	if (_method != "POST")
 		return ;
 
-	bool	isChunked = (getHeader("Transfer-Encoding") == "chunked");
-	bool	isMultipart = (!getHeader("Content-Type").empty() && getHeader("Content-Type").find("multipart/form-data") != std::string::npos);
-	_readRawBody = true;
+	long int contentLength = getContentLength();
+	if (contentLength > 0)
+		readUntilSize(this->_fdClient, contentLength);
+	else
+		readUntilEOF(this->_fdClient);
 
-	if (isChunked)
+	if (getHeader("Transfer-Encoding") == "chunked")
 	{
-		if (isMultipart)
-			readRequestBodyChunkedMultipart();
-		else
-			readRequestBodyChunked();
+		this->_requestBody = processChunkedRequestBody(_rawBody);
 	}
-	else {
-		readAllContentLength(this->_fdClient, getContentLength());
-	}
+	else
+		_requestBody.insert(_requestBody.begin(), _rawBody.begin(), _rawBody.end());
 }
 
 // Chunked
-size_t  RequestReader::readChunkSize(void)
+std::vector<char> RequestReader::processChunkedRequestBody(const std::vector<char>& chunkedRequestBody)
 {
-	std::string line;
-	std::string chunkSizeLine;
-	std::size_t chunkSize = 0;
+	std::vector<char> result;
+	std::size_t i = 0;
+	
+	while (i < chunkedRequestBody.size()) {
+		// Encontrar o tamanho do chunk (linha em hexadecimal)
+		std::string sizeStr;
+		while (i < chunkedRequestBody.size() && chunkedRequestBody[i] != '\r') {
+			sizeStr.push_back(chunkedRequestBody[i]);
+			++i;
+		}
+		
+		// Saltar '\r\n'
+		i += 2;
 
-	readUntilCRLF(this->_fdClient, line);
-	if (line == "")
-		return 0;
-	chunkSizeLine = line.substr(0,  line.find(" "));
+		// Converter o tamanho do chunk de hexadecimal para decimal
+		// std::size_t chunkSize = std::strtol(sizeStr.c_str(), NULL, 16);
+		std::size_t chunkSize;
+		std::stringstream ss;
+		ss << std::hex << sizeStr;
+		ss >> chunkSize;
+		if (chunkSize == 0) {
+			// Chunk size 0 significa fim dos chunks
+			break;
+		}
 
-	std::stringstream ss;
-	ss << std::hex << chunkSizeLine;
-	ss >> chunkSize;
-	return chunkSize;
-}
+		// Copiar o conteúdo do chunk para o resultado
+		// result.insert(result.end(), )
+		for (std::size_t j = 0; j < chunkSize && i < chunkedRequestBody.size(); ++j, ++i) {
+			result.push_back(chunkedRequestBody[i]);
+		}
 
-void RequestReader::readRequestBodyChunkedMultipart(void)
-{
-	std::size_t	length = 0;
-	std::string	tempLine;
-	std::size_t	chunkSize = readChunkSize();
-	while (chunkSize > 0)
-	{
-		readUntilSize(_fdClient, chunkSize);
-		length += chunkSize;
-		readUntilCRLF(_fdClient, tempLine);
-		chunkSize = readChunkSize();
+		// Saltar '\r\n' após o chunk
+		i += 2;
 	}
-	this->_headers["Content-Length"] = intToString(length);
-}
 
-void RequestReader::readRequestBodyChunked()
-{
-	std::size_t	length = 0;
-	std::string	tempLine;
-	std::size_t	chunkSize = readChunkSize();
-
-	while (chunkSize > 0)
-	{
-		readUntilCRLF(this->_fdClient, tempLine);
-		_requestBody.insert(_requestBody.end(), tempLine.begin(), tempLine.end());
-		length += chunkSize;
-		readUntilCRLF(this->_fdClient, tempLine);
-		chunkSize = readChunkSize();
-	}
-	this->_headers["Content-Length"] = intToString(length);
+	return result;
 }
 
 // READ SEGMENTS
-void	 RequestReader::readAllContentLength(int fd, long int contentLength)
+void	 RequestReader::readUntilEOF(int fd)
 {
 	ssize_t		numberBytes;
-	char		buffer[20] = {0};
-	bool		limited = true;
+	char		buffer[READ_BUFFER_SIZE] = {0};
 
-	if (contentLength <= 0)
-		limited = false;
 	while (true)	
 	{
-		if (limited && contentLength <= 0)
-			break;
-		numberBytes = recv(fd, buffer, 20, 0);
-		if (numberBytes == -1)
-		{
+		numberBytes = recv(fd, buffer, READ_BUFFER_SIZE, 0);
+		if (numberBytes == -1) {
+			this->_errorRead = true;
+			PrintRequestInfo::printVectorChar(_fullRequest, "readuntilEOF_Request bytes_readed = -1 ", "logs/readuntilEOF_Request.log");
 			break ;
 		}
-		if (numberBytes == 0)
-		{
-			if (limited)
-				this->_errorRead = true;
+		if (numberBytes == 0) {
+			PrintRequestInfo::printVectorChar(_fullRequest, "readuntilEOF_Request bytes_readed = 0 ", "logs/readuntilEOF_Request.log");
 			break ;
 		}
-		contentLength -= numberBytes;
 		_rawBody.insert(_rawBody.end(), buffer, buffer + numberBytes);
 		_fullRequest.insert(_fullRequest.end(), buffer, buffer + numberBytes);
-		_requestBody.insert(_requestBody.end(), buffer, buffer + numberBytes);
-		memset(buffer, 0, 20);
+		if (numberBytes < READ_BUFFER_SIZE)
+			return;
 	}
 }
 
 void	RequestReader::readUntilSize(int fd, long int size)
 {
-	ssize_t		numberBytes;
-	char		buffer = 0;
+	ssize_t numberBytes;
+	std::vector<char> buffer(READ_BUFFER_SIZE); 
+	ssize_t bytesToRead;
 
 	while (size > 0)	
 	{
-		numberBytes = recv(fd, &buffer, 1, 0);
+		bytesToRead = (size < READ_BUFFER_SIZE) ? size : READ_BUFFER_SIZE;
+		
+		numberBytes = recv(fd, &buffer[0], bytesToRead, 0);
+		
 		if (numberBytes == -1) {
 			PrintRequestInfo::printVectorChar(_fullRequest, "read_until_size_Request bytes_readed = -1 ", "logs/read_until_size_Request.log");
 			this->_errorRead = true;
-			break ;
+			break;
 		}
 		if (numberBytes == 0) {
 			PrintRequestInfo::printVectorChar(_fullRequest, "read_until_size_Request bytes_readed = 0 ", "logs/read_until_size_Request.log");
 			this->_errorRead = true;
-			break ;
+			break;
 		}
 		size -= numberBytes;
-		_rawBody.push_back(buffer);
-		_requestBody.push_back(buffer);
-		_fullRequest.push_back(buffer);
+		_rawBody.insert(_rawBody.end(), buffer.begin(), buffer.begin() + numberBytes);
+		_fullRequest.insert(_fullRequest.end(), buffer.begin(), buffer.begin() + numberBytes);
 	}
 }
 
@@ -224,13 +210,12 @@ void	RequestReader::readUntilCRLF(int fd, std::string &segment)
 	while (true) {
 		numberBytes = recv(fd, &buffer, 1, 0);
 		if (numberBytes == -1 || numberBytes == 0) {
+			PrintRequestInfo::printVectorChar(_fullRequest, "readuntilCRLF_Request bytes_readed = -1 ", "logs/readuntilCRLF_Request.log");
 			this->_errorRead = true;
 			break;
 		}
 		tempLine += buffer;
 		this->_fullRequest.push_back(buffer);
-		if (this->_readRawBody)
-			this->_rawBody.push_back(buffer);
 		if (isDelimiter(tempLine, CRLF))
 			break;
 	}

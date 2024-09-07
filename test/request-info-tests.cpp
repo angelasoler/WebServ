@@ -180,7 +180,7 @@ TEST(RequestInfoTest, HandlesPostRequestWithChunkedHtmlBody) {
 		"Host: localhost\r\n"
 		"Transfer-Encoding: chunked\r\n"
 		"Content-Type: text/html\r\n\r\n"
-		"33\r\n"
+		"37\r\n"
 		"<html><body><p>This is a chunked test</p></body></html>\r\n"
 		"0\r\n\r\n";
 
@@ -197,7 +197,7 @@ TEST(RequestInfoTest, HandlesPostRequestWithChunkedFormUrlEncoded) {
 		"Host: localhost\r\n"
 		"Transfer-Encoding: chunked\r\n"
 		"Content-Type: application/x-www-form-urlencoded\r\n\r\n"
-		"1e\r\n"
+		"18\r\n"
 		"username=testuser&age=34\r\n"
 		"0\r\n\r\n";
 
