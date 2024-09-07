@@ -105,6 +105,7 @@ void RequestReader::readBody(void)
 	}
 	else
 		_requestBody.insert(_requestBody.begin(), _rawBody.begin(), _rawBody.end());
+	PrintRequestInfo::printVectorChar(_requestBody, "rawRequestBody", "logs/rawRequestBody.log");
 }
 
 // Chunked
@@ -125,13 +126,12 @@ std::vector<char> RequestReader::processChunkedRequestBody(const std::vector<cha
 		i += 2;
 
 		// Converter o tamanho do chunk de hexadecimal para decimal
-		// std::size_t chunkSize = std::strtol(sizeStr.c_str(), NULL, 16);
 		std::size_t chunkSize;
 		std::stringstream ss;
 		ss << std::hex << sizeStr;
 		ss >> chunkSize;
+
 		if (chunkSize == 0) {
-			// Chunk size 0 significa fim dos chunks
 			break;
 		}
 

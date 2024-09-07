@@ -3,7 +3,7 @@
 #include <string.h>
 
 static void parseRequestBodyMultipart(RequestInfo &info);
-static void parseMultipartInfo(const std::string& boundary, std::vector<char> &tempLine, RequestInfo &info);
+static void parseMultipartInfo(const std::string& boundary, std::string &body, RequestInfo &info);
 
 void ParseBodyInfo::parseBodyInfo(RequestInfo &info)
 {	
@@ -90,47 +90,54 @@ static void parseRequestBodyMultipart(RequestInfo &info)
 		boundary = info.contentType.substr(pos + 9);
 	if (pos != std::string::npos)
 	{
-		parseMultipartInfo(boundary, info.rawBody, info);
+		parseMultipartInfo(boundary, info.body, info);
 	}
 }
 
-static void parseMultipartInfo(const std::string& boundary, std::vector<char> &tempLine, RequestInfo &info)
+static void parseMultipartInfo(const std::string& boundary, std::string &body, RequestInfo &info)
 {
 	size_t boundaryPos = 0;
 	size_t contentStart = 0;
+	std::string multipartHeader;
 
-	while ((boundaryPos = std::search(tempLine.begin() + boundaryPos, tempLine.end(), boundary.begin(), boundary.end()) - tempLine.begin()) != tempLine.size())
+	while ((boundaryPos = body.find(boundary, boundaryPos)) != std::string::npos)
 	{
-		std::vector<char>::iterator contentStartIt = std::search(tempLine.begin() + boundaryPos, tempLine.end(), "\r\n\r\n", "\r\n\r\n" + 4);
-		if (contentStartIt == tempLine.end())
+		contentStart = body.find("\r\n\r\n", boundaryPos);
+		if (contentStart == std::string::npos)
 		{
 			return;
 		}
 
-		contentStart = contentStartIt - tempLine.begin() + 4;
-
-		// Extrair o cabeçalho multipart
-		std::string multipartHeader(tempLine.begin() + boundaryPos + boundary.size(), contentStartIt);
+		multipartHeader = body.substr(boundaryPos + boundary.size(), contentStart - (boundaryPos + boundary.size()));
+		// std::cerr << "Multipart header:\n\t" << multipartHeader << std::endl;
 		info.multipartHeaders.push_back(multipartHeader);
 
-		// Encontrar o fim do conteúdo antes do próximo boundary
-		size_t contentEnd = std::search(tempLine.begin() + contentStart, tempLine.end(), boundary.begin(), boundary.end()) - tempLine.begin();
-		if (contentEnd == tempLine.size())
+		contentStart += 4; // Pular "\r\n\r\n"
+		if (contentStart >= body.size())
 		{
-			contentEnd = tempLine.size();
+			return;
+		}
+
+		size_t contentEnd = body.find(boundary, contentStart);
+		if (contentEnd == std::string::npos)
+		{
+			contentEnd = body.size();
 		}
 
 		// Remover possíveis '\r', '\n' e '-' do final do conteúdo
-		while (contentEnd > contentStart && (tempLine[contentEnd - 1] == '\r' || tempLine[contentEnd - 1] == '\n' || tempLine[contentEnd - 1] == '-'))
+		while (contentEnd > contentStart && (body[contentEnd - 1] == '\r' || body[contentEnd - 1] == '\n' || body[contentEnd - 1] == '-'))
 		{
 			--contentEnd;
 		}
 
-		// Extrair o valor do multipart
-		std::string multipartValue(tempLine.begin() + contentStart, tempLine.begin() + contentEnd);
+		std::string multipartValue = body.substr(contentStart, contentEnd - contentStart);
+		// std::cerr << "Multipart body:\n\t" << multipartValues << std::endl;
 		info.multipartValues.push_back(multipartValue);
 
-		// Ajustar boundaryPos para continuar a busca
-		boundaryPos = contentEnd;
+		// Atualizar body para o conteúdo restante após o bodypart
+		body = body.substr(contentEnd);
+
+		// Ajustar boundaryPos para a próxima ocorrência do boundary
+		boundaryPos = 0;
 	}
 }
