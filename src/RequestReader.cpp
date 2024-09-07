@@ -195,7 +195,7 @@ void	RequestReader::readUntilCRLF(int fd, std::string &segment)
 	while (true) {
 		numberBytes = recv(fd, &buffer, 1, 0);
 		if (numberBytes == -1 || numberBytes == 0) {
-			PrintRequestInfo::printVectorChar(_fullRequest, "readuntilCRLF_Request bytes_readed = -1 ", "logs/readuntilCRLF_Request.log");
+			PrintRequestInfo::printVectorChar(_fullRequest, std::string("readUntilCRLF_Request bytes_readed = " + numberBytes), "logs/readUntilCRLF_Request.log");
 			this->_errorRead = true;
 			break;
 		}
