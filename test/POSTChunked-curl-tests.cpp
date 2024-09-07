@@ -108,9 +108,32 @@ static bool areFilesIdentical(const std::string& p1, const std::string& p2) {
 						std::istreambuf_iterator<char>(f2.rdbuf()));
 }
 
+#include <dirent.h>
+static int directorySize(const std::string& path) {
+    DIR* dir = opendir(path.c_str());
+    if (dir == NULL) {
+        std::cerr << "Error at open directory: " << path << std::endl;
+        return -1;
+    }
+
+    struct dirent* entry;
+    int count = 0;
+
+    while ((entry = readdir(dir)) != NULL) {
+        if (std::string(entry->d_name) != "." && std::string(entry->d_name) != "..") {
+            ++count;
+        }
+    }
+
+    closedir(dir);
+    return count;
+}
+
 TEST(ChunkedRequests, POSTChunkedMultipartFormData) {
 	HttpResponse response;
 	CURL* curl;
+	int initDirSize;
+	
 	start_server("test/upload-tests/upload-config.conf");
 	curl = curl_easy_init();
 	ASSERT_NE(curl, nullptr);
@@ -127,6 +150,9 @@ TEST(ChunkedRequests, POSTChunkedMultipartFormData) {
 	// Adiciona o arquivo ao POST
 	std::string filename = "FileRandom";
 	std::string	fileContent = "texto\naleatorio\naqui\ndentro1111111111111";
+	std::string uploadDir = std::string(DEFAULT_ROOT_DIRECTORY) + "/" + "uploads" + "/";
+	std::string uploadedFile = uploadDir + filename;
+	initDirSize = directorySize(uploadDir);
 	if (!createAndWriteFile(filename, fileContent))
 		std::cerr << "Error\n";
 
@@ -150,10 +176,11 @@ TEST(ChunkedRequests, POSTChunkedMultipartFormData) {
 	CURLcode res = curl_easy_perform(curl);
 	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response.status_code);
 
-	std::string uploadedFile = std::string(DEFAULT_ROOT_DIRECTORY) + "/" + "uploads" + "/" + filename;
 	// std::cerr <
 	EXPECT_EQ(res, CURLE_OK);
+	EXPECT_EQ(initDirSize + 1, directorySize(uploadDir));
 	EXPECT_TRUE(thisFileExists(uploadedFile.c_str())) << "File not created\n" << unlink(filename.c_str());
+	EXPECT_FALSE(thisFileExists((uploadDir + "new_file").c_str())) << "ERROR Extra File created\n";
 	EXPECT_TRUE(areFilesIdentical(filename, uploadedFile)) << "Uploaded File are not the same\n" << unlink(uploadedFile.c_str()) << unlink(filename.c_str());
 	EXPECT_EQ(response.status_code, 201);  // Esperamos que o upload seja bem-sucedido
 	EXPECT_TRUE(response.body.find(CREATED_SUCCESSFULLY) != std::string::npos);
@@ -161,6 +188,7 @@ TEST(ChunkedRequests, POSTChunkedMultipartFormData) {
 	// Limpeza
 	unlink(filename.c_str());
 	unlink(uploadedFile.c_str());
+	// EXPECT_EQ(initDirSize + 1, directorySize(uploadDir));
 	curl_slist_free_all(headers);
 	curl_mime_free(form);
 	curl_easy_cleanup(curl);
