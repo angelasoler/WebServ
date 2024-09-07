@@ -117,15 +117,13 @@ void RequestReader::readBody(void)
 			readRequestBodyChunked();
 		return ;
 	}
-	// else
+	else
+		readUntilLimit(this->_fdClient, getContentLength());
 
 	PrintRequestInfo::printVectorChar(_requestBody, "Read Body", "logs/readBody.log");
 	if (isMultipart)
 	{
 		readRequestBodyMultipart();
-	}
-	else {
-		readUntilLimit(this->_fdClient, getContentLength());
 	}
 }
 
@@ -171,7 +169,7 @@ void RequestReader::readRequestBodyChunked()
 	while (chunkSize > 0)
 	{
 		readRequestSegment(this->_fdClient, tempLine, CRLF);
-
+		_requestBody.insert(_requestBody.end(), tempLine.begin(), tempLine.end());
 		length += chunkSize;
 		readRequestSegment(this->_fdClient, tempLine, CRLF);
 		chunkSize = readChunkSize();
@@ -186,12 +184,10 @@ void RequestReader::readRequestBodyMultipart(void)
 	size_t pos;
 
 	pos = getHeader("Content-Type").find("boundary=", 0);
-	readUntilLimit(this->_fdClient, getContentLength());
 	if (pos != std::string::npos)
 		boundary = getHeader("Content-Type").substr(pos + 9);
 	if (pos != std::string::npos)
 	{
-		// _requestBody.insert(_requestBody.end(), tempLine.begin(), tempLine.end());
 		readMultipartInfo(boundary, _requestBody);
 	}
 }
