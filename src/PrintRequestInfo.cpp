@@ -54,6 +54,7 @@ void PrintRequestInfo::printVectorChar(std::vector<char> &vec, std::string heade
 	std::ofstream	logFd(path.c_str(), std::ios_base::app);
 	bool isDelimiter = false;	
 	logFd << "\n" << TimeNow();
+	logFd << "Vector Size: " << vec.size() << std::endl;
 	logFd << "--------" + header + " Start-------" << std::endl;
 	logFd << "\n";
 	for (std::vector<char>::iterator it = vec.begin(); it != vec.end(); ++it)

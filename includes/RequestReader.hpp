@@ -66,6 +66,7 @@ class RequestReader
 		bool									_readRawBody;
 
 		// REQUEST VARS
+		void	 readLineBody(int fd, std::string &line, int contentLength, bool &error);
 		std::map<std::string, std::string> 		_headers;
 		std::vector<std::string>				_multipartHeaders;
 		std::vector<std::string>				_multipartValues;

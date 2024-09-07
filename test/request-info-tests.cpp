@@ -149,7 +149,7 @@ TEST(RequestInfoTest, HandlesPostRequestWithMultipartFormData) {
 		"POST /uploads HTTP/1.1\r\n"
 		"Host: localhost\r\n"
 		"Content-Type: multipart/form-data; boundary=" + boundary + "\r\n"
-		"Content-Length: 144\r\n\r\n" +
+		"Content-Length: 180\r\n\r\n" +
 		boundary + "\r\n" +
 		"Content-Disposition: form-data; name=\"field1\"\r\n\r\n" +
 		"VALUE 1\r\n" + 

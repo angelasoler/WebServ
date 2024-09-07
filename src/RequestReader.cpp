@@ -87,6 +87,64 @@ void 	RequestReader::readHeader(void)
 	printHeaderDataStructure();
 }
 
+
+void	 RequestReader::readLineBody(int fd, std::string &line, int contentLength, bool &error)
+{
+	ssize_t		numberBytes;
+	char		buffer[20] = {0};
+
+	while (true)	
+	{
+		std::cerr << contentLength << "\n";
+		if (!contentLength)
+			break;
+		numberBytes = recv(fd, buffer, 20, 0);
+		if (numberBytes == -1)
+		{
+			error = true;
+			std::cerr << "readLineBody: " << "bytes readed: " << numberBytes << std::endl;
+			break;
+		}
+		if (numberBytes == 0)
+		{
+			error = true;
+			std::cerr << "readLineBody: " << "bytes readed: " << numberBytes << std::endl;
+			break ;
+		}
+		contentLength -= numberBytes;
+		if (_readRawBody) {
+			_rawBody.insert(_rawBody.end(), buffer, buffer + numberBytes);
+		}
+		_fullRequest.insert(_fullRequest.end(), buffer, buffer + numberBytes);
+		line.append(buffer, numberBytes);
+		memset(buffer, 0, 20);
+	}
+}
+
+std::vector<char> readChunk(int fd, std::size_t size)
+{
+	std::vector<char> vec;
+    char        buffer = 0;  // Alterado para char
+    ssize_t     numberBytes = 0;
+
+    while (size > 0) {
+        numberBytes = recv(fd, &buffer, 1, 0);
+        if (numberBytes == -1) {
+            // Possível log de erro baseado em errno
+			PrintRequestInfo::printVectorChar(vec, "vec Request -1 ", "logs/vecRequest.log");
+            return (std::vector<char>());
+        }
+        if (numberBytes == 0) {
+            // Conexão fechada pelo peer
+			PrintRequestInfo::printVectorChar(vec, "vec Request 0 ", "logs/vecRequest.log");
+            return (std::vector<char>());
+        }
+		size -= numberBytes;
+        vec.push_back(buffer);
+    }
+    return vec;
+}
+
 void RequestReader::readBody(void)
 {
 	bool	isChunked = (getHeader("Transfer-Encoding") == "chunked");
@@ -101,8 +159,16 @@ void RequestReader::readBody(void)
 		else
 			readRequestBodyChunked();
 	}
-	else
-		readUntilLimit(this->_fdClient, getContentLength());
+	else {
+		// std::string tempLine;
+		// readLineBody(this->_fdClient, tempLine, getContentLength(), this->_errorRead);
+		// _requestBody.insert(_requestBody.begin(), tempLine.begin(), tempLine.end());
+		// readUntilLimit(this->_fdClient, getContentLength());
+		std::vector<char> vec = readChunk(_fdClient, getContentLength());
+		_requestBody.insert(_requestBody.begin(), vec.begin(), vec.end());
+		_rawBody.insert(_rawBody.begin(), vec.begin(), vec.end());
+		_fullRequest.insert(_fullRequest.begin(), vec.begin(), vec.end());
+	}
 
 	PrintRequestInfo::printVectorChar(_requestBody, "Read Body", "logs/readBody.log");
 	if (isMultipart)
@@ -135,10 +201,15 @@ void RequestReader::readRequestBodyChunkedMultipart(void)
 	std::string	tempLine;
 	std::size_t	chunkSize = readChunkSize();
 
+	// std::cerr << "afsdfggfgsg\n";
 	while (chunkSize > 0)
 	{
-		readUntilLimit(this->_fdClient, chunkSize);
+		std::vector<char> vec = readChunk(_fdClient, chunkSize);
+		_requestBody.insert(_requestBody.begin(), vec.begin(), vec.end());
+		_rawBody.insert(_rawBody.begin(), vec.begin(), vec.end());
+		_fullRequest.insert(_fullRequest.begin(), vec.begin(), vec.end());
 		length += chunkSize;
+		readRequestSegment(_fdClient, tempLine, CRLF);
 		chunkSize = readChunkSize();
 	}
 	this->_headers["Content-Length"] = intToString(length);
@@ -160,6 +231,7 @@ void RequestReader::readRequestBodyChunked()
 	}
 	this->_headers["Content-Length"] = intToString(length);
 }
+
 
 // Multipart
 void RequestReader::readRequestBodyMultipart(void)
@@ -227,14 +299,20 @@ void	 RequestReader::readUntilLimit(int fd, long int contentLength)
 
 	while (true)	
 	{
+		std::cerr << "size: " << contentLength << " \n";
 		if (contentLength <= 0)
 			break;
 		numberBytes = recv(fd, buffer, 20, 0);
 		std::stringstream sst;
     	sst << numberBytes;
-		if (numberBytes == -1 || numberBytes == 0) {
+		if (numberBytes == -1) {
 			PrintRequestInfo::printVectorChar(_fullRequest, "read_until_limit Request" + sst.str(), "logs/read_until_limitRequest.log");
 			this->_errorRead = true;
+			break ;
+		}
+		if (numberBytes == 0) {
+			PrintRequestInfo::printVectorChar(_fullRequest, "read_until_limit Request" + sst.str(), "logs/read_until_limitRequest.log");
+			// this->_errorRead = true;
 			break ;
 		}
 		contentLength -= numberBytes;
