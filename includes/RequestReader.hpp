@@ -31,7 +31,7 @@ class RequestReader
 		std::vector<char>					getRawBody(void) const;
 		std::string							getHeader(std::string headerName) const;
 		std::string							getFullRequest(void) const;
-		int									getContentLength(void) const;
+		long int							getContentLength(void) const;
 		std::string							getRequestedRoute(void) const;
 		std::vector<std::string>			getMultipartHeaders(void) const;
 		std::vector<std::string>			getMultipartValues(void) const;
@@ -52,8 +52,8 @@ class RequestReader
 		void								readMultipartInfo(const std::string& boundary, std::vector<char> &tempLine);
 
 		// READLINE AND UTILS
+		void	 							readUntilLimit(int fd, long int contentLength);
 		void	 							readRequestSegment(int fd, std::string &segment, std::string delimiter);
-		void								readUntilLimit(int fd, std::size_t limit);
 		std::string							intToString(int value);
 		bool								isDelimiter(std::string line, std::string delimiter);
 

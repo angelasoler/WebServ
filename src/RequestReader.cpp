@@ -79,26 +79,53 @@ void 	RequestReader::readHeader(void)
 	printHeaderDataStructure();
 }
 
+void	 RequestReader::readUntilLimit(int fd, long int contentLength)
+{
+	ssize_t		numberBytes;
+	char		buffer[20] = {0};
+
+	while (true)	
+	{
+		if (!contentLength)
+			break;
+		numberBytes = recv(fd, buffer, 20, 0);
+		if (numberBytes == -1 || numberBytes == 0) {
+			this->_errorRead = true;
+			break ;
+		}
+		contentLength -= numberBytes;
+		_rawBody.insert(_rawBody.end(), buffer, buffer + numberBytes);
+		_requestBody.insert(_requestBody.end(), buffer, buffer + numberBytes);
+		this->_fullRequest.push_back(buffer[0]);
+		memset(buffer, 0, 20);
+	}
+}
+
+# include "PrintRequestInfo.hpp"
 void RequestReader::readBody(void)
 {
 	bool	isChunked = (getHeader("Transfer-Encoding") == "chunked");
 	bool	isMultipart = (!getHeader("Content-Type").empty() && getHeader("Content-Type").find("multipart/form-data") != std::string::npos);
 	_readRawBody = true;
+	std::string tempLine;
 
 	if (isChunked)
 	{
 		if (isMultipart)
-			(void)isChunked;
+			readRequestBodyChunkedMultipart();
 		else
 			readRequestBodyChunked();
+		return ;
 	}
-	else
-		readUntilLimit(this->_fdClient, getContentLength());
+	// else
 
-
+	PrintRequestInfo::printVectorChar(_requestBody, "Read Body", "logs/readBody.log");
 	if (isMultipart)
 	{
 		readRequestBodyMultipart();
+	}
+	else {
+		readUntilLimit(this->_fdClient, getContentLength());
 	}
 }
 
@@ -159,10 +186,12 @@ void RequestReader::readRequestBodyMultipart(void)
 	size_t pos;
 
 	pos = getHeader("Content-Type").find("boundary=", 0);
+	readUntilLimit(this->_fdClient, getContentLength());
 	if (pos != std::string::npos)
 		boundary = getHeader("Content-Type").substr(pos + 9);
 	if (pos != std::string::npos)
 	{
+		// _requestBody.insert(_requestBody.end(), tempLine.begin(), tempLine.end());
 		readMultipartInfo(boundary, _requestBody);
 	}
 }
@@ -234,25 +263,6 @@ void	 RequestReader::readRequestSegment(int fd, std::string &segment, std::strin
 		segment.resize(segment.rfind(delimiter));
 }
 
-void	 RequestReader::readUntilLimit(int fd, std::size_t limit)
-{
-	char		buffer[2] = {0};
-	ssize_t		numberBytes;
-
-	while (limit > 0)
-	{
-		numberBytes = recv(fd, buffer, 1, 0);
-		if (numberBytes == -1 || numberBytes == 0) {
-			this->_errorRead = true;
-			break ;
-		}
-		limit -= numberBytes;
-		this->_rawBody.push_back(buffer[0]);
-		this->_requestBody.push_back(buffer[0]);
-		this->_fullRequest.push_back(buffer[0]);
-	}
-}
-
 std::string RequestReader::intToString(int value)
 {
 	std::stringstream ss;
@@ -312,7 +322,7 @@ std::string RequestReader::getFullRequest(void) const
 	return std::string(this->_fullRequest.begin(), this->_fullRequest.end());
 }
 
-int RequestReader::getContentLength() const
+long int RequestReader::getContentLength() const
 {
 	std::string contentLengthStr = getHeader("Content-Length");
 

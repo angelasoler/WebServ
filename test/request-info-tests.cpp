@@ -89,7 +89,6 @@ RequestInfo parsePOSTHttpRequest(const std::string& httpRequest)
 	close(sockfd[1]);
 
 	request.parseRequest(server);
-	PrintRequestInfo::printRequestInfo(request.info);
 	return request.info;
 }
 
@@ -153,11 +152,11 @@ TEST(RequestInfoTest, HandlesPostRequestWithMultipartFormData) {
 		"Content-Length: 144\r\n\r\n" +
 		boundary + "\r\n" +
 		"Content-Disposition: form-data; name=\"field1\"\r\n\r\n" +
-		"value1\r\n" + 
+		"VALUE 1\r\n" + 
 		boundary + "\r\n" +
 		"Content-Disposition: form-data; name=\"file\"; filename=\"test.txt\"\r\n" +
 		"Content-Type: text/plain\r\n\r\n" +
-		"file content here\r\n" + 
+		"VALUE 2\r\n" + 
 		boundary + "--";
 
 	RequestInfo requestInfo = parsePOSTHttpRequest(postRequest);
@@ -169,8 +168,8 @@ TEST(RequestInfoTest, HandlesPostRequestWithMultipartFormData) {
 	EXPECT_EQ(requestInfo.permissions.execute, false);
 	ASSERT_EQ(requestInfo.multipartHeaders.size(), 2);
 	ASSERT_EQ(requestInfo.multipartValues.size(), 2);
-	EXPECT_TRUE(requestInfo.multipartValues[0].find("value1") != std::string::npos);
-	EXPECT_TRUE(requestInfo.multipartValues[1].find("file content here") != std::string::npos);
+	EXPECT_TRUE(requestInfo.multipartValues[0].find("VALUE 1") != std::string::npos);
+	EXPECT_TRUE(requestInfo.multipartValues[1].find("VALUE 2") != std::string::npos);
 	EXPECT_TRUE(requestInfo.multipartHeaders[0].find("name=\"field1\"") != std::string::npos);
 	EXPECT_TRUE(requestInfo.multipartHeaders[1].find("filename=\"test.txt\"") != std::string::npos);
 }

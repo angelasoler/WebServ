@@ -10,7 +10,7 @@ class PrintRequestInfo
 {
 	public:
 		static void printRequestInfo(RequestInfo& request);
-		static void	printRawBody(RequestInfo& request);
+		static void	printVectorChar(std::vector<char> &vec, std::string header, std::string path);
 
 	private:
 		static const char* pathTypeToString(e_pathType pathType);
