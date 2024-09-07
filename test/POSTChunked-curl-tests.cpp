@@ -182,13 +182,13 @@ TEST(ChunkedRequests, POSTChunkedMultipartFormData) {
 	EXPECT_TRUE(thisFileExists(uploadedFile.c_str())) << "File not created\n" << unlink(filename.c_str());
 	EXPECT_FALSE(thisFileExists((uploadDir + "new_file").c_str())) << "ERROR Extra File created\n";
 	EXPECT_TRUE(areFilesIdentical(filename, uploadedFile)) << "Uploaded File are not the same\n" << unlink(uploadedFile.c_str()) << unlink(filename.c_str());
-	EXPECT_EQ(response.status_code, 201);  // Esperamos que o upload seja bem-sucedido
+	EXPECT_EQ(response.status_code, 201);
 	EXPECT_TRUE(response.body.find(CREATED_SUCCESSFULLY) != std::string::npos);
 
 	// Limpeza
+	unlink((uploadDir + "new_file").c_str());
 	unlink(filename.c_str());
 	unlink(uploadedFile.c_str());
-	// EXPECT_EQ(initDirSize + 1, directorySize(uploadDir));
 	curl_slist_free_all(headers);
 	curl_mime_free(form);
 	curl_easy_cleanup(curl);
