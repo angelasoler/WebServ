@@ -26,7 +26,7 @@
 #define DEFAULT_SERVER_PORT -1
 #define DEFAULT_ERROR_PAGE "/error.html"
 #define DEFAULT_CLIENT_BODY_LIMIT 1048576
-#define DEFAULT_SERVER_NAME "localhost"
+#define DEFAULT_SERVER_NAME "webserv.com"
 
 struct RouteConfig
 {
