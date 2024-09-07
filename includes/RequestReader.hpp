@@ -48,8 +48,6 @@ class RequestReader
 		void								readRequestBodyChunked(void);
 		void								readRequestBodyChunkedMultipart(void);
 		size_t								readChunkSize();
-		void								readRequestBodyMultipart(void);
-		void								readMultipartInfo(const std::string& boundary, std::vector<char> &tempLine);
 
 		// READLINE AND UTILS
 		void	 							readAllContentLength(int fd, long int contentLength);
@@ -67,7 +65,6 @@ class RequestReader
 		bool									_readRawBody;
 
 		// REQUEST VARS
-		void	 readLineBody(int fd, std::string &line, int contentLength, bool &error);
 		std::map<std::string, std::string> 		_headers;
 		std::vector<std::string>				_multipartHeaders;
 		std::vector<std::string>				_multipartValues;

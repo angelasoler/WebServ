@@ -106,12 +106,6 @@ void RequestReader::readBody(void)
 	else {
 		readAllContentLength(this->_fdClient, getContentLength());
 	}
-
-	PrintRequestInfo::printVectorChar(_requestBody, "Read Body", "logs/readBody.log");
-	if (isMultipart)
-	{
-		readRequestBodyMultipart();
-	}
 }
 
 // Chunked
@@ -162,63 +156,6 @@ void RequestReader::readRequestBodyChunked()
 		chunkSize = readChunkSize();
 	}
 	this->_headers["Content-Length"] = intToString(length);
-}
-
-// Multipart
-void RequestReader::readRequestBodyMultipart(void)
-{
-	std::string boundary;
-	size_t pos;
-
-	pos = getHeader("Content-Type").find("boundary=", 0);
-	if (pos != std::string::npos)
-		boundary = getHeader("Content-Type").substr(pos + 9);
-	if (pos != std::string::npos)
-	{
-		readMultipartInfo(boundary, _requestBody);
-	}
-}
-
-void RequestReader::readMultipartInfo(const std::string& boundary, std::vector<char> &tempLine)
-{
-	size_t boundaryPos = 0;
-	size_t contentStart = 0;
-
-	while ((boundaryPos = std::search(tempLine.begin() + boundaryPos, tempLine.end(), boundary.begin(), boundary.end()) - tempLine.begin()) != tempLine.size())
-	{
-		// Encontrar o início do conteúdo depois do cabeçalho
-		std::vector<char>::iterator contentStartIt = std::search(tempLine.begin() + boundaryPos, tempLine.end(), "\r\n\r\n", "\r\n\r\n" + 4);
-		if (contentStartIt == tempLine.end())
-		{
-			return;
-		}
-
-		contentStart = contentStartIt - tempLine.begin() + 4;
-
-		// Extrair o cabeçalho multipart
-		std::string multipartHeader(tempLine.begin() + boundaryPos + boundary.size(), contentStartIt);
-		_multipartHeaders.push_back(multipartHeader);
-
-		// Encontrar o fim do conteúdo antes do próximo boundary
-		size_t contentEnd = std::search(tempLine.begin() + contentStart, tempLine.end(), boundary.begin(), boundary.end()) - tempLine.begin();
-		if (contentEnd == tempLine.size())
-		{
-			contentEnd = tempLine.size();
-		}
-
-		// Remover possíveis '\r', '\n' e '-' do final do conteúdo
-		while (contentEnd > contentStart && (tempLine[contentEnd - 1] == '\r' || tempLine[contentEnd - 1] == '\n' || tempLine[contentEnd - 1] == '-'))
-		{
-			--contentEnd;
-		}
-
-		// Extrair o valor do multipart
-		std::string multipartValue(tempLine.begin() + contentStart, tempLine.begin() + contentEnd);
-		_multipartValues.push_back(multipartValue);
-
-		// Ajustar boundaryPos para continuar a busca
-		boundaryPos = contentEnd;
-	}
 }
 
 // READ SEGMENTS

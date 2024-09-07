@@ -102,11 +102,6 @@ void	Request::parseRequestInfo(ServerConfig &serverConfig)
 	info.rawBody = requestReader.getRawBody();
 	info.body = requestReader.getBody();
 	info.contentType = requestReader.getHeader("Content-Type");
-
-	if (info.contentType.find("multipart/form-data") != std::string::npos) {
-		info.multipartHeaders = requestReader.getMultipartHeaders();
-		info.multipartValues = requestReader.getMultipartValues();
-	}
 	info.requestedRoute = requestReader.getRequestedRoute();
 	adjustRoute(info.requestedRoute);
 	info.serverRef = serverConfig;
