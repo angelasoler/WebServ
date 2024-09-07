@@ -159,8 +159,8 @@ TEST(ChunkedRequests, POSTChunkedMultipartFormData) {
 	EXPECT_TRUE(response.body.find(CREATED_SUCCESSFULLY) != std::string::npos);
 
 	// Limpeza
-	// unlink(filename.c_str());
-	// unlink(uploadedFile.c_str());
+	unlink(filename.c_str());
+	unlink(uploadedFile.c_str());
 	curl_slist_free_all(headers);
 	curl_mime_free(form);
 	curl_easy_cleanup(curl);
