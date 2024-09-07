@@ -39,7 +39,7 @@ void RequestReader::readStartLine(void)
 {
 	std::string line;
 
-	readRequestSegment(_fdClient, line, CRLF);
+	readUntilCRLF(_fdClient, line);
 	if (!line.empty())
 	{
 		std::istringstream lineStream(line);
@@ -64,7 +64,7 @@ void 	RequestReader::readHeader(void)
 
 	while (true)
 	{
-		readRequestSegment(_fdClient, line, CRLF);
+		readUntilCRLF(_fdClient, line);
 		if (line == CRLF || line.empty() || _errorRead) {
 			if (_errorRead)
 				this->_incompleted = true;
@@ -87,64 +87,6 @@ void 	RequestReader::readHeader(void)
 	printHeaderDataStructure();
 }
 
-
-void	 RequestReader::readLineBody(int fd, std::string &line, int contentLength, bool &error)
-{
-	ssize_t		numberBytes;
-	char		buffer[20] = {0};
-
-	while (true)	
-	{
-		std::cerr << contentLength << "\n";
-		if (!contentLength)
-			break;
-		numberBytes = recv(fd, buffer, 20, 0);
-		if (numberBytes == -1)
-		{
-			error = true;
-			std::cerr << "readLineBody: " << "bytes readed: " << numberBytes << std::endl;
-			break;
-		}
-		if (numberBytes == 0)
-		{
-			error = true;
-			std::cerr << "readLineBody: " << "bytes readed: " << numberBytes << std::endl;
-			break ;
-		}
-		contentLength -= numberBytes;
-		if (_readRawBody) {
-			_rawBody.insert(_rawBody.end(), buffer, buffer + numberBytes);
-		}
-		_fullRequest.insert(_fullRequest.end(), buffer, buffer + numberBytes);
-		line.append(buffer, numberBytes);
-		memset(buffer, 0, 20);
-	}
-}
-
-std::vector<char> readChunk(int fd, std::size_t size)
-{
-	std::vector<char> vec;
-    char        buffer = 0;  // Alterado para char
-    ssize_t     numberBytes = 0;
-
-    while (size > 0) {
-        numberBytes = recv(fd, &buffer, 1, 0);
-        if (numberBytes == -1) {
-            // Possível log de erro baseado em errno
-			PrintRequestInfo::printVectorChar(vec, "vec Request -1 ", "logs/vecRequest.log");
-            return (std::vector<char>());
-        }
-        if (numberBytes == 0) {
-            // Conexão fechada pelo peer
-			PrintRequestInfo::printVectorChar(vec, "vec Request 0 ", "logs/vecRequest.log");
-            return (std::vector<char>());
-        }
-		size -= numberBytes;
-        vec.push_back(buffer);
-    }
-    return vec;
-}
-
 void RequestReader::readBody(void)
 {
 	bool	isChunked = (getHeader("Transfer-Encoding") == "chunked");
@@ -160,14 +102,7 @@ void RequestReader::readBody(void)
 			readRequestBodyChunked();
 	}
 	else {
-		// std::string tempLine;
-		// readLineBody(this->_fdClient, tempLine, getContentLength(), this->_errorRead);
-		// _requestBody.insert(_requestBody.begin(), tempLine.begin(), tempLine.end());
-		// readUntilLimit(this->_fdClient, getContentLength());
-		std::vector<char> vec = readChunk(_fdClient, getContentLength());
-		_requestBody.insert(_requestBody.begin(), vec.begin(), vec.end());
-		_rawBody.insert(_rawBody.begin(), vec.begin(), vec.end());
-		_fullRequest.insert(_fullRequest.begin(), vec.begin(), vec.end());
+		readAllContentLength(this->_fdClient, getContentLength());
 	}
 
 	PrintRequestInfo::printVectorChar(_requestBody, "Read Body", "logs/readBody.log");
@@ -184,7 +119,7 @@ size_t  RequestReader::readChunkSize(void)
 	std::string chunkSizeLine;
 	std::size_t chunkSize = 0;
 
-	readRequestSegment(this->_fdClient, line, CRLF);
+	readUntilCRLF(this->_fdClient, line);
 	if (line == "")
 		return 0;
 	chunkSizeLine = line.substr(0,  line.find(" "));
@@ -204,12 +139,9 @@ void RequestReader::readRequestBodyChunkedMultipart(void)
 	// std::cerr << "afsdfggfgsg\n";
 	while (chunkSize > 0)
 	{
-		std::vector<char> vec = readChunk(_fdClient, chunkSize);
-		_requestBody.insert(_requestBody.begin(), vec.begin(), vec.end());
-		_rawBody.insert(_rawBody.begin(), vec.begin(), vec.end());
-		_fullRequest.insert(_fullRequest.begin(), vec.begin(), vec.end());
+		readUntilSize(_fdClient, chunkSize);
 		length += chunkSize;
-		readRequestSegment(_fdClient, tempLine, CRLF);
+		readUntilCRLF(_fdClient, tempLine);
 		chunkSize = readChunkSize();
 	}
 	this->_headers["Content-Length"] = intToString(length);
@@ -223,10 +155,10 @@ void RequestReader::readRequestBodyChunked()
 
 	while (chunkSize > 0)
 	{
-		readRequestSegment(this->_fdClient, tempLine, CRLF);
+		readUntilCRLF(this->_fdClient, tempLine);
 		_requestBody.insert(_requestBody.end(), tempLine.begin(), tempLine.end());
 		length += chunkSize;
-		readRequestSegment(this->_fdClient, tempLine, CRLF);
+		readUntilCRLF(this->_fdClient, tempLine);
 		chunkSize = readChunkSize();
 	}
 	this->_headers["Content-Length"] = intToString(length);
@@ -292,71 +224,88 @@ void RequestReader::readMultipartInfo(const std::string& boundary, std::vector<c
 
 // READ SEGMENTS
 
-void	 RequestReader::readUntilLimit(int fd, long int contentLength)
+void	 RequestReader::readAllContentLength(int fd, int contentLength)
 {
 	ssize_t		numberBytes;
 	char		buffer[20] = {0};
 
 	while (true)	
 	{
-		std::cerr << "size: " << contentLength << " \n";
 		if (contentLength <= 0)
 			break;
 		numberBytes = recv(fd, buffer, 20, 0);
-		std::stringstream sst;
-    	sst << numberBytes;
-		if (numberBytes == -1) {
-			PrintRequestInfo::printVectorChar(_fullRequest, "read_until_limit Request" + sst.str(), "logs/read_until_limitRequest.log");
+		if (numberBytes == -1 || numberBytes == 0)
+		{
 			this->_errorRead = true;
-			break ;
-		}
-		if (numberBytes == 0) {
-			PrintRequestInfo::printVectorChar(_fullRequest, "read_until_limit Request" + sst.str(), "logs/read_until_limitRequest.log");
-			// this->_errorRead = true;
 			break ;
 		}
 		contentLength -= numberBytes;
 		_rawBody.insert(_rawBody.end(), buffer, buffer + numberBytes);
-		_requestBody.insert(_requestBody.end(), buffer, buffer + numberBytes);
 		_fullRequest.insert(_fullRequest.end(), buffer, buffer + numberBytes);
+		_requestBody.insert(_requestBody.end(), buffer, buffer + numberBytes);
 		memset(buffer, 0, 20);
 	}
 }
 
-void RequestReader::readRequestSegment(int fd, std::string &segment, std::string delimiter)
+void	RequestReader::readUntilSize(int fd, long int size)
 {
-    char        buffer = 0;  // Alterado para char
-    ssize_t     numberBytes = 0;
-    std::string tempLine;
+	ssize_t		numberBytes;
+	char		buffer = 0;
+
+	while (size > 0)	
+	{
+		numberBytes = recv(fd, &buffer, 1, 0);
+		if (numberBytes == -1) {
+			PrintRequestInfo::printVectorChar(_fullRequest, "read_until_limit Request -1 ", "logs/read_until_limitRequest.log");
+			this->_errorRead = true;
+			break ;
+		}
+		if (numberBytes == 0) {
+			PrintRequestInfo::printVectorChar(_fullRequest, "read_until_limit Request 0 ", "logs/read_until_limitRequest.log");
+			this->_errorRead = true;
+			break ;
+		}
+		size -= numberBytes;
+		_rawBody.insert(_rawBody.end(), buffer, buffer + numberBytes);
+		_requestBody.insert(_requestBody.end(), buffer, buffer + numberBytes);
+		_fullRequest.insert(_fullRequest.end(), buffer, buffer + numberBytes);
+	}
+}
+
+void	RequestReader::readUntilCRLF(int fd, std::string &segment)
+{
+	char        buffer = 0;  // Alterado para char
+	ssize_t     numberBytes = 0;
+	std::string tempLine;
 	ssize_t		savebytes;
 
-    while (true) {
+	while (true) {
 		savebytes = numberBytes;
-        numberBytes = recv(fd, &buffer, 1, 0);
+		numberBytes = recv(fd, &buffer, 1, 0);
 		std::stringstream sst;
-    	sst << savebytes;
-        if (numberBytes == -1) {
-            // Possível log de erro baseado em errno
+		sst << savebytes;
+		if (numberBytes == -1) {
+			// Possível log de erro baseado em errno
 			PrintRequestInfo::printVectorChar(_fullRequest, "readSegment Request" + sst.str(), "logs/readSegmentRequest.log");
-            this->_errorRead = true;
-            break;
-        }
-        if (numberBytes == 0) {
-            // Conexão fechada pelo peer
+			this->_errorRead = true;
+			break;
+		}
+		if (numberBytes == 0) {
+			// Conexão fechada pelo peer
 			PrintRequestInfo::printVectorChar(_fullRequest, "readSegment Request" + sst.str(), "logs/readSegmentRequest.log");
-            this->_errorRead = true;
-            break;
-        }
-        tempLine += buffer;
-        this->_fullRequest.push_back(buffer);
-        if (this->_readRawBody)
-            this->_rawBody.push_back(buffer);
-        if (isDelimiter(tempLine, delimiter))
-            break;
-    }
-    segment = tempLine;
-    if (isDelimiter(tempLine, delimiter))
-        segment.resize(segment.rfind(delimiter));
+			this->_errorRead = true;
+			break;
+		}
+		tempLine += buffer;
+		this->_fullRequest.push_back(buffer);
+		if (this->_readRawBody)
+			this->_rawBody.push_back(buffer);
+		if (isDelimiter(tempLine, CRLF))
+			break;
+	}
+	segment = tempLine;
+	if (isDelimiter(tempLine, CRLF))
+		segment.resize(segment.rfind(CRLF));
 }
 
 std::string RequestReader::intToString(int value)

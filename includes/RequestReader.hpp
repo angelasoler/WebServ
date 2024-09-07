@@ -52,8 +52,9 @@ class RequestReader
 		void								readMultipartInfo(const std::string& boundary, std::vector<char> &tempLine);
 
 		// READLINE AND UTILS
-		void	 							readUntilLimit(int fd, long int contentLength);
-		void	 							readRequestSegment(int fd, std::string &segment, std::string delimiter);
+		void	 							readAllContentLength(int fd, int contentLength);
+		void								readUntilSize(int fd, long int size);
+		void								readUntilCRLF(int fd, std::string &segment);
 		std::string							intToString(int value);
 		bool								isDelimiter(std::string line, std::string delimiter);
 
