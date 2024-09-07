@@ -135,8 +135,6 @@ void RequestReader::readRequestBodyChunkedMultipart(void)
 	std::size_t	length = 0;
 	std::string	tempLine;
 	std::size_t	chunkSize = readChunkSize();
-
-	// std::cerr << "afsdfggfgsg\n";
 	while (chunkSize > 0)
 	{
 		readUntilSize(_fdClient, chunkSize);
@@ -266,9 +264,9 @@ void	RequestReader::readUntilSize(int fd, long int size)
 			break ;
 		}
 		size -= numberBytes;
-		_rawBody.insert(_rawBody.end(), buffer, buffer + numberBytes);
-		_requestBody.insert(_requestBody.end(), buffer, buffer + numberBytes);
-		_fullRequest.insert(_fullRequest.end(), buffer, buffer + numberBytes);
+		_rawBody.push_back(buffer);
+		_requestBody.push_back(buffer);
+		_fullRequest.push_back(buffer);
 	}
 }
 
