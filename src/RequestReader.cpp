@@ -105,7 +105,6 @@ void RequestReader::readBody(void)
 	}
 	else
 		_requestBody.insert(_requestBody.begin(), _rawBody.begin(), _rawBody.end());
-	PrintRequestInfo::printVectorChar(_requestBody, "rawRequestBody", "logs/rawRequestBody.log");
 }
 
 // Chunked
@@ -173,32 +172,18 @@ void	 RequestReader::readUntilEOF(int fd)
 	}
 }
 
-void	RequestReader::readUntilSize(int fd, long int size)
+void RequestReader::readUntilSize(int fd, long int size)
 {
 	ssize_t numberBytes;
-	std::vector<char> buffer(READ_BUFFER_SIZE); 
-	ssize_t bytesToRead;
-
-	while (size > 0)	
-	{
-		bytesToRead = (size < READ_BUFFER_SIZE) ? size : READ_BUFFER_SIZE;
-		
-		numberBytes = recv(fd, &buffer[0], bytesToRead, 0);
-		
-		if (numberBytes == -1) {
-			PrintRequestInfo::printVectorChar(_fullRequest, "read_until_size_Request bytes_readed = -1 ", "logs/read_until_size_Request.log");
-			this->_errorRead = true;
-			break;
-		}
-		if (numberBytes == 0) {
-			PrintRequestInfo::printVectorChar(_fullRequest, "read_until_size_Request bytes_readed = 0 ", "logs/read_until_size_Request.log");
-			this->_errorRead = true;
-			break;
-		}
-		size -= numberBytes;
-		_rawBody.insert(_rawBody.end(), buffer.begin(), buffer.begin() + numberBytes);
-		_fullRequest.insert(_fullRequest.end(), buffer.begin(), buffer.begin() + numberBytes);
+	std::vector<char> buffer(size);
+	numberBytes = recv(fd, &buffer[0], size, 0);
+	if (numberBytes <= 0) {
+		PrintRequestInfo::printVectorChar(_fullRequest, std::string("read_until_size_Request bytes_readed = " + numberBytes), "logs/readUntilSize_Request.log");
+		this->_errorRead = true;
+		return ;
 	}
+	_rawBody.insert(_rawBody.end(), buffer.begin(), buffer.begin() + numberBytes);
+	_fullRequest.insert(_fullRequest.end(), buffer.begin(), buffer.begin() + numberBytes);
 }
 
 void	RequestReader::readUntilCRLF(int fd, std::string &segment)
