@@ -308,16 +308,6 @@ long int RequestReader::getContentLength() const
 	return 0;
 }
 
-std::vector<std::string>	RequestReader::getMultipartHeaders(void) const
-{
-	return _multipartHeaders;
-}
-
-std::vector<std::string>	RequestReader::getMultipartValues(void) const
-{
-	return _multipartValues;
-}
-
 // DEBUG
 void RequestReader::printHeaderDataStructure(void)
 {

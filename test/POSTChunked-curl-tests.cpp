@@ -151,6 +151,7 @@ TEST(ChunkedRequests, POSTChunkedMultipartFormData) {
 	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response.status_code);
 
 	std::string uploadedFile = std::string(DEFAULT_ROOT_DIRECTORY) + "/" + "uploads" + "/" + filename;
+	// std::cerr <
 	EXPECT_EQ(res, CURLE_OK);
 	EXPECT_TRUE(thisFileExists(uploadedFile.c_str())) << "File not created\n" << unlink(filename.c_str());
 	EXPECT_TRUE(areFilesIdentical(filename, uploadedFile)) << "Uploaded File are not the same\n" << unlink(uploadedFile.c_str()) << unlink(filename.c_str());
@@ -158,8 +159,8 @@ TEST(ChunkedRequests, POSTChunkedMultipartFormData) {
 	EXPECT_TRUE(response.body.find(CREATED_SUCCESSFULLY) != std::string::npos);
 
 	// Limpeza
-	unlink(filename.c_str());
-	unlink(uploadedFile.c_str());
+	// unlink(filename.c_str());
+	// unlink(uploadedFile.c_str());
 	curl_slist_free_all(headers);
 	curl_mime_free(form);
 	curl_easy_cleanup(curl);

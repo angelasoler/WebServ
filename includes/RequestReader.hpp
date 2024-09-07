@@ -33,8 +33,6 @@ class RequestReader
 		std::string							getFullRequest(void) const;
 		long int							getContentLength(void) const;
 		std::string							getRequestedRoute(void) const;
-		std::vector<std::string>			getMultipartHeaders(void) const;
-		std::vector<std::string>			getMultipartValues(void) const;
 	private:
 
 		// READ START LINE
@@ -66,8 +64,6 @@ class RequestReader
 
 		// REQUEST VARS
 		std::map<std::string, std::string> 		_headers;
-		std::vector<std::string>				_multipartHeaders;
-		std::vector<std::string>				_multipartValues;
 		std::string								_method;
 		std::string								_requestedRoute;
 		std::string								_httpVersion;
