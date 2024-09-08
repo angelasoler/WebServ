@@ -40,6 +40,8 @@ struct ResponseMsg
 class Response
 {
 	private:
+		std::map<std::string, std::string> mimeTypes;
+
 		ResponseMsg	responseMsg;
 		int			client_fd;
 		int			statusCode;
@@ -55,6 +57,7 @@ class Response
 		// SEND RESPONSE
 		void	printResponse(std::string &response);
 		int		responseCGI(void);
+		void	buildContentType(void);
 
 	public:
 		RequestInfo	requestInfo;
