@@ -133,7 +133,7 @@ std::vector<char> RequestReader::processChunkedRequestBody(const std::vector<cha
 	return result;
 }
 
-// READ SEGMENTS
+// READ AND UTILS
 
 bool requestCompleted(const std::vector<char> &vec) {
 	ssize_t size = vec.size();
@@ -157,16 +157,16 @@ void	 RequestReader::readUntilEOF(int fd)
 	while (true)	
 	{
 		numberBytes = recv(fd, &buffer, 1, 0);
-		if (numberBytes == -1) {
+		if (numberBytes <= 0) {
 			if (requestCompleted(_fullRequest))
 				break;
 			PrintRequestInfo::printVectorChar(_fullRequest, std::string("readUntilEOF bytes_readed = " + numberBytes), "logs/readUntilEOF_Request.log");
 			this->_errorRead = true;
 			break ;
 		}
-		if (numberBytes == 0) {
-			break ;
-		}
+		// if (numberBytes == 0) {
+		// 	break ;
+		// }
 		_fullRequest.push_back(buffer);
 	}
 }
