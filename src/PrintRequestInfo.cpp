@@ -41,20 +41,23 @@ void PrintRequestInfo::printRequestInfo(RequestInfo& request)
 	}
 	logFd << "\tserverRef:" << std::endl;
 
-	printRawBody(request);
+	logFd.close();
+	printVectorChar(request.rawBody, "Raw Body", "logs/raw_body.log");
 	// printServerConfig(request.serverRef, logFd);
 }
 
-void PrintRequestInfo::printRawBody(RequestInfo& request)
+void PrintRequestInfo::printVectorChar(std::vector<char> &vec, std::string header, std::string path)
 {
-	if (request.rawBody.empty())
+	if (vec.empty()) {	
 		return ;
-	std::ofstream	logFd("logs/raw_body.log", std::ios_base::app);
-	bool isDelimiter = false;
+	}
+	std::ofstream	logFd(path.c_str(), std::ios_base::app);
+	bool isDelimiter = false;	
 	logFd << "\n" << TimeNow();
-	logFd << "--------Raw Body Start-------" << std::endl;
+	logFd << "Vector Size: " << vec.size() << std::endl;
+	logFd << "--------" + header + " Start-------" << std::endl;
 	logFd << "\n";
-	for (std::vector<char>::iterator it = request.rawBody.begin(); it != request.rawBody.end(); ++it)
+	for (std::vector<char>::iterator it = vec.begin(); it != vec.end(); ++it)
 	{
 		if (std::isprint(static_cast<unsigned char>(*it))) {
 			logFd << *it;
@@ -69,7 +72,8 @@ void PrintRequestInfo::printRawBody(RequestInfo& request)
 			
 		}
 	}
-	logFd << "\n--------Raw Body End---------" << std::endl;
+	logFd << "\n--------" + header + " End---------" << std::endl;
+	logFd.close();
 }
 
 const char* PrintRequestInfo::pathTypeToString(e_pathType pathType) {
