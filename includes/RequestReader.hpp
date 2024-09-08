@@ -55,6 +55,7 @@ class RequestReader
 		void								readUntilCRLF(int fd, std::string &segment);
 		std::string							intToString(int value);
 		bool								isDelimiter(std::string line, std::string delimiter);
+		bool								requestCompleted(const std::vector<char> &vec);
 
 		// DEBUG
 		void								printHeaderDataStructure(void);

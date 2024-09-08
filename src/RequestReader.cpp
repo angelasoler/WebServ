@@ -14,20 +14,20 @@ bool RequestReader::readHttpRequest(int &fdConection) {
 	this->_fdClient = fdConection;
 	readStartLine();
 	if (_incompleted && !_errorRead) {
-		PrintRequestInfo::printVectorChar(_fullRequest, "Interrupted Request", "logs/interruptedRequest_1.log");
+		PrintRequestInfo::printVectorChar(_fullRequest, "Interrupted Request", "logs/interruptedRequest_StartLine.log");
 		return true;
 	}
 	readHeader();
 	if (_incompleted && !_errorRead) {
-		PrintRequestInfo::printVectorChar(_fullRequest, "Interrupted Request", "logs/interruptedRequest_2.log");
+		PrintRequestInfo::printVectorChar(_fullRequest, "Interrupted Request", "logs/interruptedRequest_Header.log");
 		return true;
 	}
 	readBody();
 	if (_incompleted && !_errorRead) {
-		PrintRequestInfo::printVectorChar(_fullRequest, "Interrupted Request", "logs/interruptedRequest_3.log");
+		PrintRequestInfo::printVectorChar(_fullRequest, "Interrupted Request", "logs/interruptedRequest_Body.log");
 		return true;
 	}
-	PrintRequestInfo::printVectorChar(_fullRequest, "raw Request", "logs/rawRequest.log");
+	PrintRequestInfo::printVectorChar(_fullRequest, "raw Request", "logs/raw_Request.log");
 	return !_errorRead;
 }
 
@@ -134,21 +134,6 @@ std::vector<char> RequestReader::processChunkedRequestBody(const std::vector<cha
 }
 
 // READ AND UTILS
-
-bool requestCompleted(const std::vector<char> &vec) {
-	ssize_t size = vec.size();
-
-	if (size < 4) {
-		return false;
-	}
-	char last1 = vec[size - 4];
-	char last2 = vec[size - 3];
-	char last3 = vec[size - 2];
-	char last4 = vec[size - 1];
-
-	return (last1 == '\r' && last2 == '\n' && last3 == '\r' && last4 == '\n');
-}
-
 void	 RequestReader::readUntilEOF(int fd)
 {
 	ssize_t		numberBytes;
@@ -157,16 +142,16 @@ void	 RequestReader::readUntilEOF(int fd)
 	while (true)	
 	{
 		numberBytes = recv(fd, &buffer, 1, 0);
-		if (numberBytes <= 0) {
+		if (numberBytes < 0) {
 			if (requestCompleted(_fullRequest))
 				break;
 			PrintRequestInfo::printVectorChar(_fullRequest, std::string("readUntilEOF bytes_readed = " + numberBytes), "logs/readUntilEOF_Request.log");
 			this->_errorRead = true;
 			break ;
 		}
-		// if (numberBytes == 0) {
-		// 	break ;
-		// }
+		if (numberBytes == 0) {
+			break ;
+		}
 		_fullRequest.push_back(buffer);
 	}
 }
@@ -198,6 +183,8 @@ void	RequestReader::readUntilCRLF(int fd, std::string &segment)
 			break;
 		}
 		if (numberBytes == 0) {
+			PrintRequestInfo::printVectorChar(_fullRequest, std::string("readUntilCRLF_Request bytes_readed = " + numberBytes), "logs/readUntilCRLF_Request.log");
+			this->_errorRead = true;
 			break;
 		}
 		tempLine += buffer;
@@ -222,6 +209,19 @@ bool	RequestReader::isDelimiter(std::string line, std::string delimiter)
 	return (line.rfind(delimiter) != std::string::npos);
 }
 
+bool RequestReader::requestCompleted(const std::vector<char> &vec) {
+	ssize_t size = vec.size();
+
+	if (size < 4) {
+		return false;
+	}
+	char last1 = vec[size - 4];
+	char last2 = vec[size - 3];
+	char last3 = vec[size - 2];
+	char last4 = vec[size - 1];
+
+	return (last1 == '\r' && last2 == '\n' && last3 == '\r' && last4 == '\n');
+}
 
 // GETTERS
 std::string RequestReader::getMethod(void) const
