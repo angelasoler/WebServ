@@ -79,6 +79,9 @@ void RequestReader::readBody(void) {
 		readUntilEOF(this->_fdClient);
 	}
 
+	if (_errorRead)
+		return;
+
 	std::string delimiter = "\r\n\r\n";
 	std::vector<char>::iterator it = std::search(_fullRequest.begin(), _fullRequest.end(), delimiter.begin(), delimiter.end());
 
@@ -131,26 +134,40 @@ std::vector<char> RequestReader::processChunkedRequestBody(const std::vector<cha
 }
 
 // READ SEGMENTS
+
+bool requestCompleted(const std::vector<char> &vec) {
+	ssize_t size = vec.size();
+
+	if (size < 4) {
+		return false;
+	}
+	char last1 = vec[size - 4];
+	char last2 = vec[size - 3];
+	char last3 = vec[size - 2];
+	char last4 = vec[size - 1];
+
+	return (last1 == '\r' && last2 == '\n' && last3 == '\r' && last4 == '\n');
+}
+
 void	 RequestReader::readUntilEOF(int fd)
 {
 	ssize_t		numberBytes;
-	char		buffer[READ_BUFFER_SIZE] = {0};
+	char		buffer;
 
 	while (true)	
 	{
-		numberBytes = recv(fd, buffer, READ_BUFFER_SIZE, 0);
+		numberBytes = recv(fd, &buffer, 1, 0);
 		if (numberBytes == -1) {
+			if (requestCompleted(_fullRequest))
+				break;
+			PrintRequestInfo::printVectorChar(_fullRequest, std::string("readUntilEOF bytes_readed = " + numberBytes), "logs/readUntilEOF_Request.log");
 			this->_errorRead = true;
-			PrintRequestInfo::printVectorChar(_fullRequest, "readuntilEOF_Request bytes_readed = -1 ", "logs/readuntilEOF_Request.log");
 			break ;
 		}
 		if (numberBytes == 0) {
-			PrintRequestInfo::printVectorChar(_fullRequest, "readuntilEOF_Request bytes_readed = 0 ", "logs/readuntilEOF_Request.log");
 			break ;
 		}
-		_fullRequest.insert(_fullRequest.end(), buffer, buffer + numberBytes);
-		if (numberBytes < READ_BUFFER_SIZE)
-			return;
+		_fullRequest.push_back(buffer);
 	}
 }
 
@@ -175,9 +192,12 @@ void	RequestReader::readUntilCRLF(int fd, std::string &segment)
 
 	while (true) {
 		numberBytes = recv(fd, &buffer, 1, 0);
-		if (numberBytes == -1 || numberBytes == 0) {
+		if (numberBytes == -1) {
 			PrintRequestInfo::printVectorChar(_fullRequest, std::string("readUntilCRLF_Request bytes_readed = " + numberBytes), "logs/readUntilCRLF_Request.log");
 			this->_errorRead = true;
+			break;
+		}
+		if (numberBytes == 0) {
 			break;
 		}
 		tempLine += buffer;
