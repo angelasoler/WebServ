@@ -139,6 +139,12 @@ void	Response::buildContentType(void)
 {
 	size_t		dot_position;
 
+	if (requestInfo.pathType != File)
+	{
+		setHeader("Content-Type", "text/html; charset=utf-8");
+		return ;
+	}
+
 	dot_position = requestInfo.fullPath.find_last_of(".");
 
 	if (dot_position == std::string::npos || requestInfo.fullPath.find_last_of("/") > dot_position)
