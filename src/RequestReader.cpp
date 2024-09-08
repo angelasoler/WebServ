@@ -1,17 +1,16 @@
 #include "RequestReader.hpp"
-# include "PrintRequestInfo.hpp"
+#include "PrintRequestInfo.hpp"
 
 RequestReader::RequestReader(void) : _errorRead(false),
-_incompleted(false),
-_headers(), _method(""),
-_requestedRoute(""),
-_httpVersion(""),
-_requestBody() {}
+	_incompleted(false),
+	_headers(), _method(""),
+	_requestedRoute(""),
+	_httpVersion(""),
+	_requestBody() {}
 
 RequestReader::~RequestReader(void) {}
 
-bool    RequestReader::readHttpRequest(int &fdConection)
-{
+bool RequestReader::readHttpRequest(int &fdConection) {
 	this->_fdClient = fdConection;
 	readStartLine();
 	if (_incompleted && !_errorRead) {
@@ -29,40 +28,25 @@ bool    RequestReader::readHttpRequest(int &fdConection)
 		return true;
 	}
 	PrintRequestInfo::printVectorChar(_fullRequest, "raw Request", "logs/rawRequest.log");
-	if (_errorRead)
-		return false;
-	return true;
+	return !_errorRead;
 }
 
-void RequestReader::readStartLine(void)
-{
+void RequestReader::readStartLine(void) {
 	std::string line;
-
 	readUntilCRLF(_fdClient, line);
-	if (!line.empty())
-	{
+	if (!line.empty()) {
 		std::istringstream lineStream(line);
-		if (!(lineStream >> this->_method)) {
+		if (!(lineStream >> this->_method) ||
+			!(lineStream >> this->_requestedRoute) ||
+			!(lineStream >> this->_httpVersion)) {
 			this->_incompleted = true;
-			return;
-		}
-		if (!(lineStream >> this->_requestedRoute)) {
-			this->_incompleted = true;
-			return;
-		}
-		if (!(lineStream >> this->_httpVersion)) {
-			this->_incompleted = true;
-			return;
 		}
 	}
 }
 
-void 	RequestReader::readHeader(void)
-{
+void RequestReader::readHeader(void) {
 	std::string line;
-
-	while (true)
-	{
+	while (true) {
 		readUntilCRLF(_fdClient, line);
 		if (line == CRLF || line.empty() || _errorRead) {
 			if (_errorRead) {
@@ -72,59 +56,60 @@ void 	RequestReader::readHeader(void)
 			break;
 		}
 		size_t colonPos = line.find(':');
-		if (colonPos != std::string::npos)
-		{
+		if (colonPos != std::string::npos) {
 			size_t lastNonCRLF = line.find_last_not_of(CRLF);
-			if (lastNonCRLF != std::string::npos)
-			{
+			if (lastNonCRLF != std::string::npos) {
 				line = line.substr(0, lastNonCRLF + 1);
 				std::string headerName = line.substr(0, colonPos);
 				std::string headerValue = line.substr(colonPos + 2);
 				this->_headers[headerName] = headerValue;
-
 			}
 		}
 	}
 	printHeaderDataStructure();
 }
 
-void RequestReader::readBody(void)
-{
-	if (_method != "POST")
-		return ;
+void RequestReader::readBody(void) {
+	if (_method != "POST") return;
 
 	long int contentLength = getContentLength();
-	if (contentLength > 0)
+	if (contentLength > 0) {
 		readUntilSize(this->_fdClient, contentLength);
-	else
+	} else {
 		readUntilEOF(this->_fdClient);
-
-	if (getHeader("Transfer-Encoding") == "chunked")
-	{
-		this->_requestBody = processChunkedRequestBody(_rawBody);
 	}
-	else
-		_requestBody.insert(_requestBody.begin(), _rawBody.begin(), _rawBody.end());
+
+	std::string delimiter = "\r\n\r\n";
+	std::vector<char>::iterator it = std::search(_fullRequest.begin(), _fullRequest.end(), delimiter.begin(), delimiter.end());
+
+	if (it != _fullRequest.end()) {
+		_rawBody.insert(_rawBody.begin(), it + delimiter.size(), _fullRequest.end());
+
+		if (getHeader("Transfer-Encoding") == "chunked") {
+			this->_requestBody = processChunkedRequestBody(_rawBody);
+		} else {
+			_requestBody.insert(_requestBody.begin(), _rawBody.begin(), _rawBody.end());
+		}
+	}
 }
 
-// Chunked
-std::vector<char> RequestReader::processChunkedRequestBody(const std::vector<char>& chunkedRequestBody)
-{
+// CHUNK
+std::vector<char> RequestReader::processChunkedRequestBody(const std::vector<char>& chunkedRequestBody) {
 	std::vector<char> result;
 	std::size_t i = 0;
-	
+
 	while (i < chunkedRequestBody.size()) {
-		// Encontrar o tamanho do chunk (linha em hexadecimal)
+		// Find the chunk size (hexadecimal line)
 		std::string sizeStr;
 		while (i < chunkedRequestBody.size() && chunkedRequestBody[i] != '\r') {
 			sizeStr.push_back(chunkedRequestBody[i]);
 			++i;
 		}
-		
-		// Saltar '\r\n'
+
+		// Skip '\r\n'
 		i += 2;
 
-		// Converter o tamanho do chunk de hexadecimal para decimal
+		// Convert the chunk size from hexadecimal to decimal
 		std::size_t chunkSize;
 		std::stringstream ss;
 		ss << std::hex << sizeStr;
@@ -134,13 +119,11 @@ std::vector<char> RequestReader::processChunkedRequestBody(const std::vector<cha
 			break;
 		}
 
-		// Copiar o conteúdo do chunk para o resultado
-		// result.insert(result.end(), )
-		for (std::size_t j = 0; j < chunkSize && i < chunkedRequestBody.size(); ++j, ++i) {
-			result.push_back(chunkedRequestBody[i]);
-		}
+		// Copy the chunk content to the result
+		result.insert(result.end(), chunkedRequestBody.begin() + i, chunkedRequestBody.begin() + i + chunkSize);
+		i += chunkSize;
 
-		// Saltar '\r\n' após o chunk
+		// Skip '\r\n' after the chunk
 		i += 2;
 	}
 
@@ -165,7 +148,6 @@ void	 RequestReader::readUntilEOF(int fd)
 			PrintRequestInfo::printVectorChar(_fullRequest, "readuntilEOF_Request bytes_readed = 0 ", "logs/readuntilEOF_Request.log");
 			break ;
 		}
-		_rawBody.insert(_rawBody.end(), buffer, buffer + numberBytes);
 		_fullRequest.insert(_fullRequest.end(), buffer, buffer + numberBytes);
 		if (numberBytes < READ_BUFFER_SIZE)
 			return;
@@ -182,7 +164,6 @@ void RequestReader::readUntilSize(int fd, long int size)
 		this->_errorRead = true;
 		return ;
 	}
-	_rawBody.insert(_rawBody.end(), buffer.begin(), buffer.begin() + numberBytes);
 	_fullRequest.insert(_fullRequest.end(), buffer.begin(), buffer.begin() + numberBytes);
 }
 

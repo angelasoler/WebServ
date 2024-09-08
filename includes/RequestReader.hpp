@@ -44,7 +44,7 @@ class RequestReader
 
 		// READ REQUEST BODY
 		void								readBody(void);
-		std::vector<char> 					processChunkedRequestBody(const std::vector<char> &chunkedRequestBody);
+		std::vector<char>					processChunkedRequestBody(const std::vector<char>& chunkedRequestBody);
 		void								readRequestBodyChunked(void);
 		void								readRequestBodyChunkedMultipart(void);
 		size_t								readChunkSize();
