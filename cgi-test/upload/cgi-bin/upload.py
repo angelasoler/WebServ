@@ -22,12 +22,12 @@ if "file" in form:
         # Escreva o conteúdo do arquivo no diretório de destino
         with open(filepath, 'wb') as f:
             f.write(fileitem.file.read())
-        print("Content-Type: text/html\n")
+        # print("Content-Type: text/html\n")
         print(f"<html><body><h2>Upload bem-sucedido: {filename}</h2></body></html>")
     else:
-        print("Content-Type: text/html\n")
+        # print("Content-Type: text/html\n")
         print("<html><body><h2>Falha no upload: Nenhum arquivo foi enviado.</h2></body></html>")
 else:
-    print("Content-Type: text/html\n")
+    # print("Content-Type: text/html\n")
     print("<html><body><h2>Falha no upload: O campo 'file' não foi encontrado.</h2></body></html>")
 
