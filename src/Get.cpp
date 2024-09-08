@@ -41,8 +41,6 @@ void	Get::buildBody(void)
 {
 	if (!response.getBody().empty())
 		return ;
-	if (response.requestInfo.pathType == File && !endsWith(response.requestInfo.fullPath, ".html"))
-		response.setHeader("Content-Type", "text/plain; charset=utf-8");
 	std::string body = response.getDefaultPage();
 
 	if (body == NO_DEFAULT_ERROR)
