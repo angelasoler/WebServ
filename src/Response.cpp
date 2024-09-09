@@ -5,7 +5,29 @@
 #include <unistd.h>
 # include "TimeNow.hpp"
 
-Response::Response(RequestInfo info, int fd) : client_fd(fd), requestInfo(info) {}
+Response::Response(RequestInfo info, int fd) : client_fd(fd), requestInfo(info)
+{
+	mimeTypes["html"]	= "text/html";
+	mimeTypes["htm"]	= "text/html";
+	mimeTypes["css"]	= "text/css";
+	mimeTypes["js"]		= "text/javascript";
+	mimeTypes["mjs"]	= "text/javascript";
+	mimeTypes["json"]	= "application/json";
+	mimeTypes["php"]	= "application/x-httpd-php";
+	mimeTypes["xml"]	= "application/xml";
+	mimeTypes["jpeg"]	= "image/jpeg";
+	mimeTypes["jpg"]	= "image/jpeg";
+	mimeTypes["png"]	= "image/png";
+	mimeTypes["gif"]	= "image/gif";
+	mimeTypes["svg"]	= "image/svg+xml";
+	mimeTypes["mp3"]	= "audio/mpeg";
+	mimeTypes["wav"]	= "audio/wav";
+	mimeTypes["ogg"]	= "audio/ogg";
+	mimeTypes["mp4"]	= "video/mp4";
+	mimeTypes["webm"]	= "video/webm";
+	mimeTypes["pdf"]	= "application/pdf";
+	mimeTypes["zip"]	= "application/zip";
+}
 
 Response::~Response(void) {}
 
@@ -118,11 +140,41 @@ std::string Response::getDefaultPage(void)
 }
 
 // PUBLIC METHODS
+void	Response::buildContentType(void)
+{
+	size_t		dot_position;
+
+	if (requestInfo.pathType != File)
+	{
+		setHeader("Content-Type", "text/html; charset=utf-8");
+		return ;
+	}
+
+	dot_position = requestInfo.fullPath.find_last_of(".");
+
+	if (dot_position == std::string::npos || requestInfo.fullPath.find_last_of("/") > dot_position)
+	{
+		setHeader("Content-Type", "text/plain; charset=utf-8");
+		return ;
+	}
+
+	std::string value;
+	std::string extension = requestInfo.fullPath.substr(dot_position + 1);
+
+	std::map< std::string, std::string >::iterator type;
+
+	type = mimeTypes.find(extension);
+	if (type != mimeTypes.end())
+		value = type->second + ";charset=utf-8";
+	else
+		value = "text/plain; charset=utf-8";
+	setHeader("Content-Type", value);
+}
 
 void Response::setResponseMsg(IHttpMethod *method)
 {
 	setStatusLine();
-	setHeader("Content-Type", "text/html");
+	buildContentType();
 	method->buildBody();
 
 	// Get response size;
