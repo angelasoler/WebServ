@@ -42,7 +42,6 @@ TEST(ConfigTest, NoServers) {
 	EXPECT_EQ(server1.host, DEFAULT_HOST);
 	EXPECT_EQ(server1.port, DEFAULT_PORT);
 	EXPECT_EQ(server1.server_names[0], DEFAULT_SERVER_NAME);
-	/
 	EXPECT_EQ(server1.client_body_limit, DEFAULT_CLIENT_BODY_LIMIT);
 
 	// Verificação da rota do primeiro servidor
@@ -305,7 +304,6 @@ TEST(ConfigTest, InvalidServerId1)
 	EXPECT_EQ(server1.host, DEFAULT_HOST);
 	EXPECT_EQ(server1.port, DEFAULT_PORT);
 	EXPECT_EQ(server1.server_names[0], DEFAULT_SERVER_NAME);
-	/
 	EXPECT_EQ(server1.client_body_limit, DEFAULT_CLIENT_BODY_LIMIT);
 
 	ASSERT_EQ(server1.routes.size(), 1);
@@ -331,7 +329,6 @@ TEST(ConfigTest, InvalidServerId1ValidServerId2) {
 	EXPECT_EQ(server1.host, DEFAULT_HOST);
 	EXPECT_EQ(server1.port, DEFAULT_PORT);
 	EXPECT_EQ(server1.server_names[0], DEFAULT_SERVER_NAME);
-	/
 	EXPECT_EQ(server1.client_body_limit, DEFAULT_CLIENT_BODY_LIMIT);
 
 	ASSERT_EQ(server1.routes.size(), 1);
