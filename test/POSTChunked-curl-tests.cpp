@@ -179,9 +179,9 @@ TEST(ChunkedRequests, POSTChunkedMultipartFormData) {
 	// std::cerr <
 	EXPECT_EQ(res, CURLE_OK);
 	(void)initDirSize;
-	// EXPECT_EQ(initDirSize + 1, directorySize(uploadDir));
+	EXPECT_EQ(initDirSize + 1, directorySize(uploadDir));
 	EXPECT_TRUE(thisFileExists(uploadedFile.c_str())) << "File not created\n";
-	// EXPECT_FALSE(thisFileExists((uploadDir + "new_file").c_str())) << "ERROR Extra File created\n";
+	EXPECT_FALSE(thisFileExists((uploadDir + "new_file").c_str())) << "ERROR Extra File created\n";
 	EXPECT_TRUE(areFilesIdentical(filename, uploadedFile)) << "Uploaded File are not the same\n";
 	EXPECT_EQ(response.status_code, 201);
 	EXPECT_TRUE(response.body.find(CREATED_SUCCESSFULLY) != std::string::npos);
