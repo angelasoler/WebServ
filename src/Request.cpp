@@ -82,10 +82,10 @@ int	Request::getInformationalStatus(void)
 	requestedMethod = std::find (allowedMethods.begin(), allowedMethods.end(), requestReader.getMethod());
 	if (requestedMethod != allowedMethods.end())
 	{
-		requestedMethod = std::find(info.configRef.accepted_methods.begin(),
-										info.configRef.accepted_methods.end(),
+		requestedMethod = std::find(info.routeRef.accepted_methods.begin(),
+										info.routeRef.accepted_methods.end(),
 										requestReader.getMethod());
-		if (requestedMethod != info.configRef.accepted_methods.end())
+		if (requestedMethod != info.routeRef.accepted_methods.end())
 		{
 			return 200;
 		}
@@ -151,7 +151,7 @@ RequestInfo::RequestInfo() :
 	pathType(UNKNOWN),
 	permissions(),
 	serverRef(),
-	configRef(),
+	routeRef(),
 	contentType(""),
 	action(RESPONSE),
 	body(""),

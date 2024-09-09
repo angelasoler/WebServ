@@ -24,8 +24,9 @@ class Get : public IHttpMethod
 		int			responseToDirectory(void);
 		int			responseToInvalid(void);
 		int			responseToRedirection(void);
-		std::string	getBodyFromFile(const std::string& fileName);
 		void		buildBody(void);
 };
+
+std::string	getBodyFromFile(const std::string& fileName);
 
 #endif // GET_HPP

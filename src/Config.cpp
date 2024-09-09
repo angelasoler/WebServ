@@ -44,7 +44,7 @@ CGIConfig::CGIConfig()
 ServerConfig::ServerConfig()
 	: host(DEFAULT_HOST),
 	  port(DEFAULT_SERVER_PORT),
-	  default_error_page(DEFAULT_ERROR_PAGE),
+	  default_error_page(),
 	  client_body_limit(DEFAULT_CLIENT_BODY_LIMIT),
 	  cgi()
 {}
@@ -110,7 +110,7 @@ void Config::processConfigLine(const std::string& line)
 		handleEndRoute();
 	else if (inServer && (iss >> value))
 	{
-		processServerConfig(key, value);
+		processServerConfig(key, value, iss);
 		processRouteConfig(key, value, iss);
 		processCGIConfig(key, value);
 	}
@@ -161,7 +161,7 @@ void Config::finalizeConfigParsing()
 	}
 }
 
-void Config::processServerConfig(const std::string& key, const std::string& value)
+void Config::processServerConfig(const std::string& key, const std::string& value, std::istringstream &iss)
 {
 	if (key == "server")
 		currentServer.host = value;
@@ -169,8 +169,13 @@ void Config::processServerConfig(const std::string& key, const std::string& valu
 		currentServer.port = std::atoi(value.c_str());
 	else if (key == "server_name")
 		currentServer.server_names.push_back(value);
-	else if (key == "error_page")
-		currentServer.default_error_page = value;
+	else if (key == "error_page") {
+		int	code;
+		std::string default_page;
+		std::istringstream(value) >> code;
+		iss >> default_page;
+		currentServer.default_error_page[code] = default_page;
+	}
 	else if (key == "client_body_limit")
 		currentServer.client_body_limit = std::atoi(value.c_str());
 }

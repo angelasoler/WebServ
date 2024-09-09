@@ -43,14 +43,14 @@ TEST(SubjectTests, ServerWithNoName) {
 TEST(SubjectTests, DefaultErrorPageConfig) {
 	// ARRANGE: Configuração do teste e inicialização
 	////
-	std::ofstream	defaultErrorFile("static_pages/error.html");
+	std::ofstream	defaultErrorFile("serverRoot/404.html");
 	defaultErrorFile << "<html><head><title>Error Title</title>"
-					<< "</head><body><h1>This is a default error page</h1></body></html>";
+					<< "</head><body><h1>sorry babe</h1></body></html>";
 	defaultErrorFile.close();
 	////
 	HttpResponse response;
 	CURL* curl;
-	start_server("subject-config-file/DefaultErrorPage.conf");
+	start_server("test/subject-config-file/DefaultErrorPage.conf");
 	curl = curl_easy_init();
 	ASSERT_NE(curl, nullptr);
 
@@ -68,7 +68,7 @@ TEST(SubjectTests, DefaultErrorPageConfig) {
 	// ASSERT: Verificar os resultados
 	EXPECT_EQ(res, CURLE_OK);
 	EXPECT_EQ(response.status_code, 404);
-	EXPECT_TRUE(response.body.find("This is a default error page") != std::string::npos);
+	EXPECT_TRUE(response.body.find("sorry babe") != std::string::npos);
 	//pegar title
 	EXPECT_TRUE(response.body.find("Error Title") != std::string::npos);
 
