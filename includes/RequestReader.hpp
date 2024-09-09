@@ -70,7 +70,6 @@ class RequestReader
 		int										_fdClient;
 		std::vector<char>						_fullRequest;
 		std::vector<char>						_rawBody;
-		std::vector<char>						_input;
 		ssize_t									_pos;
 };
 

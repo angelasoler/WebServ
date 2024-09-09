@@ -6,31 +6,91 @@ RequestReader::RequestReader() : _errorRead(false),
 	_headers(), _method(""),
 	_requestedRoute(""),
 	_httpVersion(""),
-	_requestBody() {}
+	_requestBody(),
+	_pos(0) {}
 
 RequestReader::~RequestReader(void) {}
 
 bool RequestReader::readHttpRequest(std::vector<char> &input) {
-
 	_fullRequest = input;
-	readStartLine();
-	if (_incompleted && !_errorRead) {
-		PrintRequestInfo::printVectorChar(_fullRequest, "Interrupted Request", "logs/interruptedRequest_StartLine.log");
-		return true;
+
+	// Convert the vector<char> to string for easier processing
+	std::string requestStr(input.begin(), input.end());
+
+	std::istringstream stream(requestStr);
+	std::string line;
+
+	// Parse the request line
+	if (std::getline(stream, line)) {
+		std::istringstream requestLine(line);
+		requestLine >> _method;            // Extract the method (e.g., GET, POST)
+		requestLine >> _requestedRoute;    // Extract the requested route (e.g., /index.html)
+		requestLine >> _httpVersion;       // Extract the HTTP version (e.g., HTTP/1.1)
 	}
-	readHeader();
-	if (_incompleted && !_errorRead) {
-		PrintRequestInfo::printVectorChar(_fullRequest, "Interrupted Request", "logs/interruptedRequest_Header.log");
-		return true;
+
+	// Parse the headers
+	bool bodyFound = false;
+	while (std::getline(stream, line)) {
+		if (line == "\r") {
+			// The empty line indicates the end of headers and start of the body
+			bodyFound = true;
+			break;
+		}
+
+		// Parse each header line
+		size_t separator = line.find(": ");
+		if (separator != std::string::npos) {
+			std::string headerName = line.substr(0, separator);
+			std::string headerValue = line.substr(separator + 2); // Skip ": "
+			headerValue.erase(headerValue.find_last_not_of("\r\n") + 1); // Remove trailing CRLF
+			_headers[headerName] = headerValue;
+		}
 	}
-	readBody();
-	if (_incompleted && !_errorRead) {
-		PrintRequestInfo::printVectorChar(_fullRequest, "Interrupted Request", "logs/interruptedRequest_Body.log");
-		return true;
+
+	// Parse the body if exists
+	if (bodyFound) {
+		std::string body((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+		_requestBody.assign(body.begin(), body.end());
+
+		std::string delimiter = "\r\n\r\n";
+		std::vector<char>::iterator it = std::search(_fullRequest.begin(), _fullRequest.end(), delimiter.begin(), delimiter.end());
+
+		if (it != _fullRequest.end()) {
+			_rawBody.insert(_rawBody.begin(), it + delimiter.size(), _fullRequest.end());
+
+			if (getHeader("Transfer-Encoding") == "chunked") {
+				this->_requestBody = processChunkedRequestBody(_rawBody);
+			} else {
+				_requestBody.insert(_requestBody.begin(), _rawBody.begin(), _rawBody.end());
+			}
+		}
 	}
+	PrintRequestInfo::printVectorChar(_requestBody, "Request_body", "logs/Request_body.log");
 	PrintRequestInfo::printVectorChar(_fullRequest, "raw Request", "logs/raw_Request.log");
-	return !_errorRead;
+	return (false);
 }
+
+// bool RequestReader::readHttpRequest(std::vector<char> &input) {
+
+// 	_fullRequest = input;
+// 	readStartLine();
+// 	if (_incompleted && !_errorRead) {
+// 		PrintRequestInfo::printVectorChar(_fullRequest, "Interrupted Request", "logs/interruptedRequest_StartLine.log");
+// 		return true;
+// 	}
+// 	readHeader();
+// 	if (_incompleted && !_errorRead) {
+// 		PrintRequestInfo::printVectorChar(_fullRequest, "Interrupted Request", "logs/interruptedRequest_Header.log");
+// 		return true;
+// 	}
+// 	readBody();
+// 	if (_incompleted && !_errorRead) {
+// 		PrintRequestInfo::printVectorChar(_fullRequest, "Interrupted Request", "logs/interruptedRequest_Body.log");
+// 		return true;
+// 	}
+// 	PrintRequestInfo::printVectorChar(_fullRequest, "raw Request", "logs/raw_Request.log");
+// 	return !_errorRead;
+// }
 
 void RequestReader::readStartLine(void) {
 	std::string line;
