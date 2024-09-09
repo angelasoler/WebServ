@@ -64,7 +64,7 @@ struct RequestInfo
 
 	// Reference
 	ServerConfig			serverRef;
-	RouteConfig				configRef;
+	RouteConfig				routeRef;
 
 	// About Body
 	std::string							contentType;

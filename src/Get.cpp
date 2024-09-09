@@ -23,7 +23,7 @@ int Get::handleRequest(void)
 	return 0;
 }
 
-std::string	Get::getBodyFromFile(const std::string& fileName)
+std::string	getBodyFromFile(const std::string& fileName)
 {
 	std::string ret;
 
@@ -61,7 +61,7 @@ int	Get::responseToFile(void)
 
 int	Get::responseToDirectory(void)
 {
-	if (response.requestInfo.configRef.directory_listing)
+	if (response.requestInfo.routeRef.directory_listing)
 	{
 		if (*response.requestInfo.fullPath.rbegin() != '/')
 		{
@@ -91,7 +91,7 @@ int	Get::responseToInvalid(void)
 
 int	Get::responseToRedirection(void)
 {
-	response.setHeader("Location", response.requestInfo.configRef.redirection);
+	response.setHeader("Location", response.requestInfo.routeRef.redirection);
 	return(307);
 }
 

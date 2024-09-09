@@ -56,7 +56,7 @@ std::string	identifyFullPath(RequestInfo &info)
 			fullPath = composeFullPath(routeConfig.root_directory, info.requestedRoute);
 		}
 	}
-	info.configRef = routeConfig;
+	info.routeRef = routeConfig;
 	return fullPath;
 }
 
@@ -65,7 +65,7 @@ e_pathType identifyType(RequestInfo &info)
 	if (info.requestedRoute == "/" && \
 		info.serverRef.routes.find("/") == info.serverRef.routes.end())
 		return UNKNOWN;
-	if (!info.configRef.redirection.empty())
+	if (!info.routeRef.redirection.empty())
 		return Redirection;
 	if (endsWith(info.fullPath, DEFAULT_CGI_EXTENSION))
 		return CGI;
@@ -73,9 +73,9 @@ e_pathType identifyType(RequestInfo &info)
 		return File;
 	if (*info.requestedRoute.rbegin() == '/' && *info.fullPath.rbegin() != '/')
 	{
-		if (isDirectory(info.configRef.root_directory))
+		if (isDirectory(info.routeRef.root_directory))
 		{
-			info.fullPath = info.configRef.root_directory + (endsWith(info.configRef.root_directory, "/") ? "" : "/");
+			info.fullPath = info.routeRef.root_directory + (endsWith(info.routeRef.root_directory, "/") ? "" : "/");
 			return Directory;
 		}
 	}
@@ -170,7 +170,7 @@ void	addFileToDirectoryPath(RequestInfo &info)
 			return ;
 		if (isFile(composeFullPath(info.fullPath, DEFAULT_FILE)))
 			info.fullPath = composeFullPath(info.fullPath, DEFAULT_FILE);
-		else if (isFile(composeFullPath(info.fullPath, info.configRef.default_file)))
-			info.fullPath = composeFullPath(info.fullPath, info.configRef.default_file);
+		else if (isFile(composeFullPath(info.fullPath, info.routeRef.default_file)))
+			info.fullPath = composeFullPath(info.fullPath, info.routeRef.default_file);
 	}
 }

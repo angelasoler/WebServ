@@ -11,9 +11,9 @@ int	Post::handleRequest(void)
 		return responseCGI(response);
 	add_post_log("\n\n-----Starting Upload-----\n");
 	RequestInfo &info = response.requestInfo;
-	uploadPath = info.configRef.root_directory + "/" + info.configRef.upload_directory + "/";
+	uploadPath = info.routeRef.root_directory + "/" + info.routeRef.upload_directory + "/";
 
-	if (info.configRef.upload_directory.empty()) {
+	if (info.routeRef.upload_directory.empty()) {
 		add_post_log("Upload Directory not Configured");
 		return 500;
 	}
@@ -103,4 +103,5 @@ std::string	Post::getFileName(int index)
 void add_post_log(const std::string& content) {
 	std::ofstream	logFd("logs/uploads.log", std::ios_base::app);
 	logFd << content << std::endl;
+	logFd.close();
 }

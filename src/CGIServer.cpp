@@ -61,6 +61,7 @@ void	CGIServer::CGIFeedLog(std::string buffer)
 		logFd << "\t\t======CGI stdout=======" << std::endl;
 		close(pipefderror[0]);
 		logFd << buffer;
+		logFd.close();
 		return ;
 	}
 	count = read(pipefderror[0], buffererror, sizeof(buffererror) - 1);
@@ -71,6 +72,7 @@ void	CGIServer::CGIFeedLog(std::string buffer)
 		logFd << "\t\t======CGI stderr=======" << std::endl;
 		logFd << buffererror;
 	}
+	logFd.close();
 }
 
 void CGIServer::readChildReturn(void)
@@ -107,7 +109,7 @@ void	CGIServer::waitAndReadChild(pid_t pid)
 		if (!waitpid(pid, &child_exit_status, WNOHANG)) {
 			kill(pid, SIGKILL);
 			waitpid(pid, &child_exit_status, 0);
-			child_exit_status = 1;
+			exit_code = 1;
 		}
 	}
 	readChildReturn();

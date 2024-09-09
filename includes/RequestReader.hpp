@@ -11,7 +11,10 @@
 # include <typeinfo>
 # include <vector>
 # include <fstream>
-#define CRLF			"\r\n"
+# include <sstream>
+# include <algorithm>
+# define CRLF	"\r\n"
+# define READ_BUFFER_SIZE 1024
 
 class RequestReader
 {
@@ -29,30 +32,30 @@ class RequestReader
 		std::vector<char>					getRawBody(void) const;
 		std::string							getHeader(std::string headerName) const;
 		std::string							getFullRequest(void) const;
-		int									getContentLength(void) const;
+		long int							getContentLength(void) const;
 		std::string							getRequestedRoute(void) const;
-		std::vector<std::string>			getMultipartHeaders(void) const;
-		std::vector<std::string>			getMultipartValues(void) const;
 	private:
 
 		// READ START LINE
-		void								readRequestStartLine(void);
+		void								readStartLine(void);
 
 		// READ REQUEST HEADER
-		void								readRequestHeader(void);
+		void								readHeader(void);
 
 		// READ REQUEST BODY
-		void								readRequestBody(void);
+		void								readBody(void);
+		std::vector<char>					processChunkedRequestBody(const std::vector<char>& chunkedRequestBody);
 		void								readRequestBodyChunked(void);
+		void								readRequestBodyChunkedMultipart(void);
 		size_t								readChunkSize();
-		void								readRequestBodyMultipart(void);
-		void								readMultipartInfo(const std::string& boundary, std::string &tempLine);
 
 		// READLINE AND UTILS
-		void								readLine(int fd, std::string &line, std::string delimiter, bool &error);
-		void								readLineBody(int fd, std::string &line, int contentLength, bool &error);
+		void	 							readUntilEOF(int fd);
+		void								readUntilSize(int fd, long int size);
+		void								readUntilCRLF(int fd, std::string &segment);
 		std::string							intToString(int value);
 		bool								isDelimiter(std::string line, std::string delimiter);
+		bool								requestCompleted(const std::vector<char> &vec);
 
 		// DEBUG
 		void								printHeaderDataStructure(void);
@@ -60,18 +63,15 @@ class RequestReader
 		// STATUS VARS
 		bool									_errorRead;
 		bool									_incompleted;
-		bool									_readRawBody;
 
 		// REQUEST VARS
 		std::map<std::string, std::string> 		_headers;
-		std::vector<std::string>				_multipartHeaders;
-		std::vector<std::string>				_multipartValues;
 		std::string								_method;
 		std::string								_requestedRoute;
 		std::string								_httpVersion;
-		std::string								_requestBody;
+		std::vector<char>						_requestBody;
 		int										_fdClient;
-		std::string								_fullRequest;
+		std::vector<char>						_fullRequest;
 		std::vector<char>						_rawBody;
 };
 

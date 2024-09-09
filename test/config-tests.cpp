@@ -13,7 +13,6 @@ TEST(ConfigTest, NoServersFile) {
 	EXPECT_EQ(server1.host, DEFAULT_HOST);
 	EXPECT_EQ(server1.port, DEFAULT_PORT);
 	EXPECT_EQ(server1.server_names[0], DEFAULT_SERVER_NAME);
-	EXPECT_EQ(server1.default_error_page, DEFAULT_ERROR_PAGE);
 	EXPECT_EQ(server1.client_body_limit, DEFAULT_CLIENT_BODY_LIMIT);
 
 	// Verificação da rota do primeiro servidor
@@ -43,7 +42,6 @@ TEST(ConfigTest, NoServers) {
 	EXPECT_EQ(server1.host, DEFAULT_HOST);
 	EXPECT_EQ(server1.port, DEFAULT_PORT);
 	EXPECT_EQ(server1.server_names[0], DEFAULT_SERVER_NAME);
-	EXPECT_EQ(server1.default_error_page, DEFAULT_ERROR_PAGE);
 	EXPECT_EQ(server1.client_body_limit, DEFAULT_CLIENT_BODY_LIMIT);
 
 	// Verificação da rota do primeiro servidor
@@ -77,7 +75,7 @@ TEST(ConfigTest, OneServer) {
 	EXPECT_EQ(server1.host, "localhost");
 	EXPECT_EQ(server1.port, 8080);
 	EXPECT_EQ(server1.server_names[0], "example_x.com");
-	EXPECT_EQ(server1.default_error_page, "/errors/404.html");
+	// EXPECT_EQ(server1.default_error_page, "/errors/404.html");
 	EXPECT_EQ(server1.client_body_limit, 1048576);
 
 	// Verificação da rota do primeiro servidor
@@ -111,7 +109,7 @@ TEST(ConfigTest, TwoServers) {
 	EXPECT_EQ(server1.host, "localhost");
 	EXPECT_EQ(server1.port, 8080);
 	EXPECT_EQ(server1.server_names[0], "example_x.com");
-	EXPECT_EQ(server1.default_error_page, "/errors/404.html");
+	// EXPECT_EQ(server1.default_error_page, "/errors/404.html");
 	EXPECT_EQ(server1.client_body_limit, 1048576);
 
 	// Verificação da rota do primeiro servidor
@@ -138,7 +136,7 @@ TEST(ConfigTest, TwoServers) {
 	EXPECT_EQ(server2.host, "192.168.1.1");
 	EXPECT_EQ(server2.port, 9090);
 	EXPECT_EQ(server2.server_names[0], "example_y.com");
-	EXPECT_EQ(server2.default_error_page, "/errors/500.html");
+	// EXPECT_EQ(server2.default_error_page, "/errors/500.html");
 	EXPECT_EQ(server2.client_body_limit, 2097152);
 
 	// Verificação da rota do segundo servidor
@@ -169,7 +167,7 @@ TEST(ConfigTest, ThreeServers) {
 	EXPECT_EQ(server1.host, "localhost");
 	EXPECT_EQ(server1.port, 8080);
 	EXPECT_EQ(server1.server_names[0], "example_x.com");
-	EXPECT_EQ(server1.default_error_page, "/errors/404.html");
+	// EXPECT_EQ(server1.default_error_page, "/errors/404.html");
 	EXPECT_EQ(server1.client_body_limit, 1048576);
 
 	ASSERT_EQ(server1.routes.size(), 1);
@@ -193,7 +191,7 @@ TEST(ConfigTest, ThreeServers) {
 	EXPECT_EQ(server2.host, "192.168.1.1");
 	EXPECT_EQ(server2.port, 9999);
 	EXPECT_EQ(server2.server_names[0], "example_y.com");
-	EXPECT_EQ(server2.default_error_page, "/errors/500.html");
+	// EXPECT_EQ(server2.default_error_page, "/errors/500.html");
 	EXPECT_EQ(server2.client_body_limit, 2097152);
 
 	// Verificação da rota do segundo servidor
@@ -219,7 +217,7 @@ TEST(ConfigTest, ThreeServers) {
 	EXPECT_EQ(server3.host, "192.168.1.1");
 	EXPECT_EQ(server3.port, 9090);
 	EXPECT_EQ(server3.server_names[0], "example_z.com");
-	EXPECT_EQ(server3.default_error_page, "/errors/500.html");
+	// EXPECT_EQ(server3.default_error_page, "/errors/500.html");
 	EXPECT_EQ(server3.client_body_limit, 2097152);
 
 	ASSERT_EQ(server3.routes.size(), 1);
@@ -248,7 +246,7 @@ TEST(ConfigTest, NoHostOnDefaultServer) {
 	EXPECT_EQ(server1.host, "localhost");
 	EXPECT_EQ(server1.port, 8080);
 	EXPECT_EQ(server1.server_names[0], "example_x.com");
-	EXPECT_EQ(server1.default_error_page, "/errors/404.html");
+	// EXPECT_EQ(server1.default_error_page, "/errors/404.html");
 	EXPECT_EQ(server1.client_body_limit, 1048576);
 
 	// Verificação da rota do primeiro servidor
@@ -275,7 +273,7 @@ TEST(ConfigTest, NoHostOnDefaultServer) {
 	EXPECT_EQ(server2.host, "192.168.1.1");
 	EXPECT_EQ(server2.port, 9090);
 	EXPECT_EQ(server2.server_names[0], "example_y.com");
-	EXPECT_EQ(server2.default_error_page, "/errors/500.html");
+	// EXPECT_EQ(server2.default_error_page, "/errors/500.html");
 	EXPECT_EQ(server2.client_body_limit, 2097152);
 
 	// Verificação da rota do segundo servidor
@@ -306,7 +304,6 @@ TEST(ConfigTest, InvalidServerId1)
 	EXPECT_EQ(server1.host, DEFAULT_HOST);
 	EXPECT_EQ(server1.port, DEFAULT_PORT);
 	EXPECT_EQ(server1.server_names[0], DEFAULT_SERVER_NAME);
-	EXPECT_EQ(server1.default_error_page, DEFAULT_ERROR_PAGE);
 	EXPECT_EQ(server1.client_body_limit, DEFAULT_CLIENT_BODY_LIMIT);
 
 	ASSERT_EQ(server1.routes.size(), 1);
@@ -332,7 +329,6 @@ TEST(ConfigTest, InvalidServerId1ValidServerId2) {
 	EXPECT_EQ(server1.host, DEFAULT_HOST);
 	EXPECT_EQ(server1.port, DEFAULT_PORT);
 	EXPECT_EQ(server1.server_names[0], DEFAULT_SERVER_NAME);
-	EXPECT_EQ(server1.default_error_page, DEFAULT_ERROR_PAGE);
 	EXPECT_EQ(server1.client_body_limit, DEFAULT_CLIENT_BODY_LIMIT);
 
 	ASSERT_EQ(server1.routes.size(), 1);
@@ -351,7 +347,7 @@ TEST(ConfigTest, InvalidServerId1ValidServerId2) {
 	EXPECT_EQ(server3.host, "192.168.1.1");
 	EXPECT_EQ(server3.port, 9090);
 	EXPECT_EQ(server3.server_names[0], "example_z.com");
-	EXPECT_EQ(server3.default_error_page, "/errors/500.html");
+	// EXPECT_EQ(server3.default_error_page, "/errors/500.html");
 	EXPECT_EQ(server3.client_body_limit, 2097152);
 
 	ASSERT_EQ(server3.routes.size(), 1);

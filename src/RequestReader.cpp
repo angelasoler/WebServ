@@ -1,212 +1,227 @@
 #include "RequestReader.hpp"
-# include <sstream>
+#include "PrintRequestInfo.hpp"
 
-RequestReader::RequestReader(void) : _errorRead(false), _incompleted(false), _readRawBody(false), _headers(), _method(""), _requestedRoute(""), _httpVersion(""), _requestBody("") {}
+RequestReader::RequestReader(void) : _errorRead(false),
+	_incompleted(false),
+	_headers(), _method(""),
+	_requestedRoute(""),
+	_httpVersion(""),
+	_requestBody() {}
 
 RequestReader::~RequestReader(void) {}
 
-bool    RequestReader::readHttpRequest(int &fdConection)
-{
+bool RequestReader::readHttpRequest(int &fdConection) {
 	this->_fdClient = fdConection;
-	readRequestStartLine();
-	if (_incompleted && !_errorRead)
+	readStartLine();
+	if (_incompleted && !_errorRead) {
+		PrintRequestInfo::printVectorChar(_fullRequest, "Interrupted Request", "logs/interruptedRequest_StartLine.log");
 		return true;
-	readRequestHeader();
-	if (_incompleted && !_errorRead)
+	}
+	readHeader();
+	if (_incompleted && !_errorRead) {
+		PrintRequestInfo::printVectorChar(_fullRequest, "Interrupted Request", "logs/interruptedRequest_Header.log");
 		return true;
-	readRequestBody();
-	if (_incompleted && !_errorRead)
+	}
+	readBody();
+	if (_incompleted && !_errorRead) {
+		PrintRequestInfo::printVectorChar(_fullRequest, "Interrupted Request", "logs/interruptedRequest_Body.log");
 		return true;
-	if (_errorRead)
-		return false;
-	return true;
+	}
+	PrintRequestInfo::printVectorChar(_fullRequest, "raw Request", "logs/raw_Request.log");
+	return !_errorRead;
 }
 
-
-// READ START LINE
-void RequestReader::readRequestStartLine(void)
-{
+void RequestReader::readStartLine(void) {
 	std::string line;
-
-	readLine(_fdClient, line, CRLF, this->_errorRead);
-	if (!line.empty())
-	{
-		this->_fullRequest += line +  "\n";
+	readUntilCRLF(_fdClient, line);
+	if (!line.empty()) {
 		std::istringstream lineStream(line);
-		if (!(lineStream >> this->_method)) {
+		if (!(lineStream >> this->_method) ||
+			!(lineStream >> this->_requestedRoute) ||
+			!(lineStream >> this->_httpVersion)) {
 			this->_incompleted = true;
-			return;
-		}
-		if (!(lineStream >> this->_requestedRoute)) {
-			this->_incompleted = true;
-			return;
-		}
-		if (!(lineStream >> this->_httpVersion)) {
-			this->_incompleted = true;
-			return;
 		}
 	}
 }
 
-// READ REQUEST HEADER
-void 	RequestReader::readRequestHeader(void)
-{
+void RequestReader::readHeader(void) {
 	std::string line;
-
-	while (true)
-	{
-		readLine(this->_fdClient, line, CRLF, this->_errorRead);
-		if (line == CRLF || line.empty() || _errorRead)
-		{
-			if (_errorRead)
+	while (true) {
+		readUntilCRLF(_fdClient, line);
+		if (line == CRLF || line.empty() || _errorRead) {
+			if (_errorRead) {
+				PrintRequestInfo::printVectorChar(_fullRequest, "headerIncomplete_Request bytes_readed = -1 ", "logs/headerIncomplete_Request.log");
 				this->_incompleted = true;
+			}
 			break;
 		}
-		else
-		{
-			size_t colonPos = line.find(':');
-			if (colonPos != std::string::npos)
-			{
-				size_t lastNonCRLF = line.find_last_not_of(CRLF);
-				if (lastNonCRLF != std::string::npos)
-				{
-					line = line.substr(0, lastNonCRLF + 1);
-					std::string headerName = line.substr(0, colonPos);
-					std::string headerValue = line.substr(colonPos + 2);
-					this->_headers[headerName] = headerValue;
-
-				}
+		size_t colonPos = line.find(':');
+		if (colonPos != std::string::npos) {
+			size_t lastNonCRLF = line.find_last_not_of(CRLF);
+			if (lastNonCRLF != std::string::npos) {
+				line = line.substr(0, lastNonCRLF + 1);
+				std::string headerName = line.substr(0, colonPos);
+				std::string headerValue = line.substr(colonPos + 2);
+				this->_headers[headerName] = headerValue;
 			}
 		}
-		this->_fullRequest += line + "\n";
 	}
 	printHeaderDataStructure();
 }
 
-// READ REQUEST BODY
-void RequestReader::readRequestBody(void)
-{
-	_readRawBody = true;
-	if (getHeader("Transfer-Encoding") == "chunked")
-	{
-		readRequestBodyChunked();
-	}
-	else if (!getHeader("Content-Type").empty() && getHeader("Content-Type").find("multipart/form-data") != std::string::npos)
-	{
-		readRequestBodyMultipart();
-	}
-	else if (!getHeader("Content-Length").empty())
-	{
-			std::string tempLine;
+void RequestReader::readBody(void) {
+	if (_method != "POST") return;
 
-		readLineBody(this->_fdClient, tempLine, getContentLength(), this->_errorRead);
-		this->_requestBody += tempLine;
-		this->_fullRequest += tempLine + "\n";
+	long int contentLength = getContentLength();
+	if (contentLength > 0) {
+		readUntilSize(this->_fdClient, contentLength);
+	} else {
+		readUntilEOF(this->_fdClient);
+	}
+
+	if (_errorRead)
+		return;
+
+	std::string delimiter = "\r\n\r\n";
+	std::vector<char>::iterator it = std::search(_fullRequest.begin(), _fullRequest.end(), delimiter.begin(), delimiter.end());
+
+	if (it != _fullRequest.end()) {
+		_rawBody.insert(_rawBody.begin(), it + delimiter.size(), _fullRequest.end());
+
+		if (getHeader("Transfer-Encoding") == "chunked") {
+			this->_requestBody = processChunkedRequestBody(_rawBody);
+		} else {
+			_requestBody.insert(_requestBody.begin(), _rawBody.begin(), _rawBody.end());
+		}
 	}
 }
 
-void RequestReader::readRequestBodyChunked()
+// CHUNK
+std::vector<char> RequestReader::processChunkedRequestBody(const std::vector<char>& chunkedRequestBody) {
+	std::vector<char> result;
+	std::size_t i = 0;
+
+	while (i < chunkedRequestBody.size()) {
+		// Find the chunk size (hexadecimal line)
+		std::string sizeStr;
+		while (i < chunkedRequestBody.size() && chunkedRequestBody[i] != '\r') {
+			sizeStr.push_back(chunkedRequestBody[i]);
+			++i;
+		}
+
+		// Skip '\r\n'
+		i += 2;
+
+		// Convert the chunk size from hexadecimal to decimal
+		std::size_t chunkSize;
+		std::stringstream ss;
+		ss << std::hex << sizeStr;
+		ss >> chunkSize;
+
+		if (chunkSize == 0) {
+			break;
+		}
+
+		// Copy the chunk content to the result
+		result.insert(result.end(), chunkedRequestBody.begin() + i, chunkedRequestBody.begin() + i + chunkSize);
+		i += chunkSize;
+
+		// Skip '\r\n' after the chunk
+		i += 2;
+	}
+
+	return result;
+}
+
+// READ AND UTILS
+void	 RequestReader::readUntilEOF(int fd)
 {
-	std::size_t	length = 0;
+	ssize_t		numberBytes;
+	char		buffer;
+
+	while (true)	
+	{
+		numberBytes = recv(fd, &buffer, 1, 0);
+		if (numberBytes < 0) {
+			if (requestCompleted(_fullRequest))
+				break;
+			PrintRequestInfo::printVectorChar(_fullRequest, std::string("readUntilEOF bytes_readed = " + numberBytes), "logs/readUntilEOF_Request.log");
+			this->_errorRead = true;
+			break ;
+		}
+		if (numberBytes == 0) {
+			break ;
+		}
+		_fullRequest.push_back(buffer);
+	}
+}
+
+void RequestReader::readUntilSize(int fd, long int size)
+{
+	ssize_t numberBytes;
+	std::vector<char> buffer(size);
+	numberBytes = recv(fd, &buffer[0], size, 0);
+	if (numberBytes <= 0) {
+		PrintRequestInfo::printVectorChar(_fullRequest, std::string("read_until_size_Request bytes_readed = " + numberBytes), "logs/readUntilSize_Request.log");
+		this->_errorRead = true;
+		return ;
+	}
+	_fullRequest.insert(_fullRequest.end(), buffer.begin(), buffer.begin() + numberBytes);
+}
+
+void	RequestReader::readUntilCRLF(int fd, std::string &segment)
+{
+	char		buffer = 0;
+	ssize_t		numberBytes = 0;
 	std::string	tempLine;
-	std::size_t	chunkSize = readChunkSize();
 
-	while (chunkSize > 0)
-	{
-		readLine(this->_fdClient, tempLine, CRLF, this->_errorRead);
-		this->_requestBody += tempLine;
-		this->_fullRequest += tempLine;
-
-		length += chunkSize;
-		readLine(this->_fdClient, tempLine, CRLF, this->_errorRead);
-		chunkSize = readChunkSize();
+	while (true) {
+		numberBytes = recv(fd, &buffer, 1, 0);
+		if (numberBytes == -1) {
+			PrintRequestInfo::printVectorChar(_fullRequest, std::string("readUntilCRLF_Request bytes_readed = " + numberBytes), "logs/readUntilCRLF_Request.log");
+			this->_errorRead = true;
+			break;
+		}
+		if (numberBytes == 0) {
+			PrintRequestInfo::printVectorChar(_fullRequest, std::string("readUntilCRLF_Request bytes_readed = " + numberBytes), "logs/readUntilCRLF_Request.log");
+			this->_errorRead = true;
+			break;
+		}
+		tempLine += buffer;
+		this->_fullRequest.push_back(buffer);
+		if (isDelimiter(tempLine, CRLF))
+			break;
 	}
-	this->_headers["Content-Length"] = intToString(length);
+	segment = tempLine;
+	if (isDelimiter(tempLine, CRLF))
+		segment.resize(segment.rfind(CRLF));
 }
 
-size_t  RequestReader::readChunkSize(void)
+std::string RequestReader::intToString(int value)
 {
-	std::string line;
-	std::string chunkSizeLine;
-
-	readLine(this->_fdClient, line, CRLF, this->_errorRead);
-	std::size_t chunkSize = 0;
-
-	if (line == "")
-		return 0;
-	chunkSizeLine = line.substr(0,  line.find(" "));
-
 	std::stringstream ss;
-	ss << std::hex << chunkSizeLine;
-	ss >> chunkSize;
-	return chunkSize;
+	ss << value;
+	return ss.str();
 }
 
-void RequestReader::readRequestBodyMultipart(void)
+bool	RequestReader::isDelimiter(std::string line, std::string delimiter)
 {
-	std::string tempLine;
-	size_t pos;
-
-	readLineBody(this->_fdClient, tempLine, getContentLength(), this->_errorRead);
-	pos = getHeader("Content-Type").find("boundary=", 0);
-	if (pos != std::string::npos)
-	{
-		std::string boundary = getHeader("Content-Type").substr(pos + 9);
-		readMultipartInfo(boundary, tempLine);
-	}
-	this->_requestBody += tempLine;
-	this->_fullRequest += tempLine + "\n";
-
+	return (line.rfind(delimiter) != std::string::npos);
 }
 
-void RequestReader::readMultipartInfo(const std::string& boundary, std::string &tempLine)
-{
-	size_t boundaryPos = 0;
-	size_t contentStart = 0;
-	std::string multipartHeader;
+bool RequestReader::requestCompleted(const std::vector<char> &vec) {
+	ssize_t size = vec.size();
 
-	while ((boundaryPos = tempLine.find(boundary, boundaryPos)) != std::string::npos)
-	{
-		contentStart = tempLine.find("\r\n\r\n", boundaryPos);
-		if (contentStart == std::string::npos)
-		{
-			return;
-		}
-
-		multipartHeader = tempLine.substr(boundaryPos + boundary.size(), contentStart - (boundaryPos + boundary.size()));
-		// std::cerr << "Multipart header:\n\t" << multipartHeader << std::endl;
-		_multipartHeaders.push_back(multipartHeader);
-
-		contentStart += 4; // Pular "\r\n\r\n"
-		if (contentStart >= tempLine.size())
-		{
-			return;
-		}
-
-		size_t contentEnd = tempLine.find(boundary, contentStart);
-		if (contentEnd == std::string::npos)
-		{
-			contentEnd = tempLine.size();
-		}
-
-		// Remover possíveis '\r', '\n' e '-' do final do conteúdo
-		while (contentEnd > contentStart && (tempLine[contentEnd - 1] == '\r' || tempLine[contentEnd - 1] == '\n' || tempLine[contentEnd - 1] == '-'))
-		{
-			--contentEnd;
-		}
-
-		std::string multipartValue = tempLine.substr(contentStart, contentEnd - contentStart);
-		// std::cerr << "Multipart body:\n\t" << multipartValues << std::endl;
-		_multipartValues.push_back(multipartValue);
-
-		// Atualizar tempLine para o conteúdo restante após o bodypart
-		tempLine = tempLine.substr(contentEnd);
-
-		// Ajustar boundaryPos para a próxima ocorrência do boundary
-		boundaryPos = 0;
+	if (size < 4) {
+		return false;
 	}
-}
+	char last1 = vec[size - 4];
+	char last2 = vec[size - 3];
+	char last3 = vec[size - 2];
+	char last4 = vec[size - 1];
 
+	return (last1 == '\r' && last2 == '\n' && last3 == '\r' && last4 == '\n');
+}
 
 // GETTERS
 std::string RequestReader::getMethod(void) const
@@ -226,7 +241,7 @@ std::string RequestReader::getHttpVersion(void) const
 
 std::string RequestReader::getBody(void) const
 {
-	return this->_requestBody;
+	return std::string(_requestBody.begin(), _requestBody.end());
 }
 
 std::vector<char>	RequestReader::getRawBody(void) const
@@ -250,10 +265,10 @@ std::string RequestReader::getHeader(std::string headerName) const
 
 std::string RequestReader::getFullRequest(void) const
 {
-	return this->_fullRequest;
+	return std::string(this->_fullRequest.begin(), this->_fullRequest.end());
 }
 
-int RequestReader::getContentLength() const
+long int RequestReader::getContentLength() const
 {
 	std::string contentLengthStr = getHeader("Content-Length");
 
@@ -264,108 +279,20 @@ int RequestReader::getContentLength() const
 	return 0;
 }
 
-std::vector<std::string>	RequestReader::getMultipartHeaders(void) const
-{
-	return _multipartHeaders;
-}
-
-std::vector<std::string>	RequestReader::getMultipartValues(void) const
-{
-	return _multipartValues;
-}
-
-
-// READ LINE UTILS
-void	 RequestReader::readLine(int fd, std::string &line, std::string delimiter, bool &error)
-{
-	char		buffer[2] = {0};
-	ssize_t		numberBytes;
-	std::string tempLine;
-
-	while (true)
-	{
-		numberBytes = recv(fd, buffer, 1, 0);
-		if (numberBytes == -1)
-		{
-			error = true;
-			// std::cerr << "readLine: " << "bytes readed: " << numberBytes << std::endl;
-			break;
-		}
-		if (numberBytes == 0)
-		{
-			error = true;
-			// std::cerr << "readLine: " << "bytes readed: " << numberBytes << std::endl;
-			break ;
-		}
-		tempLine += buffer;
-		if (_readRawBody)
-			_rawBody.push_back(buffer[0]);
-		if (isDelimiter(tempLine, delimiter))
-			break ;
-	}
-	line = tempLine;
-	if (isDelimiter(tempLine, delimiter))
-		line.resize(line.rfind(delimiter));
-}
-
-void	 RequestReader::readLineBody(int fd, std::string &line, int contentLength, bool &error)
-{
-	ssize_t		numberBytes;
-	char		buffer[20] = {0};
-
-	while (true)	
-	{
-		if (!contentLength)
-			break;
-		numberBytes = recv(fd, buffer, 20, 0);
-		if (numberBytes == -1)
-		{
-			error = true;
-			// std::cerr << "readLineBody: " << "bytes readed: " << numberBytes << std::endl;
-			break;
-		}
-		if (numberBytes == 0)
-		{
-			error = true;
-			// std::cerr << "readLineBody: " << "bytes readed: " << numberBytes << std::endl;
-			break ;
-		}
-		contentLength -= numberBytes;
-		if (_readRawBody) {
-			_rawBody.insert(_rawBody.end(), buffer, buffer + numberBytes);
-		}
-		line.append(buffer, numberBytes);
-		memset(buffer, 0, 20);
-	}
-}
-
-std::string RequestReader::intToString(int value)
-{
-	std::stringstream ss;
-	ss << value;
-	return ss.str();
-}
-
-bool	RequestReader::isDelimiter(std::string line, std::string delimiter)
-{
-	return (line.rfind(delimiter) != std::string::npos);
-}
-
-
 // DEBUG
 void RequestReader::printHeaderDataStructure(void)
 {
 	std::map<std::string, std::string>::iterator headerIt;
-	std::ofstream parsedRequest("logs/parsedHeader.log");
+	std::ofstream parsedRequest("logs/parsedHeader.log", std::ios_base::app);
 
 	if (!parsedRequest.is_open()) {
 		return;
 	}
-	parsedRequest << "\t\t === parsed header ===" << std::endl;
+	parsedRequest << "\t\t === PARSED HEADER ===\n" << std::endl;
 	for (headerIt = _headers.begin(); headerIt != _headers.end(); ++headerIt) {
-		parsedRequest << headerIt->first << std::endl;
-		parsedRequest << "\t" << headerIt->second << std::endl;
+		parsedRequest << headerIt->first << ": ";
+		parsedRequest << headerIt->second << std::endl;
 	}
-	parsedRequest << "\t\t === \t\t ===" << std::endl;
+	parsedRequest << "\n\t\t === END OF HEADER ===" << std::endl << "\n";
 	parsedRequest.close();
 }

@@ -116,6 +116,11 @@ std::string Response::getStatusMessage(void)
 
 std::string Response::getDefaultPage(void)
 {
+	if (requestInfo.serverRef.default_error_page.find(statusCode) != requestInfo.serverRef.default_error_page.end() && \
+		!requestInfo.serverRef.default_error_page[statusCode].empty()) {
+		std::string content = getBodyFromFile(requestInfo.serverRef.default_error_page[statusCode]);
+		return (content);
+	}
 	switch (statusCode)
 	{
 		case 201: return CREATED_SUCCESSFULLY;
