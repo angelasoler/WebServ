@@ -130,30 +130,20 @@ TEST(GETstatusCodes, Request403) {
 	stop_server();
 }
 
-//TO-DO: make with telnet
+///////////////
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
+// bad request is typically due to malformed request syntax, 
+// invalid request message framing, or deceptive request routing.
+///////////////
 TEST(GETstatusCodes, Request400) {
-	HttpResponse response;
-	CURL* curl;
+	// ARRANGE
 	start_server("");
-	curl = curl_easy_init();
-	ASSERT_NE(curl, nullptr);
 
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
-	// bad request is typically due to malformed request syntax, 
-	// invalid request message framing, or deceptive request routing.
-	curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080/https://badrequest/");
-	curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
-	curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, HeaderCallback);
-	curl_easy_setopt(curl, CURLOPT_HEADERDATA, &response);
-	CURLcode res = curl_easy_perform(curl);
-	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response.status_code);
-
-	EXPECT_EQ(res, CURLE_OK);
-	EXPECT_EQ(response.status_code, 400);
-	EXPECT_TRUE(response.body.find("Bad Request") != std::string::npos);
-
-	curl_easy_cleanup(curl);
+	// ACT
+	std::string response = exec("test/scripts/test-telnet-400.sh");
 	stop_server();
+
+	//ASSERT
+	EXPECT_NE(response.find("400"), std::string::npos);
+	EXPECT_NE(response.find("ERROR"), std::string::npos);
 }

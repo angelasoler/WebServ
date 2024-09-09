@@ -84,7 +84,7 @@ std::string Response::getStatusMessage(void)
 		case 405: return "Method Not Allowed";
 		case 408: return "Request Timeout";
 		case 409: return "Conflict";
-		case 413: return "Payload Too Large";
+		case 413: return "Request Entity Too Large";
 		case 500: return "Internal Server Error";
 		case 501: return "Not Implemented";
 		case 503: return "Service Unavailable";
@@ -147,7 +147,8 @@ void	Response::printResponse(std::string &response)
 // SENDING
 void Response::sendResponse(void)
 {
-	std::string response = buildResponse();
+	std::string	response = buildResponse();
+
 	printResponse(response);
 	int ret = send(client_fd, response.c_str(), response.size(), 0);
 	if (ret == -1)

@@ -7,6 +7,10 @@ Post::~Post(void) {}
 
 int	Post::handleRequest(void)
 {
+	if (response.requestInfo.serverRef.client_body_limit < response.requestInfo.rawBody.size()) {
+		add_post_log("Body is greater than body limits");
+		return 413;
+	}
 	if (response.requestInfo.pathType == CGI)
 		return responseCGI(response);
 	add_post_log("\n\n-----Starting Upload-----\n");
