@@ -109,7 +109,7 @@ void	CGIServer::waitAndReadChild(pid_t pid)
 		if (!waitpid(pid, &child_exit_status, WNOHANG)) {
 			kill(pid, SIGKILL);
 			waitpid(pid, &child_exit_status, 0);
-			child_exit_status = 1;
+			exit_code = 1;
 		}
 	}
 	readChildReturn();
