@@ -11,7 +11,8 @@
 class Connection
 {
 	private:
-		Request						request;
+		std::map<int, Request>			request;
+		std::map<int, Response>			response;
 		std::vector<Server>			servers;
 		size_t						nPolls;
 

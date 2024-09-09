@@ -62,6 +62,7 @@ class Response
 	public:
 		RequestInfo	requestInfo;
 
+		Response();
 		Response(RequestInfo info, int fd);
 		~Response(void);
 

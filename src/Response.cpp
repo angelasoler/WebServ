@@ -5,6 +5,8 @@
 #include <unistd.h>
 # include "TimeNow.hpp"
 
+Response::Response() {}
+
 Response::Response(RequestInfo info, int fd) : client_fd(fd), requestInfo(info)
 {
 	mimeTypes["html"]	= "text/html";
