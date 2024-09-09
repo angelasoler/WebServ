@@ -76,7 +76,7 @@ bool	Request::readRequest(int client_fd)
 		// Verificar se a requisição está completa (cabeçalho e corpo)
 		if (isComplete(clientRequests[client_fd])) {
 			requestReader = RequestReader();
-			requestReader.readHttpRequest(client_fd);
+			requestReader.readHttpRequest(clientRequests[client_fd]);
 			info.action = RESPONSE;
 			break;  // Já temos todos os dados, podemos parar de ler
 		}

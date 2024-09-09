@@ -23,7 +23,7 @@ class RequestReader
 		RequestReader();
 		~RequestReader();
 
-		bool								readHttpRequest(int &fdConection);
+		bool								readHttpRequest(std::vector<char> &input);
 
 		// GETTERS
 		std::string							getMethod(void) const;
@@ -45,14 +45,11 @@ class RequestReader
 		// READ REQUEST BODY
 		void								readBody(void);
 		std::vector<char>					processChunkedRequestBody(const std::vector<char>& chunkedRequestBody);
-		void								readRequestBodyChunked(void);
-		void								readRequestBodyChunkedMultipart(void);
-		size_t								readChunkSize();
 
 		// READLINE AND UTILS
-		void	 							readUntilEOF(int fd);
-		void								readUntilSize(int fd, long int size);
-		void								readUntilCRLF(int fd, std::string &segment);
+		void	 							readUntilEOF(void);
+		void								readUntilSize(long int size);
+		void								readUntilCRLF(std::string &segment);
 		std::string							intToString(int value);
 		bool								isDelimiter(std::string line, std::string delimiter);
 		bool								requestCompleted(const std::vector<char> &vec);
@@ -73,6 +70,8 @@ class RequestReader
 		int										_fdClient;
 		std::vector<char>						_fullRequest;
 		std::vector<char>						_rawBody;
+		std::vector<char>						_input;
+		ssize_t									_pos;
 };
 
 #endif
