@@ -55,7 +55,7 @@ struct ServerConfig
 	std::string					host;
 	int 						port;
 	std::vector<std::string>	server_names;
-	std::string					default_error_page;
+	std::map<int, std::string>	default_error_page;
 	size_t						client_body_limit;
 	CGIConfig					cgi;
 	std::map<std::string, RouteConfig>	routes;
@@ -75,7 +75,7 @@ class Config
 		void	finishServer(void);
 		void	finishRoute(void);
 		void	processConfigLine(const std::string &line);
-		void	processServerConfig(const std::string& key, const std::string& value);
+		void	processServerConfig(const std::string& key, const std::string& value, std::istringstream &iss);
 		void	processRouteConfig(const std::string& key, const std::string& value, std::istringstream &iss);
 		void	processCGIConfig(const std::string& key, const std::string& value);
 		void	addServer(const ServerConfig& server);

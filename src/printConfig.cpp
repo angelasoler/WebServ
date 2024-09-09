@@ -40,8 +40,14 @@ void printServerConfig(ServerConfig& serverConfig, std::ofstream &fd)
 	}
 	fd << std::endl;
 
-	fd << "Default Error Page: " 
-		<< serverConfig.default_error_page << std::endl;
+	std::map<int, std::string>::iterator it;
+	for (it = serverConfig.default_error_page.begin(); it != serverConfig.default_error_page.end(); it++)
+	{
+		fd << "Default Error Page: " 
+			<< it->first
+			<< " "
+			<< it->first << std::endl;
+	}
 	fd << "Client Body Limit: " 
 		<< serverConfig.client_body_limit << std::endl;
 
