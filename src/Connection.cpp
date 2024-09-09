@@ -63,7 +63,9 @@ void	Connection::readClientRequest(int client_fd)
 
 void	Connection::responseToClient(int client_fd)
 {
-	response[client_fd] = Response(request[client_fd].info, client_fd);
+	if (response.find(client_fd) == response.end()) {
+		response[client_fd] = Response(request[client_fd].info, client_fd);
+	}
 	response[client_fd].treatActionAndResponse();
 	request[client_fd].requestsText.clear();
 }
