@@ -55,10 +55,7 @@ void	Connection::connectNewClient(Server &refServer)
 
 void	Connection::readClientRequest(int client_fd)
 {
-	if (request.readRequest(client_fd))
-		request.info.action = CLOSE;
-	else
-		request.info.action = RESPONSE;
+	request.readRequest(client_fd);
 }
 
 void	Connection::responseToClient(int client_fd)
@@ -70,7 +67,9 @@ void	Connection::responseToClient(int client_fd)
 
 void	Connection::treatRequest(int client_fd)
 {
-	if (request.requestsText.empty()) {
+	if (request.info.action == AWAIT)
+		return ;
+	if (request.clientRequests[client_fd].empty()) {
 		request.info.action = RESPONSE;
 		return ;
 	}
@@ -105,17 +104,18 @@ void	Connection::verifyServerPollin(void)
 	}
 }
 
-void	Connection::cleanClient(int clientIdx)
-{
+void Connection::cleanClient(int clientIdx) {
+    int client_fd = poll_fds[clientIdx].fd;
+
+    // if (request.info.action == CLOSE || poll_fds[clientIdx].revents & (POLLRDHUP | POLLHUP)) {
 	if (request.info.action == CLOSE) {
-		std::cout << "\n ***** Close Client *****\n"
-				<< "\tfd:\t"
-				<< poll_fds[clientIdx].fd
-				<< "\nclient correctly cleaned"
-				<< std::endl;
-		close(poll_fds[clientIdx].fd);
-		poll_fds.erase(poll_fds.begin() + clientIdx);
-	}
+        std::cout << "\n ***** Close Client *****\n"
+                  << "\tfd:\t" << client_fd << "\nclient correctly cleaned" << std::endl;
+
+        close(client_fd);
+        poll_fds.erase(poll_fds.begin() + clientIdx);
+        request.clientRequests.erase(client_fd);
+    }
 }
 
 void	Connection::requestResponse(void)

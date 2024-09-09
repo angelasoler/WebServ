@@ -25,6 +25,8 @@ void	Response::treatActionAndResponse(void)
 		case DELETE:
 			method = new Delete(*this);
 			break ;
+		case AWAIT:
+			return ;
 		case CLOSE:
 			return ;
 	}

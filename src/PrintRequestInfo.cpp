@@ -93,6 +93,7 @@ const char* PrintRequestInfo::httpMethodActionToString(e_httpMethodActions actio
 		case UPLOAD: return "UPLOAD";
 		case DELETE: return "DELETE";
 		case CLOSE: return "CLOSE";
+		case AWAIT: return "AWAIT";
 		default: return "UNKNOWN";
 	}
 }

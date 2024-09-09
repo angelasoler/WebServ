@@ -33,7 +33,8 @@ typedef enum
 	RESPONSE,
 	UPLOAD,
 	DELETE,
-	CLOSE
+	CLOSE,
+	AWAIT
 }	e_httpMethodActions;
 
 typedef enum
@@ -92,9 +93,10 @@ class Request
 		// Aux Parsing
 		e_httpMethodActions									getMethodAction(void);
 	public:
-		std::string			requestsText;
-		RequestReader		requestReader;
-		RequestInfo			info;
+		std::map<int, std::vector<char> >	clientRequests;
+		std::string							requestsText;
+		RequestReader						requestReader;
+		RequestInfo							info;
 
 		Request(void);
 		~Request(void);
