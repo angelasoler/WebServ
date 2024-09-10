@@ -59,7 +59,7 @@ void	Server::bindSocket(void)
 
 void	Server::listenSocket(void)
 {
-	if (listen(fd, 3) < 0)
+	if (listen(fd, 1024) < 0)
 	{
 		handleError("Listen failed");
 	}
