@@ -80,7 +80,7 @@ bool isComplete(const std::vector<char>& clientRequestText) {
 
 bool	Request::readRequest(int client_fd)
 {
-	char buffer[1024];  // Buffer temporário para leitura
+	char buffer[102400];  // Buffer temporário para leitura
 	ssize_t bytes_read;
 
 	// Leitura não-bloqueante dos dados do cliente
