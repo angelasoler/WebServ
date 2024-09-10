@@ -1,4 +1,4 @@
-NAME			= webServer
+NAME			= webserv
 FLAGS			= -Wall -Wextra -Werror -std=c++98 -g
 SRC_PATH		= src/
 SRC_FILES		= $(wildcard $(SRC_PATH)*.cpp)
@@ -44,4 +44,13 @@ resetLogs:
 	@rm -rf logs
 	@mkdir logs
 
-.PHONY: all clean fclean re run git valgrind v resetLogs
+kill-process:
+	@PID=$$(ps aux | grep $(NAME) | grep -v grep | awk '{print $$2}' | head -n 1); \
+	if [ -z "$$PID" ]; then \
+	  echo "Processo '$(NAME)' não encontrado!"; \
+	else \
+	  echo "Matando o processo '$(NAME)' com PID: $$PID"; \
+	  kill -9 $$PID; \
+	fi
+
+.PHONY: all clean fclean re run git valgrind v resetLogs kill-process

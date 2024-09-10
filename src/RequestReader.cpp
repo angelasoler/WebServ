@@ -1,99 +1,62 @@
 #include "RequestReader.hpp"
 #include "PrintRequestInfo.hpp"
 
-RequestReader::RequestReader(void) : _errorRead(false),
-	_incompleted(false),
-	_headers(), _method(""),
+RequestReader::RequestReader() : _headers(), _method(""),
 	_requestedRoute(""),
-	_httpVersion(""),
-	_requestBody() {}
+	_httpVersion("") {}
 
 RequestReader::~RequestReader(void) {}
 
-bool RequestReader::readHttpRequest(int &fdConection) {
-	this->_fdClient = fdConection;
-	readStartLine();
-	if (_incompleted && !_errorRead) {
-		PrintRequestInfo::printVectorChar(_fullRequest, "Interrupted Request", "logs/interruptedRequest_StartLine.log");
-		return true;
-	}
-	readHeader();
-	if (_incompleted && !_errorRead) {
-		PrintRequestInfo::printVectorChar(_fullRequest, "Interrupted Request", "logs/interruptedRequest_Header.log");
-		return true;
-	}
-	readBody();
-	if (_incompleted && !_errorRead) {
-		PrintRequestInfo::printVectorChar(_fullRequest, "Interrupted Request", "logs/interruptedRequest_Body.log");
-		return true;
-	}
-	PrintRequestInfo::printVectorChar(_fullRequest, "raw Request", "logs/raw_Request.log");
-	return !_errorRead;
-}
+bool RequestReader::readHttpRequest(std::vector<char> &input) {
+	_fullRequest = input;
 
-void RequestReader::readStartLine(void) {
-	std::string line;
-	readUntilCRLF(_fdClient, line);
-	if (!line.empty()) {
-		std::istringstream lineStream(line);
-		if (!(lineStream >> this->_method) ||
-			!(lineStream >> this->_requestedRoute) ||
-			!(lineStream >> this->_httpVersion)) {
-			this->_incompleted = true;
-		}
-	}
-}
+	PrintRequestInfo::printVectorChar(_fullRequest, "fullRequest", "logs/fullRequest.log");
+	std::string requestStr(input.begin(), input.end());
 
-void RequestReader::readHeader(void) {
+	std::istringstream stream(requestStr);
 	std::string line;
-	while (true) {
-		readUntilCRLF(_fdClient, line);
-		if (line == CRLF || line.empty() || _errorRead) {
-			if (_errorRead) {
-				PrintRequestInfo::printVectorChar(_fullRequest, "headerIncomplete_Request bytes_readed = -1 ", "logs/headerIncomplete_Request.log");
-				this->_incompleted = true;
-			}
+
+	if (std::getline(stream, line)) {
+		std::istringstream requestLine(line);
+		requestLine >> _method;
+		requestLine >> _requestedRoute;
+		requestLine >> _httpVersion;
+	}
+
+	bool bodyFound = false;
+	while (std::getline(stream, line)) {
+		if (line == "\r") {
+			bodyFound = true;
 			break;
 		}
-		size_t colonPos = line.find(':');
-		if (colonPos != std::string::npos) {
-			size_t lastNonCRLF = line.find_last_not_of(CRLF);
-			if (lastNonCRLF != std::string::npos) {
-				line = line.substr(0, lastNonCRLF + 1);
-				std::string headerName = line.substr(0, colonPos);
-				std::string headerValue = line.substr(colonPos + 2);
-				this->_headers[headerName] = headerValue;
+
+		size_t separator = line.find(": ");
+		if (separator != std::string::npos) {
+			std::string headerName = line.substr(0, separator);
+			std::string headerValue = line.substr(separator + 2);
+			headerValue.erase(headerValue.find_last_not_of("\r\n") + 1);
+			_headers[headerName] = headerValue;
+		}
+	}
+
+	if (bodyFound) {
+		std::string delimiter = "\r\n\r\n";
+		std::vector<char>::iterator it = std::search(_fullRequest.begin(), _fullRequest.end(), delimiter.begin(), delimiter.end());
+
+		if (it != _fullRequest.end())
+		{
+			_rawBody.insert(_rawBody.begin(), it + delimiter.size(), _fullRequest.end());
+
+			if (getHeader("Transfer-Encoding") == "chunked") {
+				this->_requestBody = processChunkedRequestBody(_rawBody);
+			} else {
+				_requestBody.insert(_requestBody.begin(), _rawBody.begin(), _rawBody.end());
 			}
 		}
 	}
-	printHeaderDataStructure();
-}
-
-void RequestReader::readBody(void) {
-	if (_method != "POST") return;
-
-	long int contentLength = getContentLength();
-	if (contentLength > 0) {
-		readUntilSize(this->_fdClient, contentLength);
-	} else {
-		readUntilEOF(this->_fdClient);
-	}
-
-	if (_errorRead)
-		return;
-
-	std::string delimiter = "\r\n\r\n";
-	std::vector<char>::iterator it = std::search(_fullRequest.begin(), _fullRequest.end(), delimiter.begin(), delimiter.end());
-
-	if (it != _fullRequest.end()) {
-		_rawBody.insert(_rawBody.begin(), it + delimiter.size(), _fullRequest.end());
-
-		if (getHeader("Transfer-Encoding") == "chunked") {
-			this->_requestBody = processChunkedRequestBody(_rawBody);
-		} else {
-			_requestBody.insert(_requestBody.begin(), _rawBody.begin(), _rawBody.end());
-		}
-	}
+	PrintRequestInfo::printVectorChar(_requestBody, "Request_body", "logs/Request_body.log");
+	PrintRequestInfo::printVectorChar(_fullRequest, "raw Request", "logs/raw_Request.log");
+	return (false);
 }
 
 // CHUNK
@@ -133,6 +96,7 @@ std::vector<char> RequestReader::processChunkedRequestBody(const std::vector<cha
 	return result;
 }
 
+<<<<<<< HEAD
 // READ AND UTILS
 void	 RequestReader::readUntilEOF(int fd)
 {
@@ -223,6 +187,9 @@ bool RequestReader::requestCompleted(const std::vector<char> &vec) {
 	return (last1 == '\r' && last2 == '\n' && last3 == '\r' && last4 == '\n');
 }
 
+=======
+// UTILS
+>>>>>>> 0e6cf13c654a9de3492df1f945f5f069e60fdcd5
 // GETTERS
 std::string RequestReader::getMethod(void) const
 {
