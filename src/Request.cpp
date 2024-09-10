@@ -29,7 +29,8 @@ bool isComplete(const std::vector<char>& clientRequestText) {
 	std::vector<char>::const_iterator it = std::search(clientRequestText.begin(), clientRequestText.end(), 
 													   headerEnd, headerEnd + 4);
 	if (it == clientRequestText.end()) {
-		return false;  // O cabeçalho ainda não foi completamente recebido
+		// std::cerr << "isComplete: CCCCCCCC " << "\n" << std::endl;
+		return true;  // O cabeçalho ainda não foi completamente recebido
 	}
 
 	size_t header_end = std::distance(clientRequestText.begin(), it);
@@ -48,6 +49,7 @@ bool isComplete(const std::vector<char>& clientRequestText) {
 			size_t content_length = std::atoi(content_length_str.c_str());
 			// Verificar se o corpo da requisição foi completamente recebido
 			size_t total_length = header_end + 4 + content_length;
+			// std::cerr << "isComplete: BBBBBB " << "\n" << std::endl;
 			if (clientRequestText.size() >= total_length) {
 				return true;  // Cabeçalho e corpo completos
 			} else {
@@ -56,6 +58,7 @@ bool isComplete(const std::vector<char>& clientRequestText) {
 		}
 	}
 
+	// std::cerr << "isComplete: AAAAAAAAAA " << "\n" << std::endl;
 	RequestReader	requestReader;
 	if (requestReader.requestCompleted(clientRequestText))
 		return true;
@@ -89,19 +92,21 @@ bool	Request::readRequest(int client_fd)
 		
 		if (bytes_read == 0) {
 			
-			std::cout << "Client closed connection (fd: " << client_fd << ")" << std::endl;
+			// std::cerr << "readRequest: Client closed connection (fd: " << client_fd << ")" << std::endl;
 			info.action = CLOSE;
 			break ;
 		}
 
 		if (bytes_read < 0) {
-			std::cout << "No data available for now on client fd: " << client_fd << std::endl;
+			// std::cerr << "readRequest: No data available for now on client fd: " << client_fd << std::endl;
 			info.action = AWAIT_READ;
 			break ;
 		}		
 
+		// std::cerr << "readRequest: Times: " << client_fd << std::endl;
 		requestVec.insert(requestVec.end(), buffer, buffer + bytes_read);
 
+		PrintRequestInfo::printVectorChar(requestVec, "Request_Vec", "logs/Request_Vec.log");
 		if (isComplete(requestVec)) {
 			requestReader = RequestReader();
 			requestReader.readHttpRequest(requestVec);

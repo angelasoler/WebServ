@@ -57,10 +57,8 @@ void	Connection::readClientRequest(int client_fd)
 {
 	if (request[client_fd].info.action == AWAIT_WRITE)
 		return;
-	if (request[client_fd].readRequest(client_fd))
-		request[client_fd].info.action = CLOSE;
-	else
-		request[client_fd].info.action = RESPONSE;
+	request[client_fd].readRequest(client_fd);
+	// std::cerr << "info.action: " << request[client_fd].info.action << "\n";
 }
 
 void	Connection::responseToClient(int client_fd)

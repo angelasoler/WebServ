@@ -133,7 +133,7 @@ TEST(RequestInfoTest, HandlesPostRequestWithHtmlBody) {
 		"POST /uploads HTTP/1.1\r\n"
 		"Host: localhost\r\n"
 		"Content-Type: text/html\r\n"
-		"Content-Length: 51\r\n\r\n"
+		"Content-Length: 47\r\n\r\n"
 		"<html><body><p>This is a test</p></body></html>";
 
 	RequestInfo requestInfo = parsePOSTHttpRequest(postRequest);
