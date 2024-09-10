@@ -100,7 +100,7 @@ std::string formatSize(off_t item_size)
 	std::stringstream	size;
 	const char			*unity[] = {"B", "KB", "MB", "GB"};
 	const int			division[] = {1, 1024, 1024 * 1024, 1024 * 1024 * 1024};
-	int					pos = 4;
+	int					pos = 3;
 
 	while (item_size < division[pos] && pos > 0)
 		pos--;
