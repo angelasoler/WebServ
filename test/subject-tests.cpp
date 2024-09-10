@@ -105,7 +105,7 @@ TEST(SubjectTests, MethodNotAllowed) {
 	// ARRANGE: Configuração do teste e inicialização
 	HttpResponse response;
 	CURL* curl;
-	start_server("subject-config-file/NoNameServer.conf");
+	start_server("");
 	curl = curl_easy_init();
 	ASSERT_NE(curl, nullptr);
 
