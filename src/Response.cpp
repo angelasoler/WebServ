@@ -7,7 +7,7 @@
 
 Response::Response() {}
 
-Response::Response(RequestInfo info, int fd) : client_fd(fd), requestInfo(info)
+Response::Response(RequestInfo info, int fd) : client_fd(fd), response(""), requestInfo(info)
 {
 	mimeTypes["html"]	= "text/html";
 	mimeTypes["htm"]	= "text/html";
@@ -48,6 +48,9 @@ void	Response::treatActionAndResponse(void)
 			break ;
 		case DELETE:
 			method = new Delete(*this);
+			break ;
+		case AWAIT_WRITE:
+			sendResponse();
 			break ;
 		default:
 			return ;
@@ -201,12 +204,17 @@ void	Response::printResponse(std::string &response)
 // SENDING
 void Response::sendResponse(void)
 {
-	std::string	response = buildResponse();
+	if (response.empty())
+		setResponseStr();
 
-	printResponse(response);
 	int ret = send(client_fd, response.c_str(), response.size(), 0);
 	if (ret == -1)
 		requestInfo.action = CLOSE;
+}
+
+void Response::setResponseStr(void) {
+	response = buildResponse();
+	printResponse(response);
 }
 
 int			Response::getClientFd(void)

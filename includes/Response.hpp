@@ -45,6 +45,7 @@ class Response
 		ResponseMsg	responseMsg;
 		int			client_fd;
 		int			statusCode;
+		std::string	response;
 
 		// PARSING
 		std::string	buildResponse(void);
@@ -72,6 +73,7 @@ class Response
 		void		setHeader(const std::string& key, const std::string& value);
 		std::string	getDefaultPage(void);
 		void		sendResponse(void);
+		void		setResponseStr(void);
 };
 
 #endif /* RESPONSE_HPP */
