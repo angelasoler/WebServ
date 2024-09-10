@@ -29,36 +29,39 @@ bool isComplete(const std::vector<char>& clientRequestText) {
 	std::vector<char>::const_iterator it = std::search(clientRequestText.begin(), clientRequestText.end(), 
 													   headerEnd, headerEnd + 4);
 	if (it == clientRequestText.end()) {
-		// std::cerr << "isComplete: CCCCCCCC " << "\n" << std::endl;
+		std::cerr << "isComplete: CCCCCCCC " << "\n" << std::endl;
 		return true;  // O cabeçalho ainda não foi completamente recebido
 	}
 
-	size_t header_end = std::distance(clientRequestText.begin(), it);
+	ssize_t header_end = std::distance(clientRequestText.begin(), it);
 
 	// Procurar a posição do Content-Length no cabeçalho
 	const char* contentLengthStr = "Content-Length: ";
 	it = std::search(clientRequestText.begin(), clientRequestText.end(), 
 					 contentLengthStr, contentLengthStr + 16);
 	if (it != clientRequestText.end()) {
-		size_t start_pos = std::distance(clientRequestText.begin(), it) + 16;
+		ssize_t start_pos = std::distance(clientRequestText.begin(), it) + 16;
 		it = std::find(clientRequestText.begin() + start_pos, clientRequestText.end(), '\r');
 		if (it != clientRequestText.end()) {
-			size_t end_pos = std::distance(clientRequestText.begin(), it);
+			ssize_t end_pos = std::distance(clientRequestText.begin(), it);
 			std::string content_length_str(clientRequestText.begin() + start_pos, clientRequestText.begin() + end_pos);
 
-			size_t content_length = std::atoi(content_length_str.c_str());
+			ssize_t content_length = std::atoi(content_length_str.c_str());
+			std::cerr << "content_length: " << content_length << "\n" << std::endl;
+			std::cerr << "clientRequestText size: " << (ssize_t)clientRequestText.size()<< "\n" << std::endl;
 			// Verificar se o corpo da requisição foi completamente recebido
-			size_t total_length = header_end + 4 + content_length;
-			// std::cerr << "isComplete: BBBBBB " << "\n" << std::endl;
-			if (clientRequestText.size() >= total_length) {
+			ssize_t total_length = header_end + 4 + content_length;
+			if ((ssize_t)clientRequestText.size() >= total_length) {
+				std::cerr << "isComplete: BBBBBB " << "\n" << std::endl;
 				return true;  // Cabeçalho e corpo completos
 			} else {
+				// std::cerr << "isComplete: zzzzzz " << "\n" << std::endl;
 				return false;  // Ainda falta parte do corpo
 			}
 		}
 	}
 
-	// std::cerr << "isComplete: AAAAAAAAAA " << "\n" << std::endl;
+	std::cerr << "isComplete: AAAAAAAAAA " << "\n" << std::endl;
 	RequestReader	requestReader;
 	if (requestReader.requestCompleted(clientRequestText))
 		return true;
@@ -80,40 +83,42 @@ bool isComplete(const std::vector<char>& clientRequestText) {
 
 bool	Request::readRequest(int client_fd)
 {
-	char buffer[102400];  // Buffer temporário para leitura
+	int times = 0;
+	(void)times;
+	std::vector<char> buffer(13881283);  // Buffer temporário para leitura
 	ssize_t bytes_read;
 
 	// Leitura não-bloqueante dos dados do cliente
 	while (true) {
 		
-		bytes_read = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
-		buffer[bytes_read] = '\0';  // Garantir terminação de string
+		bytes_read = recv(client_fd, &buffer[0], 13881283, 0);
 
 		
 		if (bytes_read == 0) {
 			
-			// std::cerr << "readRequest: Client closed connection (fd: " << client_fd << ")" << std::endl;
+			std::cerr << "readRequest: Client closed connection (fd: " << client_fd << ")" << std::endl;
 			info.action = CLOSE;
 			break ;
 		}
 
 		if (bytes_read < 0) {
-			// std::cerr << "readRequest: No data available for now on client fd: " << client_fd << std::endl;
+			std::cerr << "readRequest: No data available for now on client fd: " << client_fd << std::endl;
 			info.action = AWAIT_READ;
 			break ;
 		}		
 
-		// std::cerr << "readRequest: Times: " << client_fd << std::endl;
-		requestVec.insert(requestVec.end(), buffer, buffer + bytes_read);
+		// std::cerr << "readRequest: Times: " << times++ << std::endl;
+		requestVec.insert(requestVec.end(), buffer.begin(), buffer.begin() + bytes_read);
 
 		PrintRequestInfo::printVectorChar(requestVec, "Request_Vec", "logs/Request_Vec.log");
 		if (isComplete(requestVec)) {
+			std::cerr << "Request Size " << requestVec.size() << std::endl;
 			requestReader = RequestReader();
 			requestReader.readHttpRequest(requestVec);
 			info.action = RESPONSE;
 			break;  // Já temos todos os dados, podemos parar de ler
 		}
-		memset(buffer, 0, 1024);
+		// memset(buffer, 0, 12881283);
 	}
 	return false;
 }
