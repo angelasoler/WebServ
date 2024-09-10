@@ -61,52 +61,52 @@ bool isComplete(const std::vector<char>& clientRequestText) {
 	return true;
 }
 
-bool	Request::readRequest(int client_fd)
-{
-	requestsText.clear();
-	info = RequestInfo();
-	requestReader = RequestReader();
-	if (!requestReader.readHttpRequest(client_fd))
-		return (true);
-	requestsText = requestReader.getFullRequest();
-	printRequest();
-	return false;
-}
-
 // bool	Request::readRequest(int client_fd)
 // {
-// 	char buffer[1024];  // Buffer temporário para leitura
-// 	ssize_t bytes_read;
-
-// 	// Leitura não-bloqueante dos dados do cliente
-// 	while ((bytes_read = recv(client_fd, buffer, sizeof(buffer) - 1, 0)) > 0) {
-// 		buffer[bytes_read] = '\0';  // Garantir terminação de string
-
-// 		// Adicionar os dados lidos ao buffer específico do cliente
-// 		requestVec.insert(requestVec.end(), buffer, buffer + bytes_read);
-
-// 		// Verificar se a requisição está completa (cabeçalho e corpo)
-// 		if (isComplete(requestVec)) {
-// 			requestReader = RequestReader();
-// 			// requestReader.readHttpRequest(requestVec);
-// 			info.action = RESPONSE;
-// 			break;  // Já temos todos os dados, podemos parar de ler
-// 		}
-// 	}
-
-// 	// Se recv retornar 0, o cliente fechou a conexão de escrita (EOF)
-// 	if (bytes_read == 0) {
-// 		std::cout << "Client closed connection (fd: " << client_fd << ")" << std::endl;
-// 		info.action = CLOSE;
-// 	}
-
-// 	// Se recv retornar -1, significa que não havia dados disponíveis para leitura agora
-// 	if (bytes_read < 0) {
-// 		std::cout << "No data available for now on client fd: " << client_fd << std::endl;
-// 		info.action = AWAIT_READ;
-// 	}
+// 	requestsText.clear();
+// 	info = RequestInfo();
+// 	requestReader = RequestReader();
+// 	if (!requestReader.readHttpRequest(client_fd))
+// 		return (true);
+// 	requestsText = requestReader.getFullRequest();
+// 	printRequest();
 // 	return false;
 // }
+
+bool	Request::readRequest(int client_fd)
+{
+	char buffer[1024];  // Buffer temporário para leitura
+	ssize_t bytes_read;
+
+	// Leitura não-bloqueante dos dados do cliente
+	while ((bytes_read = recv(client_fd, buffer, sizeof(buffer) - 1, 0)) > 0) {
+		buffer[bytes_read] = '\0';  // Garantir terminação de string
+
+		// Adicionar os dados lidos ao buffer específico do cliente
+		requestVec.insert(requestVec.end(), buffer, buffer + bytes_read);
+
+		// Verificar se a requisição está completa (cabeçalho e corpo)
+		if (isComplete(requestVec)) {
+			requestReader = RequestReader();
+			requestReader.readHttpRequest(requestVec);
+			info.action = RESPONSE;
+			break;  // Já temos todos os dados, podemos parar de ler
+		}
+	}
+
+	// Se recv retornar 0, o cliente fechou a conexão de escrita (EOF)
+	if (bytes_read == 0) {
+		std::cout << "Client closed connection (fd: " << client_fd << ")" << std::endl;
+		info.action = CLOSE;
+	}
+
+	// Se recv retornar -1, significa que não havia dados disponíveis para leitura agora
+	if (bytes_read < 0) {
+		std::cout << "No data available for now on client fd: " << client_fd << std::endl;
+		info.action = AWAIT_READ;
+	}
+	return false;
+}
 
 void	adjustRoute(std::string &route)
 {

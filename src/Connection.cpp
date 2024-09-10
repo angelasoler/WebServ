@@ -83,7 +83,7 @@ void	Connection::treatRequest(int client_fd)
 		responseToClient(client_fd);
 		return;
 	}
-	if (request[client_fd].requestsText.empty()) {
+	if (request[client_fd].requestVec.empty()) {
 		request[client_fd].info.action = RESPONSE;
 		return ;
 	}
@@ -146,9 +146,7 @@ void	Connection::requestResponse(void)
 			cleanClient(clientIdx);
 		}
 		if (poll_fds[clientIdx].revents & POLLOUT) {
-			// std::cerr << "bbb: " << request[client_fd].info.action << "\n";
 			treatRequest(client_fd);
-			// std::cerr << "aaa: " << request[client_fd].info.action << "\n";
 			cleanClient(clientIdx);
 		}
 	}
