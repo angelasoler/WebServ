@@ -60,6 +60,8 @@ class Response
 		void	printResponse(std::string &response);
 		void	buildContentType(void);
 
+		// log
+		void 	sendLogs(int ret, size_t bytesSent, size_t bytesToSend);
 	public:
 		RequestInfo	requestInfo;
 

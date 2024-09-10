@@ -51,7 +51,7 @@ void	Response::treatActionAndResponse(void)
 			break ;
 		case AWAIT_WRITE:
 			sendResponse();
-			break ;
+			return ;
 		default:
 			return ;
 	}
@@ -207,34 +207,39 @@ void Response::sendResponse(void)
 	if (response.empty())
 		setResponseStr();
 
-    // Calcula o número de bytes restantes a serem enviados
-    size_t bytesToSend = response.size() - bytesSent;
+	size_t bytesToSend = response.size() - bytesSent;
 
-    // Envia os dados a partir do ponto onde parou
-    int ret = send(client_fd, response.c_str() + bytesSent, bytesToSend, 0);
+	int ret = send(client_fd, response.c_str() + bytesSent, bytesToSend, 0);
+	sendLogs(ret, bytesSent, bytesToSend);
+	if (ret == -1)
+	{
+		requestInfo.action = AWAIT_WRITE;
+	}
+	else
+	{
+		bytesSent += ret;
 
-    if (ret == -1)
-    {
-        // Caso haja erro no envio, marca para tentar de novo depois
-        requestInfo.action = AWAIT_WRITE;
-    }
-    else
-    {
-        // Atualiza a quantidade de bytes enviados
-        bytesSent += ret;
+		if (bytesSent < response.size())
+		{
+			requestInfo.action = AWAIT_WRITE;
+		}
+		else
+		{
+			requestInfo.action = CLOSE;
+		}
+	}
+}
 
-        // Verifica se todos os dados foram enviados
-        if (bytesSent < response.size())
-        {
-            // Ainda há dados a enviar, então aguarda nova tentativa
-            requestInfo.action = AWAIT_WRITE;
-        }
-        else
-        {
-            // Todos os dados foram enviados, pode fechar a conexão ou finalizar o processamento
-            requestInfo.action = CLOSE;
-        }
-    }
+void Response::sendLogs(int ret, size_t bytesSent, size_t bytesToSend) {
+	std::ofstream responseLog("logs/send.log", std::ios_base::app);
+	responseLog << std::endl << TimeNow();
+	responseLog << "\nfd: " << client_fd
+				<< "\nret: " << ret
+				<< "\nbytesSent: " << bytesSent
+				<< "\nbytesToSend: " << bytesToSend
+				<< "\n-----------------------"
+				<< std::endl;
+	responseLog.close();
 }
 
 void Response::setResponseStr(void) {

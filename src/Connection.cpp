@@ -77,6 +77,12 @@ void	Connection::responseToClient(int client_fd)
 
 void	Connection::treatRequest(int client_fd)
 {
+	if (request[client_fd].info.action == AWAIT_READ)
+		return;
+	if (request[client_fd].info.action == AWAIT_WRITE) {
+		responseToClient(client_fd);
+		return;
+	}
 	if (request[client_fd].requestsText.empty()) {
 		request[client_fd].info.action = RESPONSE;
 		return ;
@@ -133,12 +139,16 @@ void	Connection::requestResponse(void)
 {
 	for (size_t clientIdx = nServers; clientIdx < poll_fds.size(); clientIdx++)
 	{
+		int client_fd = poll_fds[clientIdx].fd;
+
 		if (poll_fds[clientIdx].revents & POLLIN) {
-			readClientRequest(poll_fds[clientIdx].fd);
+			readClientRequest(client_fd);
 			cleanClient(clientIdx);
 		}
 		if (poll_fds[clientIdx].revents & POLLOUT) {
-			treatRequest(poll_fds[clientIdx].fd);
+			// std::cerr << "bbb: " << request[client_fd].info.action << "\n";
+			treatRequest(client_fd);
+			// std::cerr << "aaa: " << request[client_fd].info.action << "\n";
 			cleanClient(clientIdx);
 		}
 	}
