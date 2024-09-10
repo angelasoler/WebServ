@@ -7,7 +7,7 @@
 
 Response::Response() {}
 
-Response::Response(RequestInfo info, int fd) : client_fd(fd), response(""), requestInfo(info)
+Response::Response(RequestInfo info, int fd) : client_fd(fd), response(""), bytesSent(0), requestInfo(info)
 {
 	mimeTypes["html"]	= "text/html";
 	mimeTypes["htm"]	= "text/html";
@@ -207,9 +207,34 @@ void Response::sendResponse(void)
 	if (response.empty())
 		setResponseStr();
 
-	int ret = send(client_fd, response.c_str(), response.size(), 0);
-	if (ret == -1)
-		requestInfo.action = CLOSE;
+    // Calcula o número de bytes restantes a serem enviados
+    size_t bytesToSend = response.size() - bytesSent;
+
+    // Envia os dados a partir do ponto onde parou
+    int ret = send(client_fd, response.c_str() + bytesSent, bytesToSend, 0);
+
+    if (ret == -1)
+    {
+        // Caso haja erro no envio, marca para tentar de novo depois
+        requestInfo.action = AWAIT_WRITE;
+    }
+    else
+    {
+        // Atualiza a quantidade de bytes enviados
+        bytesSent += ret;
+
+        // Verifica se todos os dados foram enviados
+        if (bytesSent < response.size())
+        {
+            // Ainda há dados a enviar, então aguarda nova tentativa
+            requestInfo.action = AWAIT_WRITE;
+        }
+        else
+        {
+            // Todos os dados foram enviados, pode fechar a conexão ou finalizar o processamento
+            requestInfo.action = CLOSE;
+        }
+    }
 }
 
 void Response::setResponseStr(void) {

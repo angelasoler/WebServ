@@ -46,6 +46,7 @@ class Response
 		int			client_fd;
 		int			statusCode;
 		std::string	response;
+		size_t		bytesSent;
 
 		// PARSING
 		std::string	buildResponse(void);
