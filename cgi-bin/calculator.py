@@ -20,7 +20,6 @@ else:
     result = "Operação inválida ou divisão por zero"
 
 # Retorna o resultado em formato HTML
-# print("Content-Type: text/html\n")
 print(f"<html><body><h1>Resultado: {result}</h1></body></html>")
 
 # "GET /cgi-bin/calculator.py?num1=2&num2=3&operation=add HTTP/1.1"
