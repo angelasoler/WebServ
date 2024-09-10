@@ -57,10 +57,8 @@ void	Connection::readClientRequest(int client_fd)
 {
 	if (request[client_fd].info.action == AWAIT_WRITE)
 		return;
-	if (request[client_fd].readRequest(client_fd))
-		request[client_fd].info.action = CLOSE;
-	else
-		request[client_fd].info.action = RESPONSE;
+	request[client_fd].readRequest(client_fd);
+	// std::cerr << "info.action: " << request[client_fd].info.action << "\n";
 }
 
 void	Connection::responseToClient(int client_fd)
@@ -83,7 +81,7 @@ void	Connection::treatRequest(int client_fd)
 		responseToClient(client_fd);
 		return;
 	}
-	if (request[client_fd].requestsText.empty()) {
+	if (request[client_fd].requestVec.empty()) {
 		request[client_fd].info.action = RESPONSE;
 		return ;
 	}
@@ -146,9 +144,7 @@ void	Connection::requestResponse(void)
 			cleanClient(clientIdx);
 		}
 		if (poll_fds[clientIdx].revents & POLLOUT) {
-			// std::cerr << "bbb: " << request[client_fd].info.action << "\n";
 			treatRequest(client_fd);
-			// std::cerr << "aaa: " << request[client_fd].info.action << "\n";
 			cleanClient(clientIdx);
 		}
 	}

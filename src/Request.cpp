@@ -23,90 +23,108 @@ void	Request::printRequest(void)
 	requestLog.close();
 }
 
-bool isComplete(const std::vector<char>& clientRequestText) {
-	// Procurar o fim do cabeçalho HTTP
-	const char* headerEnd = "\r\n\r\n";
-	std::vector<char>::const_iterator it = std::search(clientRequestText.begin(), clientRequestText.end(), 
-													   headerEnd, headerEnd + 4);
-	if (it == clientRequestText.end()) {
-		return false;  // O cabeçalho ainda não foi completamente recebido
+
+bool Request::findEndRequest(const std::vector<char> &vec) {
+	ssize_t size = vec.size();
+
+	if (size < 4) {
+		return false;
 	}
+	char last1 = vec[size - 4];
+	char last2 = vec[size - 3];
+	char last3 = vec[size - 2];
+	char last4 = vec[size - 1];
 
-	size_t header_end = std::distance(clientRequestText.begin(), it);
+	return (last1 == '\r' && last2 == '\n' && last3 == '\r' && last4 == '\n');
+}
 
-	// Procurar a posição do Content-Length no cabeçalho
+ssize_t Request::findContentLength(const std::vector<char>& clientRequestText) {
 	const char* contentLengthStr = "Content-Length: ";
-	it = std::search(clientRequestText.begin(), clientRequestText.end(), 
-					 contentLengthStr, contentLengthStr + 16);
+	std::vector<char>::const_iterator it = std::search(clientRequestText.begin(), clientRequestText.end(),
+													   contentLengthStr, contentLengthStr + 16);
+
 	if (it != clientRequestText.end()) {
-		size_t start_pos = std::distance(clientRequestText.begin(), it) + 16;
+		ssize_t start_pos = std::distance(clientRequestText.begin(), it) + 16;
 		it = std::find(clientRequestText.begin() + start_pos, clientRequestText.end(), '\r');
 		if (it != clientRequestText.end()) {
-			size_t end_pos = std::distance(clientRequestText.begin(), it);
+			ssize_t end_pos = std::distance(clientRequestText.begin(), it);
 			std::string content_length_str(clientRequestText.begin() + start_pos, clientRequestText.begin() + end_pos);
 
-			size_t content_length = std::atoi(content_length_str.c_str());
+			ssize_t content_length = std::atoi(content_length_str.c_str());
+			return content_length;
+		}
+	}
+	return -1;
+}
 
-			// Verificar se o corpo da requisição foi completamente recebido
-			size_t total_length = header_end + 4 + content_length;
-			if (clientRequestText.size() >= total_length) {
-				return true;  // Cabeçalho e corpo completos
-			} else {
-				return false;  // Ainda falta parte do corpo
-			}
+bool Request::isComplete(const std::vector<char>& clientRequestText) {
+
+	if (header_end == -1) {
+		const char* headerEnd = "\r\n\r\n";
+		std::vector<char>::const_iterator it = std::search(clientRequestText.begin(), clientRequestText.end(),
+														   headerEnd, headerEnd + 4);
+		if (it == clientRequestText.end()) {
+			return true;
+		}
+		header_end = std::distance(clientRequestText.begin(), it);
+	}
+	if (content_length == -1) {
+		content_length = findContentLength(clientRequestText);
+	}
+
+	if (content_length != -1)
+	{
+		ssize_t total_length = header_end + 4 + content_length;
+		if ((ssize_t)clientRequestText.size() >= total_length) {
+			return true;
+		}
+		else {
+			return false;
 		}
 	}
 
-	// Se não houver Content-Length, assumimos que não há corpo, então a requisição está completa
-	return true;
+
+	if (findEndRequest(clientRequestText)) {
+		return true;
+	}
+
+	return false;
 }
 
 bool	Request::readRequest(int client_fd)
 {
-	requestsText.clear();
-	info = RequestInfo();
-	requestReader = RequestReader();
-	if (!requestReader.readHttpRequest(client_fd))
-		return (true);
-	requestsText = requestReader.getFullRequest();
-	printRequest();
+	if (info.action != AWAIT_READ) {
+		header_end = -1;
+		content_length = -1;
+		buffer_limit = 20971520;
+		requestReader = RequestReader();
+	}
+
+	std::vector<char> buffer(buffer_limit);
+	ssize_t bytes_read;
+
+	while (true) {
+		
+		bytes_read = recv(client_fd, &buffer[0], buffer_limit, 0);
+
+		if (bytes_read == 0) {
+			info.action = CLOSE;
+			break ;
+		}
+
+		if (bytes_read < 0) {
+			info.action = AWAIT_READ;
+			break ;
+		}
+		requestVec.insert(requestVec.end(), buffer.begin(), buffer.begin() + bytes_read);
+		if (isComplete(requestVec)) {
+			requestReader.readHttpRequest(requestVec);
+			info.action = RESPONSE;
+			break;
+		}
+	}
 	return false;
 }
-
-// bool	Request::readRequest(int client_fd)
-// {
-// 	char buffer[1024];  // Buffer temporário para leitura
-// 	ssize_t bytes_read;
-
-// 	// Leitura não-bloqueante dos dados do cliente
-// 	while ((bytes_read = recv(client_fd, buffer, sizeof(buffer) - 1, 0)) > 0) {
-// 		buffer[bytes_read] = '\0';  // Garantir terminação de string
-
-// 		// Adicionar os dados lidos ao buffer específico do cliente
-// 		requestVec.insert(requestVec.end(), buffer, buffer + bytes_read);
-
-// 		// Verificar se a requisição está completa (cabeçalho e corpo)
-// 		if (isComplete(requestVec)) {
-// 			requestReader = RequestReader();
-// 			// requestReader.readHttpRequest(requestVec);
-// 			info.action = RESPONSE;
-// 			break;  // Já temos todos os dados, podemos parar de ler
-// 		}
-// 	}
-
-// 	// Se recv retornar 0, o cliente fechou a conexão de escrita (EOF)
-// 	if (bytes_read == 0) {
-// 		std::cout << "Client closed connection (fd: " << client_fd << ")" << std::endl;
-// 		info.action = CLOSE;
-// 	}
-
-// 	// Se recv retornar -1, significa que não havia dados disponíveis para leitura agora
-// 	if (bytes_read < 0) {
-// 		std::cout << "No data available for now on client fd: " << client_fd << std::endl;
-// 		info.action = AWAIT_READ;
-// 	}
-// 	return false;
-// }
 
 void	adjustRoute(std::string &route)
 {

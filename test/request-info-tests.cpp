@@ -97,7 +97,7 @@ TEST(RequestInfoTest, HandlesPostRequest) {
 		"POST " + std::string("/uploads") + " HTTP/1.1\r\n"
 		"Host: localhost\r\n"
 		"Content-Type: application/x-www-form-urlencoded\r\n"
-		"Content-Length: 27\r\n\r\n"
+		"Content-Length: 25\r\n\r\n"
 		"name=John&age=30&city=NYC";
 
 	RequestInfo requestInfo = parsePOSTHttpRequest(postRequest);
@@ -115,7 +115,7 @@ TEST(RequestInfoTest, HandlesPostRequestWithFormUrlEncoded) {
 		"POST " + std::string("/uploads") + " HTTP/1.1\r\n"
 		"Host: localhost\r\n"
 		"Content-Type: application/x-www-form-urlencoded\r\n"
-		"Content-Length: 29\r\n\r\n"
+		"Content-Length: 24\r\n\r\n"
 		"username=testuser&age=34";
 
 	
@@ -133,7 +133,7 @@ TEST(RequestInfoTest, HandlesPostRequestWithHtmlBody) {
 		"POST /uploads HTTP/1.1\r\n"
 		"Host: localhost\r\n"
 		"Content-Type: text/html\r\n"
-		"Content-Length: 51\r\n\r\n"
+		"Content-Length: 47\r\n\r\n"
 		"<html><body><p>This is a test</p></body></html>";
 
 	RequestInfo requestInfo = parsePOSTHttpRequest(postRequest);

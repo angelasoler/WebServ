@@ -13,8 +13,6 @@
 # include <fstream>
 # include <sstream>
 # include <algorithm>
-# define CRLF	"\r\n"
-# define READ_BUFFER_SIZE 1024
 
 class RequestReader
 {
@@ -23,7 +21,7 @@ class RequestReader
 		RequestReader();
 		~RequestReader();
 
-		bool								readHttpRequest(int &fdConection);
+		bool								readHttpRequest(std::vector<char> &input);
 
 		// GETTERS
 		std::string							getMethod(void) const;
@@ -34,6 +32,7 @@ class RequestReader
 		std::string							getFullRequest(void) const;
 		long int							getContentLength(void) const;
 		std::string							getRequestedRoute(void) const;
+
 	private:
 
 		// READ START LINE
@@ -45,33 +44,19 @@ class RequestReader
 		// READ REQUEST BODY
 		void								readBody(void);
 		std::vector<char>					processChunkedRequestBody(const std::vector<char>& chunkedRequestBody);
-		void								readRequestBodyChunked(void);
-		void								readRequestBodyChunkedMultipart(void);
-		size_t								readChunkSize();
-
-		// READLINE AND UTILS
-		void	 							readUntilEOF(int fd);
-		void								readUntilSize(int fd, long int size);
-		void								readUntilCRLF(int fd, std::string &segment);
-		std::string							intToString(int value);
-		bool								isDelimiter(std::string line, std::string delimiter);
-		bool								requestCompleted(const std::vector<char> &vec);
 
 		// DEBUG
 		void								printHeaderDataStructure(void);
 
-		// STATUS VARS
-		bool									_errorRead;
-		bool									_incompleted;
-
-		// REQUEST VARS
+		// HEADER VARS
 		std::map<std::string, std::string> 		_headers;
 		std::string								_method;
 		std::string								_requestedRoute;
 		std::string								_httpVersion;
-		std::vector<char>						_requestBody;
-		int										_fdClient;
+
+		// REQUEST VARS
 		std::vector<char>						_fullRequest;
+		std::vector<char>						_requestBody;
 		std::vector<char>						_rawBody;
 };
 
