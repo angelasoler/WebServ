@@ -49,7 +49,7 @@ void	Response::treatActionAndResponse(void)
 		case DELETE:
 			method = new Delete(*this);
 			break ;
-		case CLOSE:
+		default:
 			return ;
 	}
 	statusCode = method->handleRequest();

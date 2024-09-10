@@ -19,7 +19,7 @@ void	Connection::initSockets()
 	}
 }
 
-Connection::Connection(void) : _await_read(false), _await_write(false) {
+Connection::Connection(void) {
 	initSockets();
 }
 
@@ -55,29 +55,29 @@ void	Connection::connectNewClient(Server &refServer)
 
 void	Connection::readClientRequest(int client_fd)
 {
-	if (_await_write)
+	if (request[client_fd].info.action == AWAIT_WRITE)
 		return;
-	if (!request[client_fd].readRequest(client_fd))
-		_await_read = true;
+	if (request[client_fd].readRequest(client_fd))
+		request[client_fd].info.action = CLOSE;
 	else
-		_await_read = false;
-
+		request[client_fd].info.action = RESPONSE;
 }
 
 void	Connection::responseToClient(int client_fd)
 {
-	if (_await_read)
+	if (request[client_fd].info.action == AWAIT_READ)
 		return;
 	if (response.find(client_fd) == response.end()) {
 		response[client_fd] = Response(request[client_fd].info, client_fd);
 	}
 	response[client_fd].treatActionAndResponse();
+	request[client_fd].info.action = response[client_fd].requestInfo.action;
 	request[client_fd].requestsText.clear();
 }
 
 void	Connection::treatRequest(int client_fd)
 {
-	if (request[client_fd].requestVec.empty()) {
+	if (request[client_fd].requestsText.empty()) {
 		request[client_fd].info.action = RESPONSE;
 		return ;
 	}
@@ -114,9 +114,6 @@ void	Connection::verifyServerPollin(void)
 
 void	Connection::cleanClient(int clientIdx)
 {
-	if (_await_read || _await_write)
-		return ;
-
 	int client_fd = poll_fds[clientIdx].fd;
 
 	if (request[client_fd].info.action == CLOSE) {

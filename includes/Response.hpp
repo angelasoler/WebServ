@@ -56,7 +56,6 @@ class Response
 
 		// SEND RESPONSE
 		void	printResponse(std::string &response);
-		int		responseCGI(void);
 		void	buildContentType(void);
 
 	public:
