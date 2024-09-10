@@ -209,7 +209,7 @@ void Response::sendResponse(void)
 
 	size_t bytesToSend = response.size() - bytesSent;
 
-	int ret = send(client_fd, response.c_str() + bytesSent, bytesToSend, 0);
+	int ret = send(client_fd, response.c_str() + bytesSent, bytesToSend, MSG_NOSIGNAL);
 	sendLogs(ret, bytesSent, bytesToSend);
 	if (ret == -1)
 	{
