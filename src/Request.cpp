@@ -64,13 +64,12 @@ bool Request::isComplete(const std::vector<char>& clientRequestText) {
 		std::vector<char>::const_iterator it = std::search(clientRequestText.begin(), clientRequestText.end(),
 														   headerEnd, headerEnd + 4);
 		if (it == clientRequestText.end()) {
-			return false; // Ainda não encontrou o final do header
+			return true;
 		}
-		header_end = std::distance(clientRequestText.begin(), it); // Armazenar o valor encontrado
+		header_end = std::distance(clientRequestText.begin(), it);
 	}
-
 	if (content_length == -1) {
-		content_length = findContentLength(clientRequestText); // Armazenar o valor encontrado
+		content_length = findContentLength(clientRequestText);
 	}
 
 	if (content_length != -1)
@@ -84,6 +83,7 @@ bool Request::isComplete(const std::vector<char>& clientRequestText) {
 		}
 	}
 
+
 	if (findEndRequest(clientRequestText)) {
 		return true;
 	}
@@ -94,11 +94,9 @@ bool Request::isComplete(const std::vector<char>& clientRequestText) {
 bool	Request::readRequest(int client_fd)
 {
 	if (info.action != AWAIT_READ) {
-		header_end = 0;
-		content_length = 0;
-		buffer_limit = info.serverRef.client_body_limit;
-		if (buffer_limit <= 0)
-			buffer_limit = DEFAULT_CLIENT_BODY_LIMIT;
+		header_end = -1;
+		content_length = -1;
+		buffer_limit = 20971520;
 		requestReader = RequestReader();
 	}
 
@@ -127,10 +125,6 @@ bool	Request::readRequest(int client_fd)
 	}
 	return false;
 }
-
-
-
-
 
 void	adjustRoute(std::string &route)
 {

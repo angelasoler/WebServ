@@ -10,6 +10,7 @@ RequestReader::~RequestReader(void) {}
 bool RequestReader::readHttpRequest(std::vector<char> &input) {
 	_fullRequest = input;
 
+	PrintRequestInfo::printVectorChar(_fullRequest, "fullRequest", "logs/fullRequest.log");
 	std::string requestStr(input.begin(), input.end());
 
 	std::istringstream stream(requestStr);
