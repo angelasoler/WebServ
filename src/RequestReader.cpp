@@ -96,7 +96,6 @@ std::vector<char> RequestReader::processChunkedRequestBody(const std::vector<cha
 	return result;
 }
 
-<<<<<<< HEAD
 // READ AND UTILS
 void	 RequestReader::readUntilEOF(int fd)
 {
@@ -187,9 +186,6 @@ bool RequestReader::requestCompleted(const std::vector<char> &vec) {
 	return (last1 == '\r' && last2 == '\n' && last3 == '\r' && last4 == '\n');
 }
 
-=======
-// UTILS
->>>>>>> 0e6cf13c654a9de3492df1f945f5f069e60fdcd5
 // GETTERS
 std::string RequestReader::getMethod(void) const
 {
