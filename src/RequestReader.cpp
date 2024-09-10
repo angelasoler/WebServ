@@ -145,7 +145,7 @@ void	 RequestReader::readUntilEOF(int fd)
 		if (numberBytes < 0) {
 			if (requestCompleted(_fullRequest))
 				break;
-			PrintRequestInfo::printVectorChar(_fullRequest, std::string("readUntilEOF bytes_readed = " + numberBytes), "logs/readUntilEOF_Request.log");
+			// PrintRequestInfo::printVectorChar(_fullRequest, std::string("readUntilEOF bytes_readed = " + numberBytes), "logs/readUntilEOF_Request.log");
 			this->_errorRead = true;
 			break ;
 		}
@@ -162,7 +162,7 @@ void RequestReader::readUntilSize(int fd, long int size)
 	std::vector<char> buffer(size);
 	numberBytes = recv(fd, &buffer[0], size, 0);
 	if (numberBytes <= 0) {
-		PrintRequestInfo::printVectorChar(_fullRequest, std::string("read_until_size_Request bytes_readed = " + numberBytes), "logs/readUntilSize_Request.log");
+		// PrintRequestInfo::printVectorChar(_fullRequest, std::string("read_until_size_Request bytes_readed = " + numberBytes), "logs/readUntilSize_Request.log");
 		this->_errorRead = true;
 		return ;
 	}
@@ -178,12 +178,12 @@ void	RequestReader::readUntilCRLF(int fd, std::string &segment)
 	while (true) {
 		numberBytes = recv(fd, &buffer, 1, 0);
 		if (numberBytes == -1) {
-			PrintRequestInfo::printVectorChar(_fullRequest, std::string("readUntilCRLF_Request bytes_readed = " + numberBytes), "logs/readUntilCRLF_Request.log");
+			// PrintRequestInfo::printVectorChar(_fullRequest, std::string("readUntilCRLF_Request bytes_readed = " + numberBytes), "logs/readUntilCRLF_Request.log");
 			this->_errorRead = true;
 			break;
 		}
 		if (numberBytes == 0) {
-			PrintRequestInfo::printVectorChar(_fullRequest, std::string("readUntilCRLF_Request bytes_readed = " + numberBytes), "logs/readUntilCRLF_Request.log");
+			// PrintRequestInfo::printVectorChar(_fullRequest, std::string("readUntilCRLF_Request bytes_readed = " + numberBytes), "logs/readUntilCRLF_Request.log");
 			this->_errorRead = true;
 			break;
 		}
