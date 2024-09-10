@@ -85,6 +85,11 @@ class Request
 	private:
 		std::map< std::string, std::vector<std::string> >	header;
 
+		// reading
+		bool	isComplete(const std::vector<char>& clientRequestText);
+		ssize_t	findContentLength(const std::vector<char>& clientRequestText);
+		bool	findEndRequest(const std::vector<char> &vec);
+
 		// debug
 		void	printRequest(void);
 

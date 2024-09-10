@@ -96,21 +96,6 @@ std::vector<char> RequestReader::processChunkedRequestBody(const std::vector<cha
 }
 
 // UTILS
-
-bool RequestReader::requestCompleted(const std::vector<char> &vec) {
-	ssize_t size = vec.size();
-
-	if (size < 4) {
-		return false;
-	}
-	char last1 = vec[size - 4];
-	char last2 = vec[size - 3];
-	char last3 = vec[size - 2];
-	char last4 = vec[size - 1];
-
-	return (last1 == '\r' && last2 == '\n' && last3 == '\r' && last4 == '\n');
-}
-
 // GETTERS
 std::string RequestReader::getMethod(void) const
 {

@@ -24,9 +24,21 @@ void	Request::printRequest(void)
 }
 
 
+bool Request::findEndRequest(const std::vector<char> &vec) {
+	ssize_t size = vec.size();
 
+	if (size < 4) {
+		return false;
+	}
+	char last1 = vec[size - 4];
+	char last2 = vec[size - 3];
+	char last3 = vec[size - 2];
+	char last4 = vec[size - 1];
 
-ssize_t findContentLength(const std::vector<char>& clientRequestText) {
+	return (last1 == '\r' && last2 == '\n' && last3 == '\r' && last4 == '\n');
+}
+
+ssize_t Request::findContentLength(const std::vector<char>& clientRequestText) {
 	const char* contentLengthStr = "Content-Length: ";
 	std::vector<char>::const_iterator it = std::search(clientRequestText.begin(), clientRequestText.end(),
 													   contentLengthStr, contentLengthStr + 16);
@@ -45,7 +57,7 @@ ssize_t findContentLength(const std::vector<char>& clientRequestText) {
 	return -1;
 }
 
-bool isComplete(const std::vector<char>& clientRequestText, RequestReader& requestReader) {
+bool Request::isComplete(const std::vector<char>& clientRequestText) {
 
 	const char* headerEnd = "\r\n\r\n";
 	std::vector<char>::const_iterator it = std::search(clientRequestText.begin(), clientRequestText.end(),
@@ -70,7 +82,7 @@ bool isComplete(const std::vector<char>& clientRequestText, RequestReader& reque
 		}
 	}
 
-	if (requestReader.requestCompleted(clientRequestText)) {
+	if (findEndRequest(clientRequestText)) {
 		return true;
 	}
 
@@ -100,7 +112,7 @@ bool	Request::readRequest(int client_fd)
 			break ;
 		}
 		requestVec.insert(requestVec.end(), buffer.begin(), buffer.begin() + bytes_read);
-		if (isComplete(requestVec, requestReader)) {
+		if (isComplete(requestVec)) {
 			requestReader.readHttpRequest(requestVec);
 			info.action = RESPONSE;
 			break;

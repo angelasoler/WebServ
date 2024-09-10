@@ -32,7 +32,7 @@ class RequestReader
 		std::string							getFullRequest(void) const;
 		long int							getContentLength(void) const;
 		std::string							getRequestedRoute(void) const;
-		bool								requestCompleted(const std::vector<char> &vec);
+
 	private:
 
 		// READ START LINE
