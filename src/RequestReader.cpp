@@ -49,8 +49,8 @@ bool RequestReader::readHttpRequest(std::vector<char> &input) {
 
 	// Parse the body if exists
 	if (bodyFound) {
-		std::string body((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
-		_requestBody.assign(body.begin(), body.end());
+		// std::string body((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+		// _requestBody.assign(body.begin(), body.end());
 
 		std::string delimiter = "\r\n\r\n";
 		std::vector<char>::iterator it = std::search(_fullRequest.begin(), _fullRequest.end(), delimiter.begin(), delimiter.end());

@@ -46,7 +46,6 @@ bool isComplete(const std::vector<char>& clientRequestText) {
 			std::string content_length_str(clientRequestText.begin() + start_pos, clientRequestText.begin() + end_pos);
 
 			size_t content_length = std::atoi(content_length_str.c_str());
-
 			// Verificar se o corpo da requisição foi completamente recebido
 			size_t total_length = header_end + 4 + content_length;
 			if (clientRequestText.size() >= total_length) {
@@ -57,8 +56,11 @@ bool isComplete(const std::vector<char>& clientRequestText) {
 		}
 	}
 
-	// Se não houver Content-Length, assumimos que não há corpo, então a requisição está completa
-	return true;
+	RequestReader	requestReader;
+	if (requestReader.requestCompleted(clientRequestText))
+		return true;
+
+	return false;
 }
 
 // bool	Request::readRequest(int client_fd)
@@ -79,31 +81,34 @@ bool	Request::readRequest(int client_fd)
 	ssize_t bytes_read;
 
 	// Leitura não-bloqueante dos dados do cliente
-	while ((bytes_read = recv(client_fd, buffer, sizeof(buffer) - 1, 0)) > 0) {
+	while (true) {
+		
+		bytes_read = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
 		buffer[bytes_read] = '\0';  // Garantir terminação de string
 
-		// Adicionar os dados lidos ao buffer específico do cliente
+		
+		if (bytes_read == 0) {
+			
+			std::cout << "Client closed connection (fd: " << client_fd << ")" << std::endl;
+			info.action = CLOSE;
+			break ;
+		}
+
+		if (bytes_read < 0) {
+			std::cout << "No data available for now on client fd: " << client_fd << std::endl;
+			info.action = AWAIT_READ;
+			break ;
+		}		
+
 		requestVec.insert(requestVec.end(), buffer, buffer + bytes_read);
 
-		// Verificar se a requisição está completa (cabeçalho e corpo)
 		if (isComplete(requestVec)) {
 			requestReader = RequestReader();
 			requestReader.readHttpRequest(requestVec);
 			info.action = RESPONSE;
 			break;  // Já temos todos os dados, podemos parar de ler
 		}
-	}
-
-	// Se recv retornar 0, o cliente fechou a conexão de escrita (EOF)
-	if (bytes_read == 0) {
-		std::cout << "Client closed connection (fd: " << client_fd << ")" << std::endl;
-		info.action = CLOSE;
-	}
-
-	// Se recv retornar -1, significa que não havia dados disponíveis para leitura agora
-	if (bytes_read < 0) {
-		std::cout << "No data available for now on client fd: " << client_fd << std::endl;
-		info.action = AWAIT_READ;
+		memset(buffer, 0, 1024);
 	}
 	return false;
 }

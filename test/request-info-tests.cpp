@@ -97,7 +97,7 @@ TEST(RequestInfoTest, HandlesPostRequest) {
 		"POST " + std::string("/uploads") + " HTTP/1.1\r\n"
 		"Host: localhost\r\n"
 		"Content-Type: application/x-www-form-urlencoded\r\n"
-		"Content-Length: 27\r\n\r\n"
+		"Content-Length: 25\r\n\r\n"
 		"name=John&age=30&city=NYC";
 
 	RequestInfo requestInfo = parsePOSTHttpRequest(postRequest);
