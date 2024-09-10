@@ -93,6 +93,7 @@ class Request
 		e_httpMethodActions									getMethodAction(void);
 	public:
 		std::string			requestsText;
+		std::vector<char>	requestVec;
 		RequestReader		requestReader;
 		RequestInfo			info;
 

@@ -1,0 +1,1 @@
+Conteúdo do arquivo para teste de DELETE no diretório.
