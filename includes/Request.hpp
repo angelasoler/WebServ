@@ -83,6 +83,10 @@ struct RequestInfo
 class Request
 {
 	private:
+		ssize_t content_length;
+		ssize_t header_end;
+		ssize_t buffer_limit;
+
 		std::map< std::string, std::vector<std::string> >	header;
 
 		// reading

@@ -59,17 +59,19 @@ ssize_t Request::findContentLength(const std::vector<char>& clientRequestText) {
 
 bool Request::isComplete(const std::vector<char>& clientRequestText) {
 
-	const char* headerEnd = "\r\n\r\n";
-	std::vector<char>::const_iterator it = std::search(clientRequestText.begin(), clientRequestText.end(),
-													   headerEnd, headerEnd + 4);
-	if (it == clientRequestText.end()) {
-		return true;
+	if (header_end == -1) {
+		const char* headerEnd = "\r\n\r\n";
+		std::vector<char>::const_iterator it = std::search(clientRequestText.begin(), clientRequestText.end(),
+														   headerEnd, headerEnd + 4);
+		if (it == clientRequestText.end()) {
+			return false; // Ainda não encontrou o final do header
+		}
+		header_end = std::distance(clientRequestText.begin(), it); // Armazenar o valor encontrado
 	}
 
-	ssize_t header_end = std::distance(clientRequestText.begin(), it);
-
-	// Usar a função findContentLength para obter o valor de Content-Length
-	ssize_t content_length = findContentLength(clientRequestText);
+	if (content_length == -1) {
+		content_length = findContentLength(clientRequestText); // Armazenar o valor encontrado
+	}
 
 	if (content_length != -1)
 	{
@@ -92,15 +94,20 @@ bool Request::isComplete(const std::vector<char>& clientRequestText) {
 bool	Request::readRequest(int client_fd)
 {
 	if (info.action != AWAIT_READ) {
+		header_end = 0;
+		content_length = 0;
+		buffer_limit = info.serverRef.client_body_limit;
+		if (buffer_limit <= 0)
+			buffer_limit = DEFAULT_CLIENT_BODY_LIMIT;
 		requestReader = RequestReader();
 	}
 
-	std::vector<char> buffer(13881283);  // Buffer temporário para leitura
+	std::vector<char> buffer(buffer_limit);
 	ssize_t bytes_read;
 
 	while (true) {
 		
-		bytes_read = recv(client_fd, &buffer[0], 13881283, 0);
+		bytes_read = recv(client_fd, &buffer[0], buffer_limit, 0);
 
 		if (bytes_read == 0) {
 			info.action = CLOSE;
