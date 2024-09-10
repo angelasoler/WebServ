@@ -115,7 +115,7 @@ TEST(RequestInfoTest, HandlesPostRequestWithFormUrlEncoded) {
 		"POST " + std::string("/uploads") + " HTTP/1.1\r\n"
 		"Host: localhost\r\n"
 		"Content-Type: application/x-www-form-urlencoded\r\n"
-		"Content-Length: 29\r\n\r\n"
+		"Content-Length: 24\r\n\r\n"
 		"username=testuser&age=34";
 
 	
