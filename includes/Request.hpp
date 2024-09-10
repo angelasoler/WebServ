@@ -33,7 +33,9 @@ typedef enum
 	RESPONSE,
 	UPLOAD,
 	DELETE,
-	CLOSE
+	CLOSE,
+	AWAIT_READ,
+	AWAIT_WRITE
 }	e_httpMethodActions;
 
 typedef enum
@@ -93,14 +95,15 @@ class Request
 		e_httpMethodActions									getMethodAction(void);
 	public:
 		std::string			requestsText;
+		std::vector<char>	requestVec;
 		RequestReader		requestReader;
 		RequestInfo			info;
 
 		Request(void);
 		~Request(void);
-		void	parseRequest(ServerConfig &serverConfig);
-		bool	readRequest(int client_fd);
-		int		getInformationalStatus(void);
+		void				parseRequest(ServerConfig &serverConfig);
+		bool				readRequest(int client_fd);
+		int					getInformationalStatus(void);
 };
 
 #endif /* REQUEST_HPP */

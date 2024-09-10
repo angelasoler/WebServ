@@ -5,7 +5,9 @@
 #include <unistd.h>
 # include "TimeNow.hpp"
 
-Response::Response(RequestInfo info, int fd) : client_fd(fd), requestInfo(info)
+Response::Response() {}
+
+Response::Response(RequestInfo info, int fd) : client_fd(fd), response(""), bytesSent(0), requestInfo(info)
 {
 	mimeTypes["html"]	= "text/html";
 	mimeTypes["htm"]	= "text/html";
@@ -47,7 +49,10 @@ void	Response::treatActionAndResponse(void)
 		case DELETE:
 			method = new Delete(*this);
 			break ;
-		case CLOSE:
+		case AWAIT_WRITE:
+			sendResponse();
+			return ;
+		default:
 			return ;
 	}
 	statusCode = method->handleRequest();
@@ -199,12 +204,47 @@ void	Response::printResponse(std::string &response)
 // SENDING
 void Response::sendResponse(void)
 {
-	std::string	response = buildResponse();
+	if (response.empty())
+		setResponseStr();
 
-	printResponse(response);
-	int ret = send(client_fd, response.c_str(), response.size(), 0);
+	size_t bytesToSend = response.size() - bytesSent;
+
+	int ret = send(client_fd, response.c_str() + bytesSent, bytesToSend, 0);
+	sendLogs(ret, bytesSent, bytesToSend);
 	if (ret == -1)
-		requestInfo.action = CLOSE;
+	{
+		requestInfo.action = AWAIT_WRITE;
+	}
+	else
+	{
+		bytesSent += ret;
+
+		if (bytesSent < response.size())
+		{
+			requestInfo.action = AWAIT_WRITE;
+		}
+		else
+		{
+			requestInfo.action = CLOSE;
+		}
+	}
+}
+
+void Response::sendLogs(int ret, size_t bytesSent, size_t bytesToSend) {
+	std::ofstream responseLog("logs/send.log", std::ios_base::app);
+	responseLog << std::endl << TimeNow();
+	responseLog << "\nfd: " << client_fd
+				<< "\nret: " << ret
+				<< "\nbytesSent: " << bytesSent
+				<< "\nbytesToSend: " << bytesToSend
+				<< "\n-----------------------"
+				<< std::endl;
+	responseLog.close();
+}
+
+void Response::setResponseStr(void) {
+	response = buildResponse();
+	printResponse(response);
 }
 
 int			Response::getClientFd(void)

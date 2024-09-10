@@ -55,26 +55,39 @@ void	Connection::connectNewClient(Server &refServer)
 
 void	Connection::readClientRequest(int client_fd)
 {
-	if (request.readRequest(client_fd))
-		request.info.action = CLOSE;
+	if (request[client_fd].info.action == AWAIT_WRITE)
+		return;
+	if (request[client_fd].readRequest(client_fd))
+		request[client_fd].info.action = CLOSE;
 	else
-		request.info.action = RESPONSE;
+		request[client_fd].info.action = RESPONSE;
 }
 
 void	Connection::responseToClient(int client_fd)
 {
-	Response	response(request.info, client_fd);
-	response.treatActionAndResponse();	
-	request.requestsText.clear();
+	if (request[client_fd].info.action == AWAIT_READ)
+		return;
+	if (response.find(client_fd) == response.end()) {
+		response[client_fd] = Response(request[client_fd].info, client_fd);
+	}
+	response[client_fd].treatActionAndResponse();
+	request[client_fd].info.action = response[client_fd].requestInfo.action;
+	request[client_fd].requestsText.clear();
 }
 
 void	Connection::treatRequest(int client_fd)
 {
-	if (request.requestsText.empty()) {
-		request.info.action = RESPONSE;
+	if (request[client_fd].info.action == AWAIT_READ)
+		return;
+	if (request[client_fd].info.action == AWAIT_WRITE) {
+		responseToClient(client_fd);
+		return;
+	}
+	if (request[client_fd].requestsText.empty()) {
+		request[client_fd].info.action = RESPONSE;
 		return ;
 	}
-	request.parseRequest(clientServerConfig[client_fd]);
+	request[client_fd].parseRequest(clientServerConfig[client_fd]);
 	responseToClient(client_fd);
 }
 
@@ -107,13 +120,17 @@ void	Connection::verifyServerPollin(void)
 
 void	Connection::cleanClient(int clientIdx)
 {
-	if (request.info.action == CLOSE) {
+	int client_fd = poll_fds[clientIdx].fd;
+
+	if (request[client_fd].info.action == CLOSE) {
 		std::cout << "\n ***** Close Client *****\n"
 				<< "\tfd:\t"
-				<< poll_fds[clientIdx].fd
+				<< client_fd
 				<< "\nclient correctly cleaned"
 				<< std::endl;
-		close(poll_fds[clientIdx].fd);
+		close(client_fd);
+		request.erase(client_fd);
+		response.erase(client_fd);
 		poll_fds.erase(poll_fds.begin() + clientIdx);
 	}
 }
@@ -122,12 +139,16 @@ void	Connection::requestResponse(void)
 {
 	for (size_t clientIdx = nServers; clientIdx < poll_fds.size(); clientIdx++)
 	{
+		int client_fd = poll_fds[clientIdx].fd;
+
 		if (poll_fds[clientIdx].revents & POLLIN) {
-			readClientRequest(poll_fds[clientIdx].fd);
+			readClientRequest(client_fd);
 			cleanClient(clientIdx);
 		}
 		if (poll_fds[clientIdx].revents & POLLOUT) {
-			treatRequest(poll_fds[clientIdx].fd);
+			// std::cerr << "bbb: " << request[client_fd].info.action << "\n";
+			treatRequest(client_fd);
+			// std::cerr << "aaa: " << request[client_fd].info.action << "\n";
 			cleanClient(clientIdx);
 		}
 	}
